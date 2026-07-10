@@ -20,7 +20,7 @@ const compiled = ts.transpileModule(source, {
 const module = { exports: {} };
 vm.runInNewContext(compiled, { exports: module.exports, module });
 
-const { getRecordingErrorMessage, getRecordingShutdownUpdate } = module.exports;
+const { formatRecordingDuration, getRecordingErrorMessage, getRecordingShutdownUpdate } = module.exports;
 
 assert.equal(
   JSON.stringify(getRecordingShutdownUpdate({
@@ -71,5 +71,11 @@ assert.equal(
   getRecordingErrorMessage(null),
   'Recording stopped because of an unexpected audio error.',
 );
+
+assert.equal(formatRecordingDuration(null), '--:--');
+assert.equal(formatRecordingDuration(0), '00:00');
+assert.equal(formatRecordingDuration(65.9), '01:05');
+assert.equal(formatRecordingDuration(3661), '1:01:01');
+assert.equal(formatRecordingDuration(-1), '--:--');
 
 console.log('recording-lifecycle tests passed');
