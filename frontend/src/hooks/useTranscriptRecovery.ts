@@ -12,7 +12,7 @@ import { storageService } from '@/services/storageService';
 import { applyPinnedSummaryLanguageToMeeting } from '@/lib/summary-language-preferences';
 import { toast } from 'sonner';
 
-interface AudioRecoveryStatus {
+export interface AudioRecoveryStatus {
   status: string; // "success" | "partial" | "failed" | "none"
   chunk_count: number;
   estimated_duration_seconds: number;
@@ -43,15 +43,15 @@ export function useTranscriptRecovery(): UseTranscriptRecoveryReturn {
     try {
       const meetings = await indexedDBService.getAllMeetings();
 
-      // Filter out meetings older than 7 days and newer than 15 seconds
-      // The 15 seconds threshold prevents showing meetings from the current session(jus in case)
+      // Filter out meetings older than 7 days and newer than 2 seconds.
+      // The short threshold prevents showing the active session while its save is resolving.
       // where recording just stopped but hasn't been fully saved yet
       const cutoffTime = Date.now() - (7 * 24 * 60 * 60 * 1000);
       const secondsAgo = Date.now() - (2 * 1000);
 
       const recentMeetings = meetings.filter(m => {
         const isWithinRetention = m.lastUpdated > cutoffTime; // Not older than 7 days
-        const isOldEnough = m.lastUpdated < secondsAgo; // Older than 15 seconds
+        const isOldEnough = m.lastUpdated < secondsAgo; // Older than 2 seconds
         return isWithinRetention && isOldEnough;
       });
 

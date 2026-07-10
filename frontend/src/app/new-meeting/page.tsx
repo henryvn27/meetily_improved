@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { PreRecordingWorkspace } from '@/components/recording/PreRecordingWorkspace';
 import { ActiveRecordingWorkspace } from '@/components/recording/ActiveRecordingWorkspace';
 import { PostRecordingWorkspace } from '@/components/recording/PostRecordingWorkspace';
+import { getAudioRecoveryDescription } from '@/lib/transcript-recovery';
 
 export default function NewMeetingPage() {
   // Local page state (not moved to contexts)
@@ -134,9 +135,7 @@ export default function NewMeetingPage() {
 
       if (result.success) {
         toast.success('Meeting recovered successfully!', {
-          description: result.audioRecoveryStatus?.status === 'success'
-            ? 'Transcripts and audio recovered'
-            : 'Transcripts recovered (no audio available)',
+          description: getAudioRecoveryDescription(result.audioRecoveryStatus?.status),
           action: result.meetingId ? {
             label: 'View Meeting',
             onClick: () => {
@@ -161,6 +160,7 @@ export default function NewMeetingPage() {
           }, 2000);
         }
       }
+      return result;
     } catch (error) {
       toast.error('Failed to recover meeting', {
         description: error instanceof Error ? error.message : 'Unknown error occurred',

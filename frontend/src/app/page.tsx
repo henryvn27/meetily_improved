@@ -13,6 +13,7 @@ import { useSidebar } from '@/components/Sidebar/SidebarProvider';
 import { useTranscriptRecovery } from '@/hooks/useTranscriptRecovery';
 import { TranscriptRecovery } from '@/components/TranscriptRecovery';
 import { getLocalModelStatus } from '@/lib/local-model-status';
+import { getAudioRecoveryDescription } from '@/lib/transcript-recovery';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function DashboardPage() {
     const result = await recoverMeeting(meetingId);
     await refetchMeetings();
     if (result.meetingId) {
-      toast.success('Meeting recovered');
+      toast.success('Meeting recovered', { description: getAudioRecoveryDescription(result.audioRecoveryStatus?.status) });
       router.push(`/meeting-details?id=${result.meetingId}`);
     }
     return result;
