@@ -30,7 +30,7 @@ const Logo = React.forwardRef<HTMLButtonElement, LogoProps>(({ isCollapsed }, re
       )}
       <DialogContent>
         <VisuallyHidden>
-          <DialogTitle>About Meetily</DialogTitle>
+          <DialogTitle>About Meetily Improved</DialogTitle>
         </VisuallyHidden>
         <About />
       </DialogContent>

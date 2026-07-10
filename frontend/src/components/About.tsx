@@ -6,7 +6,7 @@ import AnalyticsConsentSwitch from "./AnalyticsConsentSwitch";
 import { UpdateDialog } from "./UpdateDialog";
 import { updateService, UpdateInfo } from '@/services/updateService';
 import { Button } from './ui/button';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 
@@ -21,9 +21,9 @@ export function About() {
         getVersion().then(setCurrentVersion).catch(console.error);
     }, []);
 
-    const handleContactClick = async () => {
+    const handleUpstreamClick = async () => {
         try {
-            await invoke('open_external_url', { url: 'https://meetily.zackriya.com/#about' });
+            await invoke('open_external_url', { url: 'https://github.com/Zackriya-Solutions/meetily' });
         } catch (error) {
             console.error('Failed to open link:', error);
         }
@@ -48,22 +48,22 @@ export function About() {
     };
 
     return (
-        <div className="p-4 space-y-4 h-[80vh] overflow-y-auto">
-            {/* Compact Header */}
-            <div className="text-center">
+        <div className="h-[80vh] space-y-5 overflow-y-auto p-5">
+            <div className="border-b border-border pb-5 text-center">
                 <div className="mb-3">
                     <Image
                         src="icon_128x128.png"
-                        alt="Meetily Logo"
+                        alt="Meetily Improved logo"
                         width={64}
                         height={64}
-                        className="mx-auto"
+                        className="mx-auto rounded-[14px]"
                     />
                 </div>
-                {/* <h1 className="text-xl font-bold text-gray-900">Meetily</h1> */}
-                <span className="text-sm text-gray-500"> v{currentVersion}</span>
-                <p className="text-medium text-gray-600 mt-1">
-                    Local meeting storage with your choice of local or configured AI.
+                <p className="app-eyebrow">Meetily Improved / local meeting desk</p>
+                <h1 className="app-display mt-2 text-2xl">Meetily Improved</h1>
+                <span className="mt-1 block text-xs text-muted-foreground">v{currentVersion}</span>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+                    A local-first desktop fork for capturing, transcribing, and revisiting meetings without fabricated activity or forced cloud accounts.
                 </p>
                 <div className="mt-3">
                     <Button
@@ -93,55 +93,41 @@ export function About() {
                 </div>
             </div>
 
-            {/* Features Grid - Compact */}
             <div className="space-y-3">
-                <h2 className="text-base font-semibold text-gray-800">What makes Meetily different</h2>
+                <h2 className="text-sm font-semibold text-foreground">What this fork improves</h2>
                 <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1">Privacy-first</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Meeting data is stored locally. Use built-in AI or local Ollama to keep summary processing on-device; configured remote providers process requests under their own policies.</p>
+                    <div className="border border-border bg-muted/40 p-3">
+                        <h3 className="mb-1 text-sm font-semibold text-foreground">Clearer workbench</h3>
+                        <p className="text-xs leading-relaxed text-muted-foreground">A focused desktop shell makes capture, local readiness, recovery, and saved notes easier to scan.</p>
                     </div>
-                    <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1">Use Any Model</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Prefer local open-source model? Great. Want to plug in an external API? Also fine. No lock-in.</p>
+                    <div className="border border-border bg-muted/40 p-3">
+                        <h3 className="mb-1 text-sm font-semibold text-foreground">Local-first by default</h3>
+                        <p className="text-xs leading-relaxed text-muted-foreground">Meeting data remains local. Remote processing happens only when you explicitly configure a remote provider.</p>
                     </div>
-                    <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1">Cost-Smart</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Avoid pay-per-minute bills by running models locally (or pay only for the calls you choose).</p>
+                    <div className="border border-border bg-muted/40 p-3">
+                        <h3 className="mb-1 text-sm font-semibold text-foreground">Same foundation</h3>
+                        <p className="text-xs leading-relaxed text-muted-foreground">Capture, transcription, summaries, imports, recovery, and saved meetings stay available while the UI changes.</p>
                     </div>
-                    <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1">Works everywhere</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Google Meet, Zoom, Teams-online or offline.</p>
+                    <div className="border border-border bg-muted/40 p-3">
+                        <h3 className="mb-1 text-sm font-semibold text-foreground">Open source</h3>
+                        <p className="text-xs leading-relaxed text-muted-foreground">Meetily Improved is public work built with clear attribution to the upstream MIT project.</p>
                     </div>
                 </div>
             </div>
 
-            {/* Coming Soon - Compact */}
-            <div className="bg-blue-50 rounded p-3">
-                <p className="text-s text-blue-800">
-                    <span className="font-bold">Coming soon:</span> A library of on-device AI agents-automating follow-ups, action tracking, and more.
+            <div className="border border-accent/30 bg-accent-soft p-3">
+                <p className="text-sm leading-5 text-foreground">
+                    <span className="font-semibold">Upstream attribution.</span> Meetily Improved is an independent fork of Meetily by Zackriya Solutions. The original application and MIT license remain credited in this project.
                 </p>
             </div>
 
-            {/* CTA Section - Compact */}
-            <div className="text-center space-y-2">
-                <h3 className="text-medium font-semibold text-gray-800">Ready to push your business further?</h3>
-                <p className="text-s text-gray-600">
-                    If you&apos;re planning to build privacy-first custom AI agents or a fully tailored product for your <span className="font-bold">business</span>, we can help you build it.
-                </p>
+            <div className="space-y-2 border-t border-border pt-4 text-center">
                 <button
-                    onClick={handleContactClick}
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors duration-200 shadow-sm hover:shadow-md"
+                    onClick={handleUpstreamClick}
+                    className="inline-flex items-center gap-2 bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
-                    Chat with the Zackriya team
+                    View upstream Meetily <ArrowUpRight className="size-3.5" />
                 </button>
-            </div>
-
-            {/* Footer - Compact */}
-            <div className="pt-2 border-t border-gray-200 text-center">
-                <p className="text-xs text-gray-400">
-                    Built by Zackriya Solutions
-                </p>
             </div>
             <AnalyticsConsentSwitch />
 
