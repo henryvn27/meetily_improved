@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, Bot, Mic, Settings2 } from 'lucide-react';
+import { ArrowRight, Bot, ChevronRight, Circle, Mic, Settings2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AppState } from '@/components/app-shell/AppState';
@@ -60,9 +60,9 @@ export default function DashboardPage() {
         onLoadPreview={loadMeetingTranscripts}
       />
       <PageHeader
-        eyebrow="Local meeting workspace"
-        title="Good morning"
-        description="Capture a conversation, return to recent notes, or check your local model setup."
+        eyebrow="Meetily / Home"
+        title="Your meeting desk"
+        description="Record, revisit, and work with your conversations. Everything here stays on this device."
         actions={
           <Button onClick={() => router.push('/new-meeting')}>
             <Mic aria-hidden="true" />
@@ -71,48 +71,50 @@ export default function DashboardPage() {
         }
       />
 
-      <section aria-labelledby="workspace-heading" className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
-        <Surface className="p-6 sm:p-7">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Start here</p>
-              <h2 id="workspace-heading" className="mt-3 text-2xl font-semibold tracking-[-0.025em]">Record without a meeting bot</h2>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                Audio, transcripts, and notes stay in Meetily&apos;s existing local workflow.
-              </p>
+      <section aria-labelledby="workspace-heading" className="mt-6">
+        <Surface className="overflow-hidden p-0">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_19rem]">
+            <div className="p-6 sm:p-8">
+              <div className="flex items-start gap-4">
+                <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-md bg-[hsl(var(--accent-soft))] text-accent">
+                  <Mic className="size-[1.1rem]" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Capture</p>
+                  <h2 id="workspace-heading" className="mt-1.5 text-xl font-semibold tracking-[-0.02em]">Start a meeting</h2>
+                  <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted-foreground">
+                    Record system and microphone audio without adding a bot to the call.
+                  </p>
+                  <Button className="mt-5" onClick={() => router.push('/new-meeting')}>
+                    Open recorder
+                    <ArrowRight aria-hidden="true" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
-              <Mic className="size-5" aria-hidden="true" />
-            </span>
-          </div>
-          <Button className="mt-8" onClick={() => router.push('/new-meeting')}>
-            Open recorder
-            <ArrowRight aria-hidden="true" />
-          </Button>
-        </Surface>
 
-        <Surface className="flex flex-col justify-between p-6">
-          <div>
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Bot className="size-4" aria-hidden="true" />
-              Local model
-            </div>
-            <p className="mt-3 text-2xl font-semibold tracking-[-0.02em]">
-              {localModelStatus.ready ? 'Ready' : 'Needs attention'}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {localModelStatus.description}
-            </p>
-          </div>
-          <div className="mt-6 grid gap-2">
-            <Button variant="outline" className="w-full" onClick={() => router.push('/settings')}>
-              <Settings2 aria-hidden="true" />
-              Review settings
-            </Button>
-            <Button variant="ghost" className="w-full" onClick={() => router.push('/chat')}>
-              <Bot aria-hidden="true" />
-              Ask meetings
-            </Button>
+            <aside aria-label="Local model status" className="border-t border-border bg-secondary/45 p-5 lg:border-l lg:border-t-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <Bot className="size-3.5" aria-hidden="true" />
+                  Local model
+                </div>
+                <span className="flex items-center gap-1.5 text-xs font-medium">
+                  <Circle className={`size-2 fill-current ${localModelStatus.ready ? 'text-[hsl(var(--success))]' : 'text-[hsl(var(--warning))]'}`} aria-hidden="true" />
+                  {localModelStatus.ready ? 'Ready' : 'Check setup'}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{localModelStatus.description}</p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => router.push('/settings')}>
+                  <Settings2 aria-hidden="true" />
+                  Settings
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => router.push('/chat')}>
+                  Ask notes
+                </Button>
+              </div>
+            </aside>
           </div>
         </Surface>
       </section>
@@ -129,8 +131,11 @@ export default function DashboardPage() {
       )}
 
       <section aria-labelledby="recent-heading" className="mt-8">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 id="recent-heading" className="text-base font-semibold">Recent meetings</h2>
+        <div className="mb-3 flex items-end justify-between border-b border-border pb-3">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Library</p>
+            <h2 id="recent-heading" className="mt-1 text-base font-semibold">Recent meetings</h2>
+          </div>
           {meetings.length > 0 && (
             <Button variant="ghost" size="sm" onClick={() => router.push('/meetings')}>
               View all
@@ -147,19 +152,24 @@ export default function DashboardPage() {
             action={<Button onClick={() => router.push('/new-meeting')}>Start your first meeting</Button>}
           />
         ) : (
-          <Surface className="divide-y divide-border/70 overflow-hidden p-0">
+          <div className="divide-y divide-border border-y border-border">
             {recentMeetings.map((meeting) => (
               <button
                 key={meeting.id}
                 type="button"
                 onClick={() => router.push(`/meeting-details?id=${meeting.id}`)}
-                className="group flex min-h-16 w-full items-center justify-between gap-4 px-5 py-4 text-left transition-[background,transform] hover:bg-secondary/70 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                className="group flex min-h-14 w-full items-center justify-between gap-4 px-1 py-3 text-left transition-[background,transform] hover:bg-card active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               >
-                <span className="min-w-0 truncate text-sm font-medium">{meeting.title}</span>
-                <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-md bg-card text-muted-foreground ring-1 ring-inset ring-border">
+                    <Mic className="size-3.5" aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 truncate text-sm font-medium">{meeting.title}</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </button>
             ))}
-          </Surface>
+          </div>
         )}
       </section>
     </div>

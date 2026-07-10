@@ -31,12 +31,12 @@ export function AppState({ kind, title, description, action, compact = false, cl
       role={kind === 'error' ? 'alert' : 'status'}
       aria-live={kind === 'loading' ? 'polite' : undefined}
       className={cn(
-        'flex border border-border/80 bg-card text-card-foreground',
-        compact ? 'items-start gap-3 rounded-lg p-4' : 'min-h-48 flex-col items-center justify-center rounded-xl px-6 py-10 text-center',
+        'flex border border-border bg-card text-card-foreground',
+        compact ? 'items-start gap-3 rounded-md p-4' : 'min-h-44 flex-col items-center justify-center rounded-[10px] px-6 py-9 text-center',
         className,
       )}
     >
-      <span className={cn('grid shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground', compact ? 'size-9' : 'mb-4 size-11')}>
+      <span className={cn('grid shrink-0 place-items-center rounded-md bg-secondary text-muted-foreground', compact ? 'size-9' : 'mb-4 size-10')}>
         <Icon className={cn('size-5', kind === 'loading' && 'animate-spin')} aria-hidden="true" />
       </span>
       <div className={cn(compact && 'min-w-0 flex-1')}>

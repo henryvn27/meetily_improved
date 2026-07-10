@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-10T16:03:00-04:00",
+  "title": "Design System: Meetily Improved",
+  "extensions": {
+    "colorMeta": {
+      "canvas": { "role": "neutral", "displayName": "Cool Canvas", "canonical": "#F2F3F5", "tonalRamp": ["#1B1C1F", "#323338", "#4D4F56", "#6D6F78", "#93959E", "#B8BAC1", "#D9DADF", "#F2F3F5"] },
+      "surface": { "role": "neutral", "displayName": "Paper Surface", "canonical": "#FCFCFD", "tonalRamp": ["#202024", "#3A3A40", "#595A62", "#7A7B84", "#A0A1A9", "#C4C5CA", "#E4E4E7", "#FCFCFD"] },
+      "ink": { "role": "primary", "displayName": "Graphite Ink", "canonical": "#17171A", "tonalRamp": ["#17171A", "#29292E", "#414148", "#5F6068", "#81828B", "#A8A9B0", "#D0D1D5", "#F3F3F5"] },
+      "accent": { "role": "primary", "displayName": "Signal Orange", "canonical": "#F06A2A", "tonalRamp": ["#381509", "#63230C", "#91340F", "#C34A18", "#F06A2A", "#F58D58", "#FAB997", "#FDEADF"] },
+      "rail": { "role": "neutral", "displayName": "Graphite Rail", "canonical": "#19191B", "tonalRamp": ["#101012", "#19191B", "#252529", "#36363C", "#55565D", "#7F8088", "#B5B6BC", "#E9E9EC"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Route-defining titles only." },
+      "headline": { "displayName": "Headline", "purpose": "Meeting titles and primary workspace sections." },
+      "body": { "displayName": "Body", "purpose": "Controls, explanation, transcript, and summary prose." },
+      "label": { "displayName": "Label", "purpose": "Compact metadata and state labels." },
+      "mono": { "displayName": "Technical Mono", "purpose": "Timestamps, models, formats, and technical values." }
+    },
+    "shadows": [
+      { "name": "floating-control", "value": "0 8px 24px rgba(23, 23, 26, 0.10)", "purpose": "Menus, popovers, and floating controls." },
+      { "name": "dialog", "value": "0 24px 64px rgba(23, 23, 26, 0.18)", "purpose": "Blocking dialogs and import/recovery overlays." },
+      { "name": "focus-halo", "value": "0 0 0 3px rgba(240, 106, 42, 0.18)", "purpose": "Keyboard focus paired with a solid outline." }
+    ],
+    "motion": [
+      { "name": "instant", "value": "120ms cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Press and micro-state feedback." },
+      { "name": "fast", "value": "180ms cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Hover, selection, and compact disclosure." },
+      { "name": "standard", "value": "260ms cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Sidebar, dialog, and panel state changes." }
+    ],
+    "breakpoints": [
+      { "name": "compact", "value": "760px" },
+      { "name": "desktop", "value": "1100px" },
+      { "name": "wide", "value": "1320px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single primary non-recording action on a screen.",
+      "html": "<button class=\"ds-btn-primary\">Continue</button>",
+      "css": ".ds-btn-primary{height:36px;padding:0 14px;border:1px solid #17171A;border-radius:6px;background:#17171A;color:#FCFCFD;font:600 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;transition:background 180ms cubic-bezier(.23,1,.32,1),transform 120ms cubic-bezier(.23,1,.32,1)}.ds-btn-primary:hover{background:#303035}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:2px solid #F06A2A;outline-offset:2px;box-shadow:0 0 0 3px rgba(240,106,42,.18)}"
+    },
+    {
+      "name": "Recording Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "Reserved for starting or representing active capture.",
+      "html": "<button class=\"ds-btn-record\">Start recording</button>",
+      "css": ".ds-btn-record{height:36px;padding:0 14px;border:1px solid #F06A2A;border-radius:6px;background:#F06A2A;color:#17171A;font:600 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;transition:filter 180ms cubic-bezier(.23,1,.32,1),transform 120ms cubic-bezier(.23,1,.32,1)}.ds-btn-record:hover{filter:brightness(.94)}.ds-btn-record:active{transform:translateY(1px)}.ds-btn-record:focus-visible{outline:2px solid #17171A;outline-offset:2px;box-shadow:0 0 0 3px rgba(240,106,42,.18)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Supporting actions in headers, toolbars, and states.",
+      "html": "<button class=\"ds-btn-secondary\">Review settings</button>",
+      "css": ".ds-btn-secondary{height:36px;padding:0 14px;border:1px solid #D5D6DB;border-radius:6px;background:#FCFCFD;color:#17171A;font:600 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;transition:background 180ms cubic-bezier(.23,1,.32,1),border-color 180ms cubic-bezier(.23,1,.32,1)}.ds-btn-secondary:hover{background:#E9EAED;border-color:#B9BBC3}.ds-btn-secondary:active{background:#DDDEE3}.ds-btn-secondary:focus-visible{outline:2px solid #F06A2A;outline-offset:2px;box-shadow:0 0 0 3px rgba(240,106,42,.18)}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Compact search and command input.",
+      "html": "<label class=\"ds-field-label\">Search<input class=\"ds-field\" placeholder=\"Search meetings\"></label>",
+      "css": ".ds-field-label{display:grid;gap:6px;color:#62636B;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,sans-serif}.ds-field{height:36px;padding:0 12px;border:1px solid #D5D6DB;border-radius:6px;background:#FCFCFD;color:#17171A;font:400 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;transition:border-color 180ms cubic-bezier(.23,1,.32,1),box-shadow 180ms cubic-bezier(.23,1,.32,1)}.ds-field:hover{border-color:#B9BBC3}.ds-field:focus{outline:2px solid #F06A2A;outline-offset:1px;box-shadow:0 0 0 3px rgba(240,106,42,.18)}"
+    },
+    {
+      "name": "Navigation Item",
+      "kind": "nav",
+      "refersTo": "navigation-item-selected",
+      "description": "Quiet graphite-rail navigation with a clear current state.",
+      "html": "<nav class=\"ds-rail\"><button class=\"ds-nav\">Home</button><button class=\"ds-nav ds-nav-current\">Saved meetings</button><button class=\"ds-nav\">Ask meetings</button></nav>",
+      "css": ".ds-rail{display:grid;gap:4px;width:220px;padding:12px;background:#19191B}.ds-nav{height:36px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:#A7A8B0;text-align:left;font:500 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;transition:background 180ms cubic-bezier(.23,1,.32,1),color 180ms cubic-bezier(.23,1,.32,1)}.ds-nav:hover{background:#252529;color:#F4F4F6}.ds-nav-current{background:#303035;color:#F4F4F6}.ds-nav:focus-visible{outline:2px solid #F06A2A;outline-offset:1px}"
+    },
+    {
+      "name": "Workspace Surface",
+      "kind": "custom",
+      "description": "A flat bounded reading or tool region, never a decorative nested card.",
+      "html": "<section class=\"ds-surface\"><h3>Summary</h3><p>The conversation remains the primary content.</p></section>",
+      "css": ".ds-surface{padding:24px;border:1px solid #D5D6DB;border-radius:10px;background:#FCFCFD;color:#17171A}.ds-surface h3{margin:0 0 12px;font:650 17px/1.3 -apple-system,BlinkMacSystemFont,sans-serif}.ds-surface p{max-width:72ch;margin:0;color:#62636B;font:400 14px/1.55 -apple-system,BlinkMacSystemFont,sans-serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Signal Desk",
+    "overview": "A precise desktop workbench beside a quiet reading desk. The graphite rail holds tools and state; the cool canvas holds the meeting. Scoutly informs rigor, Codex informs command clarity, and Granola informs reading hierarchy without copied assets or layouts.",
+    "keyCharacteristics": ["Graphite utility rail beside a cool document canvas.", "Restrained accent reserved for recording, active AI work, and decisive selection.", "Flat-by-default surfaces separated by tone and one-pixel rules.", "Compact controls with generous reading width where content matters.", "State-driven motion only."],
+    "rules": [
+      { "name": "The Signal Rule", "body": "Signal Orange appears on no more than 8% of a screen and only for recording, active AI work, or consequential selection.", "section": "colors" },
+      { "name": "The Two-World Rule", "body": "The rail is graphite; the work canvas is cool light.", "section": "colors" },
+      { "name": "The Flat Workspace Rule", "body": "Static content surfaces do not float.", "section": "elevation" },
+      { "name": "The Product Voice Rule", "body": "No marketing-scale greetings inside the desktop app.", "section": "typography" }
+    ],
+    "dos": ["Use the graphite rail and cool canvas as the primary compositional break.", "Keep Signal Orange scarce and tied to real state.", "Preserve every local behavior and keyboard path."],
+    "donts": ["Do not restore the warm cream rounded-card dashboard.", "Do not copy Granola, Codex, or Scoutly assets or exact layouts.", "Do not add fake metrics, progress, status, citations, or assistant states."]
+  }
+}
