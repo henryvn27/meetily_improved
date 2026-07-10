@@ -249,40 +249,15 @@ export const RecordingControls: React.FC<RecordingControlsProps> = ({
 
     const setupListeners = async () => {
       try {
-        // Transcript error listener - handles both regular and actionable errors
-        const transcriptErrorUnsubscribe = await listen('transcript-error', (event) => {
-          console.log('transcript-error event received:', event);
-          console.error('Transcription error received:', event.payload);
-          const errorMessage = event.payload as string;
-
-          Analytics.trackTranscriptionError(errorMessage);
-          console.log('Tracked transcription error:', errorMessage);
-
-          setTranscriptionErrors(prev => {
-            const newCount = prev + 1;
-            console.log('Transcription error count incremented:', newCount);
-            return newCount;
-          });
-          setIsProcessing(false);
-          console.log('Calling onRecordingStop(false) due to transcript error');
-          onRecordingStop(false);
-          if (onTranscriptionError) {
-            onTranscriptionError(errorMessage);
-          }
-        });
-
         // Transcription error listener - handles structured error objects with actionable flag
         const transcriptionErrorUnsubscribe = await listen('transcription-error', (event) => {
           console.log('transcription-error event received:', event);
           console.error('Transcription error received:', event.payload);
 
           let errorMessage: string;
-          let isActionable = false;
-
           if (typeof event.payload === 'object' && event.payload !== null) {
             const payload = event.payload as { error: string, userMessage: string, actionable: boolean };
             errorMessage = payload.userMessage || payload.error;
-            isActionable = payload.actionable || false;
           } else {
             errorMessage = String(event.payload);
           }
@@ -297,8 +272,6 @@ export const RecordingControls: React.FC<RecordingControlsProps> = ({
           });
           setIsProcessing(false);
           console.log('Calling onRecordingStop(false) due to transcription error');
-          onRecordingStop(false);
-
           // For actionable errors (like model loading failures), the main page will handle showing the model selector
           // For regular errors, they are handled by useModalState global listener which shows a toast
           // We don't want to show a modal (via onTranscriptionError) AND a toast, so we skip the callback here
@@ -317,7 +290,6 @@ export const RecordingControls: React.FC<RecordingControlsProps> = ({
         });
 
         unsubscribes = [
-          transcriptErrorUnsubscribe,
           transcriptionErrorUnsubscribe,
           speechDetectedUnsubscribe
         ];

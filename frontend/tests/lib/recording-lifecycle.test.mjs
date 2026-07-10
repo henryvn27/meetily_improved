@@ -1,0 +1,75 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import ts from 'typescript';
+import { fileURLToPath } from 'node:url';
+
+const modulePath = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'src',
+  'lib',
+  'recording-lifecycle.ts',
+);
+const source = fs.readFileSync(modulePath, 'utf8');
+const compiled = ts.transpileModule(source, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText;
+const module = { exports: {} };
+vm.runInNewContext(compiled, { exports: module.exports, module });
+
+const { getRecordingErrorMessage, getRecordingShutdownUpdate } = module.exports;
+
+assert.equal(
+  JSON.stringify(getRecordingShutdownUpdate({
+    stage: 'stopping_audio',
+    message: 'Stopping audio capture...',
+    progress: 20,
+  })),
+  JSON.stringify({
+    phase: 'stopping',
+    message: 'Stopping audio capture...',
+    nativeProgress: {
+      stage: 'stopping_audio',
+      message: 'Stopping audio capture...',
+      progress: 20,
+    },
+  }),
+);
+
+assert.equal(
+  getRecordingShutdownUpdate({
+    stage: 'processing_transcripts',
+    message: 'Processing 3 chunks',
+    progress: 40,
+  }).phase,
+  'processing',
+);
+assert.equal(
+  getRecordingShutdownUpdate({
+    stage: 'unloading_model',
+    message: '',
+    progress: 170,
+  }).nativeProgress.progress,
+  100,
+);
+
+const unknown = getRecordingShutdownUpdate({
+  stage: 'future_stage',
+  message: 'Backend-provided detail',
+  progress: -5,
+});
+assert.equal(unknown.phase, 'stopping');
+assert.equal(unknown.message, 'Backend-provided detail');
+assert.equal(unknown.nativeProgress.progress, 0);
+
+assert.equal(getRecordingErrorMessage(' Microphone disconnected '), 'Microphone disconnected');
+assert.equal(getRecordingErrorMessage({ userMessage: 'Audio device failed' }), 'Audio device failed');
+assert.equal(
+  getRecordingErrorMessage(null),
+  'Recording stopped because of an unexpected audio error.',
+);
+
+console.log('recording-lifecycle tests passed');

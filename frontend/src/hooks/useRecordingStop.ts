@@ -154,12 +154,6 @@ export function useRecordingStop(
       let elapsedTime = 0;
       let transcriptionComplete = false;
 
-      // Listen for transcription-complete event
-      const unlistenComplete = await listen('transcription-complete', () => {
-        console.log('Received transcription-complete event');
-        transcriptionComplete = true;
-      });
-
       // Poll for transcription status
       while (elapsedTime < MAX_WAIT_TIME && !transcriptionComplete) {
         try {
@@ -194,10 +188,6 @@ export function useRecordingStop(
           break;
         }
       }
-
-      // Clean up listener
-      console.log('🧹 CLEANUP: Cleaning up transcription-complete listener');
-      unlistenComplete();
 
       if (!transcriptionComplete && elapsedTime >= MAX_WAIT_TIME) {
         console.warn('⏰ Transcription wait timeout reached after', elapsedTime, 'ms');
