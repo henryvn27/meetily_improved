@@ -25,7 +25,7 @@ The upstream project is capable, but its interface feels like a collection of ut
 
 ## Current workspace
 
-![Meetily Improved signal-orange desktop workspace](docs/meetily-improved-signal-orange-home.png)
+![Meetily Improved signal-orange desktop workspace](docs/meetily-improved-icon-native-window.png)
 
 The screenshot above is the current native desktop shell using real local application state. It contains no sample meetings, fake metrics, or generated results.
 
