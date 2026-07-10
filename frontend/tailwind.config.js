@@ -8,10 +8,10 @@ module.exports = {
   ],
   theme: {
   	extend: {
-  		fontFamily: {
-  			sans: [
-  				'var(--font-source-sans-3)'
-  			]
+		fontFamily: {
+			sans: [
+				'-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Segoe UI', 'sans-serif'
+			]
   		},
   		colors: {
   			background: 'hsl(var(--background))',

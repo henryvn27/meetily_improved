@@ -2,9 +2,9 @@
 
 ### A calmer, local-first desktop meeting workspace for solo founders.
 
-[![MIT License](https://img.shields.io/badge/license-MIT-4b4036.svg)](LICENSE)
-[![Desktop](https://img.shields.io/badge/platform-desktop-6f6257.svg)](#build-from-source)
-[![Status](https://img.shields.io/badge/status-active_development-b7791f.svg)](#project-status)
+[![MIT License](https://img.shields.io/badge/license-MIT-19191b.svg)](LICENSE)
+[![Desktop](https://img.shields.io/badge/platform-desktop-19191b.svg)](#build-from-source)
+[![Status](https://img.shields.io/badge/status-active_development-f06a2a.svg)](#project-status)
 
 **Meetily Improved** is an independent public fork of [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily). It keeps Meetily's local capture, transcription, summaries, imports, recovery, and saved-meeting foundation while rebuilding the experience as a focused desktop workspace.
 
@@ -20,21 +20,21 @@ The upstream project is capable, but its interface feels like a collection of ut
 - **A useful home command center.** The dashboard reflects real local meetings, recovery state, and model configuration—never sample metrics or invented activity.
 - **Clearer recording readiness.** Capture dependencies, permissions, local transcription readiness, and optional system audio are explained before recording begins.
 - **Truthful local-first states.** Loading, empty, error, permission, recovery, and model states say what the app knows and what the user can do next.
-- **Better information density.** The visual system uses a calm warm-neutral palette, compact controls, strong hierarchy, and keyboard-visible interaction states.
+- **Better information density.** A graphite tool rail, cool document canvas, compact controls, restrained signal orange, and keyboard-visible states keep attention on the meeting.
 - **Local meeting recall, built honestly.** A global meeting-chat workspace is planned around local models and source meeting citations. It will not be called complete until the native bridge and citation behavior are implemented and tested.
 
 ## Current workspace
 
-![Meetily Improved desktop command center](docs/meetily-improved-dashboard.png)
+![Meetily Improved signal-orange desktop workspace](docs/meetily-improved-signal-orange-home.png)
 
-The screenshot above is the current merged desktop shell in an explicit empty-state QA capture. It contains no sample meetings, fake metrics, or generated results.
+The screenshot above is the current native desktop shell using real local application state. It contains no sample meetings, fake metrics, or generated results.
 
 ## Project status
 
 | Area | Status | What that means |
 | --- | --- | --- |
 | Repository and behavior audit | Complete | Routes, native command boundaries, storage, privacy, and upstream attribution are mapped. |
-| Desktop shell and design system | Complete | The shared sidebar, command center, layout primitives, responsive behavior, and accessibility baseline are merged. |
+| Desktop shell and design system | In progress | The replacement graphite/cool-canvas shell and shared primitives are implemented; remaining routes are being migrated out of inherited Meetily styling. |
 | Capture and meeting lifecycle | In progress | Pre-recording, active recording, processing, import, recovery, and failure presentation are being redesigned without replacing native capture behavior. |
 | Meeting history and detail | Planned for v1 | Search, transcript/summary hierarchy, copy/export, and partial-data states will be rebuilt next. |
 | Local global chat | Planned for v1 | Answers must use a local model and cite saved meetings. No persistent embeddings or cloud fallback are claimed. |
