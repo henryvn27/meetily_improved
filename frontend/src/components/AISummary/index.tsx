@@ -606,25 +606,25 @@ export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerat
   };
 
   const renderErrorState = () => (
-    <div className="w-full p-4 bg-red-50 border border-red-200 rounded-lg">
-      <div className="flex items-center mb-2">
-        <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
-        <h3 className="text-red-700 font-medium">Error Generating Summary</h3>
+    <div className="w-full border border-destructive/30 bg-destructive/10 p-4">
+      <div className="mb-2 flex items-center">
+        <ExclamationTriangleIcon className="mr-2 h-5 w-5 text-destructive" />
+        <h3 className="font-medium text-destructive">Error Generating Summary</h3>
       </div>
-      <p className="text-red-600 text-sm">{error}</p>
-      <p className="text-red-500 text-xs mt-2">Please check your model configuration and API keys, or try again.</p>
+      <p className="text-sm text-destructive">{error}</p>
+      <p className="mt-2 text-xs text-destructive/80">Please check your model configuration and API keys, or try again.</p>
     </div>
   );
 
   const renderLoadingState = () => (
-    <div className="w-full p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <div className="w-full border border-accent/30 bg-accent-soft p-4">
       <div className="flex items-center space-x-3">
-        <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent"></div>
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent"></div>
         <div>
-          <h3 className="text-blue-700 font-medium">
+          <h3 className="font-medium text-foreground">
             {status === 'processing' ? 'Processing Transcript' : 'Generating Summary'}
           </h3>
-          <p className="text-blue-600 text-sm">
+          <p className="text-sm text-muted-foreground">
             {status === 'processing' 
               ? 'Analyzing your transcript...' 
               : 'Creating a detailed summary of your meeting...'}
@@ -648,9 +648,9 @@ export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerat
 
   if (!hasContent && status === 'completed') {
     return (
-      <div className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
-        <p className="text-gray-600">No summary content available.</p>
-        <p className="text-gray-500 text-sm mt-1">Try generating a new summary.</p>
+      <div className="w-full border border-border bg-muted/50 p-4 text-center">
+        <p className="text-foreground">No summary content available.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Try generating a new summary.</p>
       </div>
     );
   }
@@ -672,7 +672,7 @@ export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerat
       {/* Context Menu */}
       {contextMenu.visible && selectedBlocks.length > 0 && (
         <div
-          className="fixed z-50 bg-white shadow-lg rounded-lg py-1 min-w-[160px] border border-gray-200
+          className="fixed z-50 min-w-[160px] border border-border bg-popover py-1 shadow-[0_12px_30px_hsl(var(--shadow-color)/0.14)]
                      animate-in fade-in zoom-in-95 duration-150"
           style={{ 
             left: contextMenu.x, 
@@ -681,14 +681,14 @@ export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerat
           onClick={e => e.stopPropagation()}
         >
           <button
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-2"
+            className="flex w-full items-center space-x-2 px-4 py-2 text-left hover:bg-muted"
             onClick={handleCopyBlocks}
           >
-            <span className="text-gray-600">📋</span>
+            <span className="text-muted-foreground">📋</span>
             <span>Copy {selectedBlocks.length > 1 ? `${selectedBlocks.length} blocks` : 'block'}</span>
           </button>
           <button
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600 flex items-center space-x-2"
+            className="flex w-full items-center space-x-2 px-4 py-2 text-left text-destructive hover:bg-destructive/10"
             onClick={handleDeleteBlocks}
           >
             <span>🗑️</span>
