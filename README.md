@@ -44,6 +44,14 @@ A privacy-first AI meeting assistant that captures, transcribes, and summarizes 
 
 ---
 
+> ## Meetily Improved
+>
+> This repository is **Meetily Improved**, an independent public fork of [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily). It is being developed as a local-first desktop meeting workspace for solo founders while preserving Meetily's existing capture, transcription, summary, import, recovery, settings, and saved-meeting behavior.
+>
+> Upstream source and credit: [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily). This fork is not affiliated with Granola and does not use Granola assets, copy, or proprietary implementation.
+
+---
+
 > **Meetily PRO Upgrade Offer** - Meetily PRO is available for users who need enhanced accuracy, advanced exports, custom summary workflows, and team-ready features. Use coupon code **LAUNCH20** for **20% off** until the next Meetily Community Edition release. Speaker diarization is also planned for PRO in mid-June. [Explore Meetily PRO →](https://meetily.ai/pro/)
 
 ---
