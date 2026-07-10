@@ -1,265 +1,166 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { RecordingControls } from '@/components/RecordingControls';
-import { useSidebar } from '@/components/Sidebar/SidebarProvider';
-import { usePermissionCheck } from '@/hooks/usePermissionCheck';
-import { useRecordingState, RecordingStatus } from '@/contexts/RecordingStateContext';
-import { useTranscripts } from '@/contexts/TranscriptContext';
+import { useEffect, useState } from 'react';
+import { ArrowRight, Bot, Mic, Settings2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { AppState } from '@/components/app-shell/AppState';
+import { PageHeader } from '@/components/app-shell/PageHeader';
+import { Surface } from '@/components/app-shell/Surface';
+import { Button } from '@/components/ui/button';
 import { useConfig } from '@/contexts/ConfigContext';
-import { StatusOverlays } from '@/app/_components/StatusOverlays';
-import Analytics from '@/lib/analytics';
-import { SettingsModals } from './_components/SettingsModal';
-import { TranscriptPanel } from './_components/TranscriptPanel';
-import { useModalState } from '@/hooks/useModalState';
-import { useRecordingStateSync } from '@/hooks/useRecordingStateSync';
-import { useRecordingStart } from '@/hooks/useRecordingStart';
-import { useRecordingStop } from '@/hooks/useRecordingStop';
+import { useSidebar } from '@/components/Sidebar/SidebarProvider';
 import { useTranscriptRecovery } from '@/hooks/useTranscriptRecovery';
 import { TranscriptRecovery } from '@/components/TranscriptRecovery';
-import { indexedDBService } from '@/services/indexedDBService';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { getLocalModelStatus } from '@/lib/local-model-status';
 
-export default function Home() {
-  // Local page state (not moved to contexts)
-  const [isRecording, setIsRecordingState] = useState(false);
-  const [barHeights, setBarHeights] = useState(['58%', '76%', '58%']);
-  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
-
-  // Use contexts for state management
-  const { meetingTitle } = useTranscripts();
-  const { transcriptModelConfig, selectedDevices } = useConfig();
-  const recordingState = useRecordingState();
-
-  // Extract status from global state
-  const { status, isStopping, isProcessing, isSaving } = recordingState;
-
-  // Hooks
-  const { hasMicrophone } = usePermissionCheck();
-  const { setIsMeetingActive, isCollapsed: sidebarCollapsed, refetchMeetings } = useSidebar();
-  const { modals, messages, showModal, hideModal } = useModalState(transcriptModelConfig);
-  const { isRecordingDisabled, setIsRecordingDisabled } = useRecordingStateSync(isRecording, setIsRecordingState, setIsMeetingActive);
-  const { handleRecordingStart } = useRecordingStart(isRecording, setIsRecordingState, showModal);
-
-  // Get handleRecordingStop function and setIsStopping (state comes from global context)
-  const { handleRecordingStop, setIsStopping } = useRecordingStop(
-    setIsRecordingState,
-    setIsRecordingDisabled
-  );
-
-  // Recovery hook
+export default function DashboardPage() {
+  const router = useRouter();
+  const { meetings, refetchMeetings } = useSidebar();
+  const { modelConfig, models, error } = useConfig();
+  const [showRecovery, setShowRecovery] = useState(false);
   const {
     recoverableMeetings,
-    isLoading: isLoadingRecovery,
-    isRecovering,
     checkForRecoverableTranscripts,
     recoverMeeting,
     loadMeetingTranscripts,
-    deleteRecoverableMeeting
+    deleteRecoverableMeeting,
   } = useTranscriptRecovery();
-
-  const router = useRouter();
+  const recentMeetings = meetings.slice(0, 5);
+  const localModelStatus = getLocalModelStatus({
+    provider: modelConfig.provider,
+    model: modelConfig.model,
+    ollamaModelCount: models.length,
+    ollamaError: error,
+  });
 
   useEffect(() => {
-    // Track page view
-    Analytics.trackPageView('home');
-  }, []);
+    void checkForRecoverableTranscripts();
+  }, [checkForRecoverableTranscripts]);
 
-  // Startup recovery check
-  useEffect(() => {
-    const performStartupChecks = async () => {
-      try {
-        // Skip recovery check if currently recording or processing stop
-        // This prevents the recovery dialog from showing when:
-        if (recordingState.isRecording ||
-          status === RecordingStatus.STOPPING ||
-          status === RecordingStatus.PROCESSING_TRANSCRIPTS ||
-          status === RecordingStatus.SAVING) {
-          console.log('Skipping recovery check - recording in progress or processing');
-          return;
-        }
-
-        // 1. Clean up old meetings (7+ days)
-        try {
-          await indexedDBService.deleteOldMeetings(7);
-        } catch (error) {
-          console.warn('⚠️ Failed to clean up old meetings:', error);
-        }
-
-        // 2. Clean up saved meetings (24+ hours after save)
-        try {
-          await indexedDBService.deleteSavedMeetings(24);
-        } catch (error) {
-          console.warn('⚠️ Failed to clean up saved meetings:', error);
-        }
-
-        // 3. Always check for recoverable meetings on startup
-        // Don't skip based on sessionStorage - we need to check every time
-        await checkForRecoverableTranscripts();
-      } catch (error) {
-        console.error('Failed to perform startup checks:', error);
-      }
-    };
-
-    performStartupChecks();
-  }, [checkForRecoverableTranscripts, recordingState.isRecording, status]);
-
-  // Watch for recoverable meetings changes and show dialog once per session
-  useEffect(() => {
-    // Only show dialog if we have meetings and haven't shown it yet this session
-    if (recoverableMeetings.length > 0) {
-      const shownThisSession = sessionStorage.getItem('recovery_dialog_shown');
-      if (!shownThisSession) {
-        setShowRecoveryDialog(true);
-        sessionStorage.setItem('recovery_dialog_shown', 'true');
-      }
-    }
-  }, [recoverableMeetings]);
-
-  // Handle recovery with toast notifications and navigation
   const handleRecovery = async (meetingId: string) => {
-    try {
-      const result = await recoverMeeting(meetingId);
-
-      if (result.success) {
-        toast.success('Meeting recovered successfully!', {
-          description: result.audioRecoveryStatus?.status === 'success'
-            ? 'Transcripts and audio recovered'
-            : 'Transcripts recovered (no audio available)',
-          action: result.meetingId ? {
-            label: 'View Meeting',
-            onClick: () => {
-              router.push(`/meeting-details?id=${result.meetingId}`);
-            }
-          } : undefined,
-          duration: 10000,
-        });
-
-        // Refresh sidebar to show the newly recovered meeting
-        await refetchMeetings();
-
-        // If no more recoverable meetings, clear session flag so dialog can show again
-        if (recoverableMeetings.length === 0) {
-          sessionStorage.removeItem('recovery_dialog_shown');
-        }
-
-        // Auto-navigate after a short delay
-        if (result.meetingId) {
-          setTimeout(() => {
-            router.push(`/meeting-details?id=${result.meetingId}`);
-          }, 2000);
-        }
-      }
-    } catch (error) {
-      toast.error('Failed to recover meeting', {
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-      });
-      throw error;
+    const result = await recoverMeeting(meetingId);
+    await refetchMeetings();
+    if (result.meetingId) {
+      toast.success('Meeting recovered');
+      router.push(`/meeting-details?id=${result.meetingId}`);
     }
+    return result;
   };
-
-  // Handle dialog close - clear session flag if no meetings left
-  const handleDialogClose = () => {
-    setShowRecoveryDialog(false);
-    // If user closes dialog and there are no more meetings, clear the flag
-    // This allows the dialog to show again next session if new meetings appear
-    if (recoverableMeetings.length === 0) {
-      sessionStorage.removeItem('recovery_dialog_shown');
-    }
-  };
-
-  useEffect(() => {
-    if (recordingState.isRecording) {
-      const interval = setInterval(() => {
-        setBarHeights(prev => {
-          const newHeights = [...prev];
-          newHeights[0] = Math.random() * 20 + 10 + 'px';
-          newHeights[1] = Math.random() * 20 + 10 + 'px';
-          newHeights[2] = Math.random() * 20 + 10 + 'px';
-          return newHeights;
-        });
-      }, 300);
-
-      return () => clearInterval(interval);
-    }
-  }, [recordingState.isRecording]);
-
-  // Computed values using global status
-  const isProcessingStop = status === RecordingStatus.PROCESSING_TRANSCRIPTS || isProcessing;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="flex flex-col h-screen bg-gray-50"
-    >
-      {/* All Modals supported*/}
-      <SettingsModals
-        modals={modals}
-        messages={messages}
-        onClose={hideModal}
-      />
-
-      {/* Recovery Dialog */}
+    <div className="app-page">
       <TranscriptRecovery
-        isOpen={showRecoveryDialog}
-        onClose={handleDialogClose}
+        isOpen={showRecovery}
+        onClose={() => setShowRecovery(false)}
         recoverableMeetings={recoverableMeetings}
         onRecover={handleRecovery}
         onDelete={deleteRecoverableMeeting}
         onLoadPreview={loadMeetingTranscripts}
       />
-      <div className="flex flex-1 overflow-hidden">
-        <TranscriptPanel
-          isProcessingStop={isProcessingStop}
-          isStopping={isStopping}
-          showModal={showModal}
-        />
+      <PageHeader
+        eyebrow="Local meeting workspace"
+        title="Good morning"
+        description="Capture a conversation, return to recent notes, or check your local model setup."
+        actions={
+          <Button onClick={() => router.push('/new-meeting')}>
+            <Mic aria-hidden="true" />
+            New meeting
+          </Button>
+        }
+      />
 
-        {/* Recording controls - only show when permissions are granted or already recording and not showing status messages */}
-        {(hasMicrophone || isRecording) &&
-          status !== RecordingStatus.PROCESSING_TRANSCRIPTS &&
-          status !== RecordingStatus.SAVING && (
-            <div className="fixed bottom-12 left-0 right-0 z-10">
-              <div
-                className="flex justify-center pl-8 transition-[margin] duration-300"
-                style={{
-                  marginLeft: sidebarCollapsed ? '4rem' : '16rem'
-                }}
-              >
-                <div className="w-2/3 max-w-[750px] flex justify-center">
-                  <div className="bg-white rounded-full shadow-lg flex items-center">
-                    <RecordingControls
-                      isRecording={recordingState.isRecording}
-                      onRecordingStop={(callApi = true) => handleRecordingStop(callApi)}
-                      onRecordingStart={handleRecordingStart}
-                      onTranscriptReceived={() => { }} // Not actually used by RecordingControls
-                      onStopInitiated={() => setIsStopping(true)}
-                      barHeights={barHeights}
-                      onTranscriptionError={(message) => {
-                        showModal('errorAlert', message);
-                      }}
-                      isRecordingDisabled={isRecordingDisabled}
-                      isParentProcessing={isProcessingStop}
-                      selectedDevices={selectedDevices}
-                      meetingName={meetingTitle}
-                    />
-                  </div>
-                </div>
-              </div>
+      <section aria-labelledby="workspace-heading" className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
+        <Surface className="p-6 sm:p-7">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Start here</p>
+              <h2 id="workspace-heading" className="mt-3 text-2xl font-semibold tracking-[-0.025em]">Record without a meeting bot</h2>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                Audio, transcripts, and notes stay in Meetily&apos;s existing local workflow.
+              </p>
             </div>
-          )}
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
+              <Mic className="size-5" aria-hidden="true" />
+            </span>
+          </div>
+          <Button className="mt-8" onClick={() => router.push('/new-meeting')}>
+            Open recorder
+            <ArrowRight aria-hidden="true" />
+          </Button>
+        </Surface>
 
-        {/* Status Overlays - Processing and Saving */}
-        <StatusOverlays
-          isProcessing={status === RecordingStatus.PROCESSING_TRANSCRIPTS && !recordingState.isRecording}
-          isSaving={status === RecordingStatus.SAVING}
-          sidebarCollapsed={sidebarCollapsed}
+        <Surface className="flex flex-col justify-between p-6">
+          <div>
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Bot className="size-4" aria-hidden="true" />
+              Local model
+            </div>
+            <p className="mt-3 text-2xl font-semibold tracking-[-0.02em]">
+              {localModelStatus.ready ? 'Ready' : 'Needs attention'}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {localModelStatus.description}
+            </p>
+          </div>
+          <div className="mt-6 grid gap-2">
+            <Button variant="outline" className="w-full" onClick={() => router.push('/settings')}>
+              <Settings2 aria-hidden="true" />
+              Review settings
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => router.push('/chat')}>
+              <Bot aria-hidden="true" />
+              Ask meetings
+            </Button>
+          </div>
+        </Surface>
+      </section>
+
+      {recoverableMeetings.length > 0 && (
+        <AppState
+          compact
+          kind="recording"
+          className="mt-4"
+          title={`${recoverableMeetings.length} interrupted meeting${recoverableMeetings.length === 1 ? '' : 's'} found`}
+          description="Review the real local checkpoint before it expires. Recovery preserves available transcript and audio data."
+          action={<Button size="sm" variant="outline" onClick={() => setShowRecovery(true)}>Review recovery</Button>}
         />
-      </div>
-    </motion.div>
+      )}
+
+      <section aria-labelledby="recent-heading" className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 id="recent-heading" className="text-base font-semibold">Recent meetings</h2>
+          {meetings.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={() => router.push('/meetings')}>
+              View all
+              <ArrowRight aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+
+        {recentMeetings.length === 0 ? (
+          <AppState
+            kind="empty"
+            title="No saved meetings yet"
+            description="Your first completed recording will appear here. Meetily does not add sample meetings or fabricated activity."
+            action={<Button onClick={() => router.push('/new-meeting')}>Start your first meeting</Button>}
+          />
+        ) : (
+          <Surface className="divide-y divide-border/70 overflow-hidden p-0">
+            {recentMeetings.map((meeting) => (
+              <button
+                key={meeting.id}
+                type="button"
+                onClick={() => router.push(`/meeting-details?id=${meeting.id}`)}
+                className="group flex min-h-16 w-full items-center justify-between gap-4 px-5 py-4 text-left transition-[background,transform] hover:bg-secondary/70 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              >
+                <span className="min-w-0 truncate text-sm font-medium">{meeting.title}</span>
+                <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </button>
+            ))}
+          </Surface>
+        )}
+      </section>
+    </div>
   );
 }

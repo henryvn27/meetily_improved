@@ -6,9 +6,10 @@ import PageContent from "./page-content";
 import { useRouter, useSearchParams } from "next/navigation";
 import Analytics from "@/lib/analytics";
 import { invoke } from "@tauri-apps/api/core";
-import { LoaderIcon } from "lucide-react";
 import { useConfig } from "@/contexts/ConfigContext";
 import { usePaginatedTranscripts } from "@/hooks/usePaginatedTranscripts";
+import { AppState } from "@/components/app-shell/AppState";
+import { Button } from "@/components/ui/button";
 
 interface MeetingDetailsResponse {
   id: string;
@@ -337,24 +338,23 @@ function MeetingDetailsContent() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button
-            onClick={() => router.push('/')}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Go Back
-          </button>
-        </div>
+      <div className="app-page">
+        <h1 className="sr-only">Meeting unavailable</h1>
+        <AppState
+          kind="error"
+          title="Meeting could not be opened"
+          description={error}
+          action={<Button variant="outline" onClick={() => router.push('/meetings')}>Back to saved meetings</Button>}
+        />
       </div>
     );
   }
 
   // Show loading spinner while initial data loads
   if ((isLoading || isLoadingTranscripts) || !meetingDetails) {
-    return <div className="flex items-center justify-center h-screen">
-      <LoaderIcon className="animate-spin size-6 " />
+    return <div className="app-page">
+      <h1 className="sr-only">Opening meeting</h1>
+      <AppState kind="loading" title="Opening meeting" description="Loading the saved transcript and summary from this device." />
     </div>;
   }
 
@@ -383,8 +383,9 @@ function MeetingDetailsContent() {
 export default function MeetingDetails() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-screen">
-        <LoaderIcon className="animate-spin size-6" />
+      <div className="app-page">
+        <h1 className="sr-only">Opening meeting</h1>
+        <AppState kind="loading" title="Opening meeting" description="Loading local meeting data." />
       </div>
     }>
       <MeetingDetailsContent />
