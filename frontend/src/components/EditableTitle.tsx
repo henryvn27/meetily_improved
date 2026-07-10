@@ -49,7 +49,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
             onFinishEditing();
           }
         }}
-        className="text-2xl font-bold bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-3 py-1 w-full resize-none overflow-hidden"
+        className="w-full resize-none overflow-hidden rounded-[3px] border border-input bg-muted/50 px-3 py-1 text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-ring"
         style={{ minWidth: '300px', minHeight: '40px' }}
         autoFocus
         rows={1}
@@ -58,7 +58,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
   ) : (
     <div className="group flex items-center space-x-2 flex-1">
       <h1
-        className="text-2xl font-bold cursor-pointer hover:bg-gray-50 rounded px-1 flex-1 whitespace-pre-wrap"
+        className="flex-1 cursor-pointer whitespace-pre-wrap rounded-[3px] px-1 text-2xl font-bold hover:bg-muted/60"
         onClick={onStartEditing}
       >
         {title}
@@ -66,7 +66,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
       <div className="flex space-x-1">
         <button 
           onClick={onStartEditing}
-          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-100 rounded"
+          className="rounded-[3px] p-1 opacity-0 transition-opacity duration-200 hover:bg-muted group-hover:opacity-100"
           title="Edit section title"
         >
           <svg 
@@ -86,7 +86,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
         {onDelete && (
           <button 
             onClick={onDelete}
-            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-100 rounded text-red-600"
+            className="rounded-[3px] p-1 text-destructive opacity-0 transition-opacity duration-200 hover:bg-destructive/10 group-hover:opacity-100"
             title="Delete section"
           >
             <svg 
