@@ -275,7 +275,7 @@ export function RetranscribeDialog({
           <DialogTitle className="flex items-center gap-2">
             {isProcessing ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                <Loader2 className="h-5 w-5 animate-spin text-accent" />
                 Retranscribing...
               </>
             ) : error ? (
@@ -285,7 +285,7 @@ export function RetranscribeDialog({
               </>
             ) : (
               <>
-                <RefreshCw className="h-5 w-5 text-blue-600" />
+                <RefreshCw className="h-5 w-5 text-accent" />
                 Retranscribe Meeting
               </>
             )}
@@ -363,9 +363,9 @@ export function RetranscribeDialog({
           {isProcessing && progress && (
             <div className="space-y-2">
               <div className="relative">
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="h-3 w-full rounded-[3px] bg-secondary">
                   <div
-                    className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
+                    className="h-3 rounded-[3px] bg-accent transition-all duration-300 ease-out"
                     style={{ width: `${Math.min(progress.progress_percentage, 100)}%` }}
                   />
                 </div>
@@ -381,7 +381,7 @@ export function RetranscribeDialog({
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <div className="rounded-[3px] border border-destructive/25 bg-destructive/5 p-3">
               <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
@@ -395,7 +395,7 @@ export function RetranscribeDialog({
               </Button>
               <Button
                 onClick={handleStartRetranscription}
-                className="bg-blue-600 hover:bg-blue-700"
+                variant="recording"
                 disabled={!meetingFolderPath}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />

@@ -394,15 +394,15 @@ export function DownloadProgressStep() {
     modelSize: string,
     sizeUnit = 'MB'
   ) => (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-border bg-card px-5 py-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <div className="flex size-10 items-center justify-center rounded-[3px] bg-secondary">
             {icon}
           </div>
           <div>
-            <h3 className="font-medium text-gray-900">{title}</h3>
-            <p className="text-sm text-gray-500">{modelSize}</p>
+            <h3 className="font-medium">{title}</h3>
+            <p className="text-sm text-muted-foreground">{modelSize}</p>
           </div>
         </div>
         <div>
@@ -413,7 +413,7 @@ export function DownloadProgressStep() {
             <Loader2 className="w-5 h-5 text-gray-700 animate-spin" />
           )}
           {state.status === 'completed' && (
-            <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+            <div className="flex size-6 items-center justify-center rounded-[3px] bg-[hsl(var(--success)/0.1)]">
               <Check className="w-4 h-4 text-green-600" />
             </div>
           )}
@@ -426,14 +426,14 @@ export function DownloadProgressStep() {
       {/* Progress Bar */}
       {(state.status === 'downloading' || state.status === 'completed') && (
         <div className="space-y-2">
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-2 w-full overflow-hidden rounded-[3px] bg-secondary">
             <div
-              className="h-full bg-gradient-to-r from-gray-700 to-gray-900 rounded-full transition-all duration-300"
+              className="h-full bg-accent transition-all duration-300"
               style={{ width: `${state.progress}%` }}
             />
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">
+            <span className="text-muted-foreground">
               {state.downloadedMb.toFixed(1)} {sizeUnit} / {state.totalMb.toFixed(1)} {sizeUnit}
             </span>
             <div className="flex items-center gap-2">
@@ -442,7 +442,7 @@ export function DownloadProgressStep() {
                   {state.speedMbps.toFixed(1)} {sizeUnit}/s
                 </span>
               )}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-foreground">
                 {Math.round(state.progress)}%
               </span>
             </div>
@@ -451,7 +451,7 @@ export function DownloadProgressStep() {
       )}
 
       {state.status === 'error' && state.error && (
-        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+        <div className="mt-2 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3">
           <p className="text-sm text-red-600 font-medium">Download Error</p>
           <p className="text-xs text-red-500 mt-1">{state.error}</p>
           {(title === 'Transcription Engine' || title === 'Summary Engine') && (
