@@ -103,6 +103,7 @@
         ],
         "macOS": {
             "entitlements": "entitlements.plist",
+            "infoPlist": "Info.plist",
             "signingIdentity": "-",
             "hardenedRuntime": true
         },

@@ -84,12 +84,37 @@ export function useRecordingStart(
     }
   }, []);
 
+  const ensureMicrophonePermission = useCallback(async (): Promise<boolean> => {
+    try {
+      const granted = await invoke<boolean>('trigger_microphone_permission');
+      if (granted) return true;
+
+      toast.error('Microphone access is required', {
+        description: 'Allow Meetily to use your microphone in System Settings before starting a recording.',
+        duration: 7000,
+      });
+      return false;
+    } catch (error) {
+      console.error('Failed to request microphone permission:', error);
+      toast.error('Microphone permission could not be requested', {
+        description: error instanceof Error ? error.message : 'Check microphone access in System Settings and try again.',
+        duration: 7000,
+      });
+      return false;
+    }
+  }, []);
+
   // Handle manual recording start (from button click)
   const handleRecordingStart = useCallback(async () => {
     if (isPostProcessing) return;
 
     try {
       console.log('handleRecordingStart called - checking Parakeet model status');
+
+      if (!await ensureMicrophonePermission()) {
+        setStatus(RecordingStatus.IDLE);
+        return;
+      }
 
       // Check if Parakeet transcription model is ready before starting
       const parakeetReady = await checkParakeetReady();
@@ -148,7 +173,7 @@ export function useRecordingStart(
       // Re-throw so RecordingControls can handle device-specific errors
       throw error;
     }
-  }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, selectedDevices, showModal, setStatus, isPostProcessing]);
+  }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, ensureMicrophonePermission, selectedDevices, showModal, setStatus, isPostProcessing]);
 
   // Check for autoStartRecording flag and start recording automatically
   useEffect(() => {
@@ -163,6 +188,12 @@ export function useRecordingStart(
           console.log('Auto-starting recording from navigation...');
           setIsAutoStarting(true);
           sessionStorage.removeItem('autoStartRecording'); // Clear the flag
+
+          if (!await ensureMicrophonePermission()) {
+            setStatus(RecordingStatus.IDLE);
+            setIsAutoStarting(false);
+            return;
+          }
 
           // Check if Parakeet transcription model is ready before starting
           const parakeetReady = await checkParakeetReady();
@@ -237,6 +268,7 @@ export function useRecordingStart(
     setIsMeetingActive,
     checkParakeetReady,
     checkIfModelDownloading,
+    ensureMicrophonePermission,
     showModal,
     setStatus,
     isPostProcessing,
@@ -252,6 +284,12 @@ export function useRecordingStart(
 
       console.log('Direct start from sidebar - checking Parakeet model status');
       setIsAutoStarting(true);
+
+      if (!await ensureMicrophonePermission()) {
+        setStatus(RecordingStatus.IDLE);
+        setIsAutoStarting(false);
+        return;
+      }
 
       // Check if Parakeet transcription model is ready before starting
       const parakeetReady = await checkParakeetReady();
@@ -327,6 +365,7 @@ export function useRecordingStart(
     setIsMeetingActive,
     checkParakeetReady,
     checkIfModelDownloading,
+    ensureMicrophonePermission,
     showModal,
     setStatus,
     isPostProcessing,
