@@ -9,7 +9,7 @@ A modern desktop application for recording, transcribing, and analyzing meetings
 - Native desktop integration using Tauri
 - Speaker diarization support
 - Rich text editor for note-taking
-- Privacy-focused: All processing happens locally
+- Local-first storage and transcription; summaries can use local or explicitly configured remote AI providers
 
 ## Prerequisites
 
