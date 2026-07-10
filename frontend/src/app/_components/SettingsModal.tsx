@@ -61,15 +61,15 @@ export function SettingsModals({
   return <>
     {/* Legacy Settings Modal */}
     {modals.modelSettings && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
+        <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
           {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b">
-            <h3 className="text-xl font-semibold text-gray-900">Preferences</h3>
+          <div className="flex items-center justify-between border-b border-border p-6">
+            <h3 className="app-display text-xl">Preferences</h3>
             <button
               onClick={() => onClose("modelSettings")
               }
-              className="text-gray-500 hover:text-gray-700"
+              className="text-muted-foreground transition-colors hover:text-foreground"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -83,16 +83,16 @@ export function SettingsModals({
             <PreferenceSettings />
 
             {/* Divider */}
-            <div className="border-t pt-8">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">AI Model Configuration</h4>
+            <div className="border-t border-border pt-8">
+              <h4 className="text-lg font-semibold text-foreground mb-4">AI Model Configuration</h4>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     Summarization Model
                   </label>
                   <div className="flex space-x-2">
                     <select
-                      className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="rounded-[3px] border border-input bg-card px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
                       value={modelConfig.provider}
                       onChange={(e) => {
                         const provider = e.target.value as ModelConfig['provider'];
@@ -112,7 +112,7 @@ export function SettingsModals({
                     </select>
 
                     <select
-                      className="flex-1 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="flex-1 rounded-[3px] border border-input bg-card px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
                       value={modelConfig.model}
                       onChange={(e) => setModelConfig((prev: ModelConfig) => ({ ...prev, model: e.target.value }))}
                     >
@@ -126,9 +126,9 @@ export function SettingsModals({
                 </div>
                 {modelConfig.provider === 'ollama' && (
                   <div>
-                    <h4 className="text-lg font-bold mb-4">Available Ollama Models</h4>
+                    <h4 className="mb-4 text-lg font-bold">Available Ollama Models</h4>
                     {error && (
-                      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                      <div className="mb-4 border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive">
                         {error}
                       </div>
                     )}
@@ -136,13 +136,13 @@ export function SettingsModals({
                       {models.map((model) => (
                         <div
                           key={model.id}
-                          className={`bg-white p-4 rounded-lg shadow cursor-pointer transition-colors ${modelConfig.model === model.name ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                          className={`cursor-pointer border border-border bg-card p-4 transition-colors ${modelConfig.model === model.name ? 'border-accent bg-accent-soft ring-1 ring-accent' : 'hover:bg-muted/50'
                             }`}
                           onClick={() => setModelConfig((prev: ModelConfig) => ({ ...prev, model: model.name }))}
                         >
                           <h3 className="font-bold">{model.name}</h3>
-                          <p className="text-gray-600">Size: {model.size}</p>
-                          <p className="text-gray-600">Modified: {model.modified}</p>
+                          <p className="text-muted-foreground">Size: {model.size}</p>
+                          <p className="text-muted-foreground">Modified: {model.modified}</p>
                         </div>
                       ))}
                     </div>
@@ -153,10 +153,10 @@ export function SettingsModals({
           </div>
 
           {/* Footer */}
-          <div className="border-t p-6 flex justify-end">
+          <div className="flex justify-end border-t border-border p-6">
             <button
               onClick={() => onClose('modelSettings')}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="rounded-[3px] bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
             >
               Done
             </button>
@@ -167,13 +167,13 @@ export function SettingsModals({
 
     {/* Device Settings Modal */}
     {modals.deviceSettings && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Audio Device Settings</h3>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
+        <div className="mx-4 w-full max-w-md border border-border bg-card p-6 shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground">Audio Device Settings</h3>
             <button
               onClick={() => onClose('deviceSettings')}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-muted-foreground transition-colors hover:text-foreground"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -197,7 +197,7 @@ export function SettingsModals({
                 });
                 onClose('deviceSettings');
               }}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="rounded-[3px] bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
             >
               Done
             </button>
@@ -208,13 +208,13 @@ export function SettingsModals({
 
     {/* Language Settings Modal */}
     {modals.languageSettings && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Language Settings</h3>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
+        <div className="mx-4 w-full max-w-md border border-border bg-card p-6 shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground">Language Settings</h3>
             <button
               onClick={() => onClose('languageSettings')}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-muted-foreground transition-colors hover:text-foreground"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -232,7 +232,7 @@ export function SettingsModals({
           <div className="mt-6 flex justify-end">
             <button
               onClick={() => onClose('languageSettings')}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="rounded-[3px] bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
             >
               Done
             </button>
@@ -243,16 +243,16 @@ export function SettingsModals({
 
     {/* Model Selection Modal */}
     {modals.modelSelector && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg max-w-4xl w-full mx-4 shadow-xl max-h-[90vh] flex flex-col">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
+        <div className="mx-4 flex max-h-[90vh] w-full max-w-4xl flex-col border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
           {/* Fixed Header */}
-          <div className="flex justify-between items-center p-6 pb-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="flex items-center justify-between border-b border-border p-6 pb-4">
+            <h3 className="text-lg font-semibold text-foreground">
               {messages.modelSelector ? 'Speech Recognition Setup Required' : 'Transcription Model Settings'}
             </h3>
             <button
               onClick={() => onClose('modelSelector')}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-muted-foreground transition-colors hover:text-foreground"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -270,7 +270,7 @@ export function SettingsModals({
           </div>
 
           {/* Fixed Footer */}
-          <div className="p-6 pt-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="flex items-center justify-between border-t border-border p-6 pt-4">
             {/* Confidence Indicator Toggle */}
             <div className="flex items-center gap-3">
               <label className="relative inline-flex items-center cursor-pointer">
@@ -280,17 +280,17 @@ export function SettingsModals({
                   onChange={(e) => toggleConfidenceIndicator(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="peer h-6 w-11 rounded-full bg-muted peer-checked:bg-accent peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ring peer-checked:after:translate-x-full peer-checked:after:border-card after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-input after:bg-card after:transition-all after:content-[''] rtl:peer-checked:after:-translate-x-full"></div>
               </label>
               <div>
-                <p className="text-sm font-medium text-gray-700">Show Confidence Indicators</p>
-                <p className="text-xs text-gray-500">Display colored dots showing transcription confidence quality</p>
+                <p className="text-sm font-medium text-foreground">Show Confidence Indicators</p>
+                <p className="text-xs text-muted-foreground">Display colored dots showing transcription confidence quality</p>
               </div>
             </div>
 
             <button
               onClick={() => onClose('modelSelector')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              className="rounded-[3px] bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
             >
               {messages.modelSelector ? 'Cancel' : 'Done'}
             </button>
@@ -301,14 +301,14 @@ export function SettingsModals({
 
     {/* Error Alert Modal */}
     {modals.errorAlert && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <Alert className="max-w-md mx-4 border-red-200 bg-white shadow-xl">
-          <AlertTitle className="text-red-800">Recording Stopped</AlertTitle>
-          <AlertDescription className="text-red-700">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
+        <Alert className="mx-4 max-w-md border-destructive/30 bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+          <AlertTitle className="text-destructive">Recording Stopped</AlertTitle>
+          <AlertDescription className="text-destructive">
             {messages.errorAlert}
             <button
               onClick={() => onClose('errorAlert')}
-              className="ml-2 text-red-600 hover:text-red-800 underline"
+              className="ml-2 text-destructive underline hover:text-foreground"
             >
               Dismiss
             </button>
@@ -319,14 +319,14 @@ export function SettingsModals({
 
     {/* Chunk Drop Warning Modal */}
     {modals.chunkDropWarning && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <Alert className="max-w-lg mx-4 border-yellow-200 bg-white shadow-xl">
-          <AlertTitle className="text-yellow-800">Transcription Performance Warning</AlertTitle>
-          <AlertDescription className="text-yellow-700">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
+        <Alert className="mx-4 max-w-lg border-warning/30 bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+          <AlertTitle className="text-warning">Transcription Performance Warning</AlertTitle>
+          <AlertDescription className="text-warning">
             {messages.chunkDropWarning}
             <button
               onClick={() => onClose('chunkDropWarning')}
-              className="ml-2 text-yellow-600 hover:text-yellow-800 underline"
+              className="ml-2 text-warning underline hover:text-foreground"
             >
               Dismiss
             </button>
