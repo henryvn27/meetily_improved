@@ -233,6 +233,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${sourceSans3.variable} font-sans antialiased`}>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         <AnalyticsProvider>
           <RecordingStateProvider>
             <TranscriptProvider>
@@ -251,7 +252,7 @@ export default function RootLayout({
                               {showOnboarding ? (
                                 <OnboardingFlow onComplete={handleOnboardingComplete} />
                               ) : (
-                                <div className="flex">
+                                <div className="flex min-h-dvh bg-background">
                                   <Sidebar />
                                   <MainContent>{children}</MainContent>
                                 </div>

@@ -154,12 +154,12 @@ export function PermissionsStep() {
             onClick={handleSkip}
             className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
           >
-            I'll do this later
+            I&apos;ll do this later
           </button>
 
           {!allPermissionsGranted && (
             <p className="text-xs text-center text-muted-foreground">
-              Recording won't work without permissions. You can grant them later in settings.
+              Recording won&apos;t work without permissions. You can grant them later in settings.
             </p>
           )}
         </div>

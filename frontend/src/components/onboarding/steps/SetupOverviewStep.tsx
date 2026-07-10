@@ -94,7 +94,7 @@ export function SetupOverviewStep() {
             onClick={handleContinue}
             className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white"
           >
-            Let's Go
+            Let&apos;s Go
           </Button>
           <div className="text-center">
             <a

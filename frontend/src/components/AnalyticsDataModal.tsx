@@ -50,9 +50,9 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-semibold text-gray-900 mb-2">1. Model Preferences</h4>
               <ul className="text-sm text-gray-700 space-y-1 ml-4">
-                <li>• Transcription model (e.g., "Whisper large-v3", "Parakeet")</li>
-                <li>• Summary model (e.g., "Llama 3.2", "Claude Sonnet")</li>
-                <li>• Model provider (e.g., "Local", "Ollama", "OpenRouter")</li>
+                <li>• Transcription model (e.g., &quot;Whisper large-v3&quot;, &quot;Parakeet&quot;)</li>
+                <li>• Summary model (e.g., &quot;Llama 3.2&quot;, &quot;Claude Sonnet&quot;)</li>
+                <li>• Model provider (e.g., &quot;Local&quot;, &quot;Ollama&quot;, &quot;OpenRouter&quot;)</li>
               </ul>
               <p className="text-xs text-gray-500 mt-2 italic">Helps us understand which models users prefer</p>
             </div>
@@ -61,8 +61,8 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-semibold text-gray-900 mb-2">2. Anonymous Meeting Metrics</h4>
               <ul className="text-sm text-gray-700 space-y-1 ml-4">
-                <li>• Recording duration (e.g., "125 seconds")</li>
-                <li>• Pause duration (e.g., "5 seconds")</li>
+                <li>• Recording duration (e.g., &quot;125 seconds&quot;)</li>
+                <li>• Pause duration (e.g., &quot;5 seconds&quot;)</li>
                 <li>• Number of transcript segments</li>
                 <li>• Number of audio chunks processed</li>
               </ul>
@@ -73,8 +73,8 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-semibold text-gray-900 mb-2">3. Device Types (Not Names)</h4>
               <ul className="text-sm text-gray-700 space-y-1 ml-4">
-                <li>• Microphone type: "Bluetooth" or "Wired" or "Unknown"</li>
-                <li>• System audio type: "Bluetooth" or "Wired" or "Unknown"</li>
+                <li>• Microphone type: &quot;Bluetooth&quot; or &quot;Wired&quot; or &quot;Unknown&quot;</li>
+                <li>• System audio type: &quot;Bluetooth&quot; or &quot;Wired&quot; or &quot;Unknown&quot;</li>
               </ul>
               <p className="text-xs text-gray-500 mt-2 italic">Helps us improve compatibility, NOT the actual device names</p>
             </div>
@@ -85,7 +85,7 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
               <ul className="text-sm text-gray-700 space-y-1 ml-4">
                 <li>• App started/stopped events</li>
                 <li>• Session duration</li>
-                <li>• Feature usage (e.g., "settings changed")</li>
+                <li>• Feature usage (e.g., &quot;settings changed&quot;)</li>
                 <li>• Error occurrences (helps us fix bugs)</li>
               </ul>
               <p className="text-xs text-gray-500 mt-2 italic">Helps us improve user experience</p>
@@ -95,9 +95,9 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-semibold text-gray-900 mb-2">5. Platform Information</h4>
               <ul className="text-sm text-gray-700 space-y-1 ml-4">
-                <li>• Operating system (e.g., "macOS", "Windows")</li>
+                <li>• Operating system (e.g., &quot;macOS&quot;, &quot;Windows&quot;)</li>
                 <li>• App version (automatically included in all events)</li>
-                <li>• Architecture (e.g., "x86_64", "aarch64")</li>
+                <li>• Architecture (e.g., &quot;x86_64&quot;, &quot;aarch64&quot;)</li>
               </ul>
               <p className="text-xs text-gray-500 mt-2 italic">Helps us prioritize platform support</p>
             </div>
@@ -105,7 +105,7 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
 
           {/* What We DON'T Collect */}
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h4 className="font-semibold text-red-900 mb-2">What We DON'T Collect:</h4>
+            <h4 className="font-semibold text-red-900 mb-2">What We DON&apos;T Collect:</h4>
             <ul className="text-sm text-red-800 space-y-1 ml-4">
               <li>• ❌ Meeting names or titles</li>
               <li>• ❌ File names, file paths, or meeting folders</li>

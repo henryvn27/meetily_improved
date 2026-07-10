@@ -66,7 +66,7 @@ export const useSidebar = () => {
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [currentMeeting, setCurrentMeeting] = useState<CurrentMeeting | null>({ id: 'intro-call', title: '+ New Call' });
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [meetings, setMeetings] = useState<CurrentMeeting[]>([]);
   const [sidebarItems, setSidebarItems] = useState<SidebarItem[]>([]);
   const [isMeetingActive, setIsMeetingActive] = useState(false);
@@ -129,9 +129,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     setIsCollapsed(!isCollapsed);
   };
 
-  // Update current meeting when on home page
+  // Update current meeting when on the capture page
   useEffect(() => {
-    if (pathname === '/') {
+    if (pathname === '/new-meeting') {
       setCurrentMeeting({ id: 'intro-call', title: '+ New Call' });
     }
     setSidebarItems(baseItems);
@@ -145,16 +145,14 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   // Function to handle recording toggle from sidebar
   const handleRecordingToggle = () => {
     if (!isRecording) {
-      // Check if already on home page
-      if (pathname === '/') {
-        // Already on home - trigger recording directly via custom event
-        console.log('Triggering recording from sidebar (already on home page)');
+      // Check if already on the capture page
+      if (pathname === '/new-meeting') {
+        console.log('Triggering recording from sidebar (already on capture page)');
         window.dispatchEvent(new CustomEvent('start-recording-from-sidebar'));
       } else {
-        // Not on home - navigate and use auto-start mechanism
-        console.log('Navigating to home page with auto-start flag');
+        console.log('Navigating to capture page with auto-start flag');
         sessionStorage.setItem('autoStartRecording', 'true');
-        router.push('/');
+        router.push('/new-meeting');
       }
 
       // Track recording initiation from sidebar

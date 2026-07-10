@@ -63,7 +63,7 @@ export function About() {
                 {/* <h1 className="text-xl font-bold text-gray-900">Meetily</h1> */}
                 <span className="text-sm text-gray-500"> v{currentVersion}</span>
                 <p className="text-medium text-gray-600 mt-1">
-                    Real-time notes and summaries that never leave your machine.
+                    Local meeting storage with your choice of local or configured AI.
                 </p>
                 <div className="mt-3">
                     <Button
@@ -99,7 +99,7 @@ export function About() {
                 <div className="grid grid-cols-2 gap-2">
                     <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
                         <h3 className="font-bold text-sm text-gray-900 mb-1">Privacy-first</h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">Your data & AI processing workflow can now stay within your premise. No cloud, no leaks.</p>
+                        <p className="text-xs text-gray-600 leading-relaxed">Meeting data is stored locally. Use built-in AI or local Ollama to keep summary processing on-device; configured remote providers process requests under their own policies.</p>
                     </div>
                     <div className="bg-gray-50 rounded p-3 hover:bg-gray-100 transition-colors">
                         <h3 className="font-bold text-sm text-gray-900 mb-1">Use Any Model</h3>
@@ -127,7 +127,7 @@ export function About() {
             <div className="text-center space-y-2">
                 <h3 className="text-medium font-semibold text-gray-800">Ready to push your business further?</h3>
                 <p className="text-s text-gray-600">
-                    If you're planning to build privacy-first custom AI agents or a fully tailored product for your <span className="font-bold">business</span>, we can help you build it.
+                    If you&apos;re planning to build privacy-first custom AI agents or a fully tailored product for your <span className="font-bold">business</span>, we can help you build it.
                 </p>
                 <button
                     onClick={handleContactClick}

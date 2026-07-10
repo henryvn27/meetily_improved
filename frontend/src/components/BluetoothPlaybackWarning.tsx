@@ -75,7 +75,7 @@ export function BluetoothPlaybackWarning({
             Bluetooth Playback Detected
           </AlertTitle>
           <AlertDescription className="text-yellow-800 mt-1">
-            You're using <strong>{deviceName}</strong> for playback.
+            You&apos;re using <strong>{deviceName}</strong> for playback.
             Recordings may sound distorted or sped up through Bluetooth devices.
             For accurate review, please use <strong>computer speakers</strong> or{' '}
             <strong>wired headphones</strong>.

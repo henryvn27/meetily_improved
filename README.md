@@ -30,7 +30,7 @@
 </p>
     <p align="center">
 
-A privacy-first AI meeting assistant that captures, transcribes, and summarizes meetings entirely on your infrastructure. Built by expert AI engineers passionate about data sovereignty and open source solutions. Perfect for enterprises that need advanced meeting intelligence without compromising on privacy, compliance, or control.
+A local-first AI meeting assistant that stores recordings and transcripts on your device. Transcription runs locally. Summaries can use built-in local AI, local Ollama, or an explicitly configured remote provider.
 
 </p>
 
@@ -41,6 +41,14 @@ A privacy-first AI meeting assistant that captures, transcribes, and summarizes 
 </p>
 
 </div>
+
+---
+
+> ## Meetily Improved
+>
+> This repository is **Meetily Improved**, an independent public fork of [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily). It is being developed as a local-first desktop meeting workspace for solo founders while preserving Meetily's existing capture, transcription, summary, import, recovery, settings, and saved-meeting behavior.
+>
+> Upstream source and credit: [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily). This fork is not affiliated with Granola and does not use Granola assets, copy, or proprietary implementation.
 
 ---
 
@@ -66,13 +74,13 @@ A privacy-first AI meeting assistant that captures, transcribes, and summarizes 
 
 ## Introduction
 
-Meetily is a privacy-first AI meeting assistant that runs entirely on your local machine. It captures your meetings, transcribes them in real-time, and generates summaries, all without sending any data to the cloud. This makes it the perfect solution for professionals and enterprises who need to maintain complete control over their sensitive information.
+Meetily is a local-first AI meeting assistant. It captures meetings, stores recordings and transcripts locally, and transcribes in real time with on-device models. Summary processing stays on-device when you use built-in AI or local Ollama. If you select OpenAI, Anthropic, Groq, OpenRouter, a custom OpenAI-compatible endpoint, or a remote Ollama endpoint, the data required for that request is sent to the configured provider.
 
 ## Why Meetily?
 
 While there are many meeting transcription tools available, this solution stands out by offering:
 
-- **Privacy First:** All processing happens locally on your device.
+- **Local by Default:** Recordings, transcripts, and the local database stay on your device. Remote AI providers are optional and explicit.
 - **Cost-Effective:** Uses open-source AI models instead of expensive APIs.
 - **Flexible:** Works offline and supports multiple meeting platforms.
 - **Customizable:** Self-host and modify for your specific needs.
@@ -88,13 +96,13 @@ Meeting AI tools create significant privacy and compliance risks across all sect
 
 Whether you're a defense consultant, enterprise executive, legal professional, or healthcare provider, your sensitive discussions shouldn't live on servers you don't control. Cloud meeting tools promise convenience but deliver privacy nightmares with unclear data storage practices and potential unauthorized access.
 
-**Meetily solves this:** Complete data sovereignty on your infrastructure, zero vendor lock-in, and full control over your sensitive conversations.
+**Meetily's boundary:** Local storage and local transcription keep core meeting data on your device. You control whether summary requests use a local model or a configured remote provider.
 
 </details>
 
 ## Features
 
-- **Local First:** All processing is done on your machine. No data ever leaves your computer.
+- **Local First:** Recordings, transcripts, and the app database are local. Summary requests leave the device only when you choose a remote provider.
 - **Real-time Transcription:** Get a live transcript of your meeting as it happens.
 - **AI-Powered Summaries:** Generate summaries of your meetings using powerful language models.
 - **Multi-Platform:** Works on macOS, Windows, and Linux.
@@ -165,7 +173,7 @@ Generate meeting summaries with your choice of AI provider. **Ollama** (local) i
 
 ### 🔒 Privacy-First Design
 
-All data stays on your machine. Transcription models, recordings, and transcripts are stored locally.
+Transcription models, recordings, transcripts, and the app database are stored locally. Built-in AI and local Ollama keep summary processing local. Configured remote providers receive the content needed to fulfill summary requests. Anonymous usage analytics is off by default and can be enabled or disabled in Settings.
 
 <p align="center">
     <img src="docs/settings.png" width="650" style="border-radius: 10px;" alt="Local Transcription and storage" />
@@ -256,7 +264,7 @@ Thanks for all the contributions. Our community is what makes this project possi
 
 ## License
 
-MIT License - Feel free to use this project for your own purposes.
+Licensed under the MIT License. The original copyright notice for Zackriya Solutions is preserved in [LICENSE](LICENSE). Meetily Improved remains an attributed public fork of [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily); third-party components remain subject to their own licenses.
 
 ## Acknowledgments
 
