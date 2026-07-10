@@ -11,20 +11,20 @@ export function ConfirmationModal({ onConfirm, onCancel, text, isOpen }: Confirm
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-semibold mb-4">Confirm Delete</h2>
-        <p className="text-gray-600 mb-6">{text}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-md border border-border bg-card p-6 shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+        <h2 className="app-display mb-4 text-xl">Confirm Delete</h2>
+        <p className="mb-6 text-muted-foreground">{text}</p>
         <div className="flex justify-end space-x-4">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+            className="rounded-[3px] px-4 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors"
+            className="rounded-[3px] bg-destructive px-4 py-2 text-destructive-foreground transition-colors hover:bg-destructive/90"
           >
             Delete
           </button>
