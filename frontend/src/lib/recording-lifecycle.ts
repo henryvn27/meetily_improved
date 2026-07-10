@@ -83,3 +83,72 @@ export function formatRecordingDuration(seconds: number | null | undefined): str
 
   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
+
+export type PostRecordingStatus = 'stopping' | 'processing' | 'saving' | 'completed' | 'error';
+export type PostRecordingStepState = 'complete' | 'active' | 'pending' | 'error';
+
+export interface PostRecordingPresentation {
+  eyebrow: string;
+  title: string;
+  description: string;
+  nativeProgress: number | null;
+  steps: [PostRecordingStepState, PostRecordingStepState, PostRecordingStepState];
+}
+
+export function getPostRecordingPresentation(
+  status: PostRecordingStatus,
+  statusMessage?: string,
+  shutdownProgress?: NativeRecordingShutdownProgress | null,
+): PostRecordingPresentation {
+  const nativeProgress = shutdownProgress && (status === 'stopping' || status === 'processing')
+    ? normalizeProgress(shutdownProgress.progress)
+    : null;
+
+  if (status === 'stopping') {
+    return {
+      eyebrow: 'Audio capture ended',
+      title: 'Securing the recording',
+      description: statusMessage || 'Meetily is closing the local audio pipeline before it finishes the transcript.',
+      nativeProgress,
+      steps: ['complete', 'pending', 'pending'],
+    };
+  }
+
+  if (status === 'processing') {
+    return {
+      eyebrow: 'Processing locally',
+      title: 'Finishing the transcript',
+      description: statusMessage || 'Meetily is draining the remaining local transcription work.',
+      nativeProgress,
+      steps: ['complete', 'active', 'pending'],
+    };
+  }
+
+  if (status === 'saving') {
+    return {
+      eyebrow: 'Local save',
+      title: 'Saving the meeting',
+      description: statusMessage || 'Meetily is writing the completed meeting and transcript to the local database.',
+      nativeProgress: null,
+      steps: ['complete', 'complete', 'active'],
+    };
+  }
+
+  if (status === 'completed') {
+    return {
+      eyebrow: 'Saved locally',
+      title: 'Meeting saved',
+      description: statusMessage || 'The local meeting is ready. Opening it now…',
+      nativeProgress: null,
+      steps: ['complete', 'complete', 'complete'],
+    };
+  }
+
+  return {
+    eyebrow: 'Save interrupted',
+    title: 'Meeting not saved yet',
+    description: statusMessage || 'Meetily could not finish the local meeting save.',
+    nativeProgress: null,
+    steps: ['complete', 'error', 'error'],
+  };
+}

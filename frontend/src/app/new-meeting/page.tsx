@@ -5,10 +5,8 @@ import { motion } from 'framer-motion';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
 import { useRecordingState, RecordingStatus } from '@/contexts/RecordingStateContext';
 import { useConfig } from '@/contexts/ConfigContext';
-import { StatusOverlays } from '@/app/_components/StatusOverlays';
 import Analytics from '@/lib/analytics';
 import { SettingsModals } from '@/app/_components/SettingsModal';
-import { TranscriptPanel } from '@/app/_components/TranscriptPanel';
 import { useModalState } from '@/hooks/useModalState';
 import { useRecordingStateSync } from '@/hooks/useRecordingStateSync';
 import { useRecordingStart } from '@/hooks/useRecordingStart';
@@ -20,21 +18,23 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { PreRecordingWorkspace } from '@/components/recording/PreRecordingWorkspace';
 import { ActiveRecordingWorkspace } from '@/components/recording/ActiveRecordingWorkspace';
+import { PostRecordingWorkspace } from '@/components/recording/PostRecordingWorkspace';
 
 export default function NewMeetingPage() {
   // Local page state (not moved to contexts)
   const [isRecording, setIsRecordingState] = useState(false);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [hasPostRecordingStarted, setHasPostRecordingStarted] = useState(false);
 
   // Use contexts for state management
   const { transcriptModelConfig, selectedDevices } = useConfig();
   const recordingState = useRecordingState();
 
   // Extract status from global state
-  const { status, isStopping, isProcessing, isSaving } = recordingState;
+  const { status, isStopping, isProcessing } = recordingState;
 
   // Hooks
-  const { setIsMeetingActive, isCollapsed: sidebarCollapsed, refetchMeetings } = useSidebar();
+  const { setIsMeetingActive, refetchMeetings } = useSidebar();
   const { modals, messages, showModal, hideModal } = useModalState(transcriptModelConfig);
   const { setIsRecordingDisabled } = useRecordingStateSync(isRecording, setIsRecordingState, setIsMeetingActive);
   const { handleRecordingStart } = useRecordingStart(isRecording, setIsRecordingState, showModal);
@@ -62,6 +62,19 @@ export default function NewMeetingPage() {
     // Track page view
     Analytics.trackPageView('new_meeting');
   }, []);
+
+  useEffect(() => {
+    if ([
+      RecordingStatus.STOPPING,
+      RecordingStatus.PROCESSING_TRANSCRIPTS,
+      RecordingStatus.SAVING,
+      RecordingStatus.COMPLETED,
+    ].includes(status)) {
+      setHasPostRecordingStarted(true);
+    } else if ([RecordingStatus.IDLE, RecordingStatus.STARTING, RecordingStatus.RECORDING].includes(status)) {
+      setHasPostRecordingStarted(false);
+    }
+  }, [status]);
 
   // Startup recovery check
   useEffect(() => {
@@ -168,11 +181,10 @@ export default function NewMeetingPage() {
 
   // Computed values using global status
   const isProcessingStop = status === RecordingStatus.PROCESSING_TRANSCRIPTS || isProcessing;
-  const showPreRecording = !recordingState.isRecording && [
-    RecordingStatus.IDLE,
-    RecordingStatus.STARTING,
-    RecordingStatus.ERROR,
-  ].includes(status);
+  const showPreRecording = !recordingState.isRecording && (
+    [RecordingStatus.IDLE, RecordingStatus.STARTING].includes(status)
+    || (status === RecordingStatus.ERROR && !hasPostRecordingStarted)
+  );
 
   return (
     <motion.div
@@ -215,20 +227,7 @@ export default function NewMeetingPage() {
           showModal={showModal}
         />
       ) : (
-        <div className="flex flex-1 overflow-hidden">
-          <TranscriptPanel
-            isProcessingStop={isProcessingStop}
-            isStopping={isStopping}
-            showModal={showModal}
-          />
-
-          {/* Status Overlays - Processing and Saving */}
-          <StatusOverlays
-            isProcessing={status === RecordingStatus.PROCESSING_TRANSCRIPTS && !recordingState.isRecording}
-            isSaving={status === RecordingStatus.SAVING}
-            sidebarCollapsed={sidebarCollapsed}
-          />
-        </div>
+        <PostRecordingWorkspace />
       )}
     </motion.div>
   );

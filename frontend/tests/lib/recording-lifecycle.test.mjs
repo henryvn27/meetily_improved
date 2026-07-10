@@ -20,7 +20,12 @@ const compiled = ts.transpileModule(source, {
 const module = { exports: {} };
 vm.runInNewContext(compiled, { exports: module.exports, module });
 
-const { formatRecordingDuration, getRecordingErrorMessage, getRecordingShutdownUpdate } = module.exports;
+const {
+  formatRecordingDuration,
+  getPostRecordingPresentation,
+  getRecordingErrorMessage,
+  getRecordingShutdownUpdate,
+} = module.exports;
 
 assert.equal(
   JSON.stringify(getRecordingShutdownUpdate({
@@ -77,5 +82,35 @@ assert.equal(formatRecordingDuration(0), '00:00');
 assert.equal(formatRecordingDuration(65.9), '01:05');
 assert.equal(formatRecordingDuration(3661), '1:01:01');
 assert.equal(formatRecordingDuration(-1), '--:--');
+
+assert.equal(
+  JSON.stringify(getPostRecordingPresentation('stopping', 'Stopping audio...', {
+    stage: 'stopping_audio',
+    message: 'Stopping audio...',
+    progress: 20,
+  })),
+  JSON.stringify({
+    eyebrow: 'Audio capture ended',
+    title: 'Securing the recording',
+    description: 'Stopping audio...',
+    nativeProgress: 20,
+    steps: ['complete', 'pending', 'pending'],
+  }),
+);
+
+assert.equal(
+  getPostRecordingPresentation('processing', 'Processing 2 remaining chunks...').nativeProgress,
+  null,
+);
+assert.equal(getPostRecordingPresentation('saving', undefined, {
+  stage: 'complete',
+  message: 'Complete',
+  progress: 100,
+}).nativeProgress, null);
+assert.equal(
+  JSON.stringify(getPostRecordingPresentation('completed').steps),
+  JSON.stringify(['complete', 'complete', 'complete']),
+);
+assert.equal(getPostRecordingPresentation('error', 'Disk full').description, 'Disk full');
 
 console.log('recording-lifecycle tests passed');
