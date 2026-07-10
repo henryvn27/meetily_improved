@@ -149,20 +149,22 @@ export function PreferenceSettings() {
   return (
     <div className="space-y-6">
       {/* Notifications Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+      <section className="settings-card">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Notifications</h3>
-            <p className="text-sm text-gray-600">Enable or disable notifications of start and end of meeting</p>
+            <p className="app-eyebrow mb-2">Notifications</p>
+            <h3 className="text-lg font-semibold tracking-[-0.03em]">Recording alerts</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Enable or disable notifications at the start and end of a meeting.</p>
           </div>
           <Switch checked={notificationsEnabledValue} onCheckedChange={setNotificationsEnabled} />
         </div>
-      </div>
+      </section>
 
       {/* Data Storage Locations Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Storage Locations</h3>
-        <p className="text-sm text-gray-600 mb-6">
+      <section className="settings-card">
+        <p className="app-eyebrow mb-2">Local storage</p>
+        <h3 className="text-lg font-semibold tracking-[-0.03em]">Data locations</h3>
+        <p className="mb-6 mt-1 text-sm text-muted-foreground">
           View and access where Meetily stores your data
         </p>
 
@@ -198,14 +200,14 @@ export function PreferenceSettings() {
           </div> */}
 
           {/* Recordings Location */}
-          <div className="p-4 border rounded-lg bg-gray-50">
+          <div className="settings-inset">
             <div className="font-medium mb-2">Meeting Recordings</div>
-            <div className="text-sm text-gray-600 mb-3 break-all font-mono text-xs">
+            <div className="mb-3 break-all font-mono text-xs text-muted-foreground">
               {storageLocations?.recordings || 'Loading...'}
             </div>
             <button
               onClick={() => handleOpenFolder('recordings')}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 rounded-[3px] border border-input bg-card px-3 py-2 text-sm transition-colors hover:bg-secondary"
             >
               <FolderOpen className="w-4 h-4" />
               Open Folder
@@ -213,17 +215,17 @@ export function PreferenceSettings() {
           </div>
         </div>
 
-        <div className="mt-4 p-3 bg-blue-50 rounded-md">
-          <p className="text-xs text-blue-800">
+        <div className="mt-4 rounded-[3px] border border-accent/25 bg-[hsl(var(--accent-soft))] p-3">
+          <p className="text-xs text-foreground">
             <strong>Note:</strong> Database and models are stored together in your application data directory for unified management.
           </p>
         </div>
-      </div>
+      </section>
 
       {/* Analytics Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+      <section className="settings-card">
         <AnalyticsConsentSwitch />
-      </div>
+      </section>
     </div>
   )
 }

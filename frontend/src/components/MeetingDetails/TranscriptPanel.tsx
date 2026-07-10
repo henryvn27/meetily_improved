@@ -65,9 +65,17 @@ export function TranscriptPanel({
   }, [transcripts, usePagination, segments]);
 
   return (
-    <div className="hidden md:flex md:w-1/4 lg:w-1/3 min-w-0 border-r border-gray-200 bg-white flex-col relative shrink-0">
-      {/* Title area */}
-      <div className="p-4 border-b border-gray-200">
+    <aside aria-label="Meeting transcript" className="hidden min-w-0 shrink-0 flex-col border-r border-border bg-secondary/35 md:flex md:w-[20rem] xl:w-[24rem]">
+      <div className="border-b border-border px-4 py-4">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <p className="app-eyebrow">Source record</p>
+            <h2 className="mt-1 text-base font-semibold tracking-[-0.03em]">Transcript</h2>
+          </div>
+          <span className="font-mono text-[0.6875rem] text-muted-foreground">
+            {usePagination ? (totalCount ?? convertedSegments.length) : convertedSegments.length} segments
+          </span>
+        </div>
         <TranscriptButtonGroup
           transcriptCount={usePagination ? (totalCount ?? convertedSegments.length) : (transcripts?.length || 0)}
           onCopyTranscript={onCopyTranscript}
@@ -79,7 +87,7 @@ export function TranscriptPanel({
       </div>
 
       {/* Transcript content - use virtualized view for better performance */}
-      <div className="flex-1 overflow-hidden pb-4">
+      <div className="min-h-0 flex-1 overflow-hidden pb-4">
         <VirtualizedTranscriptView
           segments={convertedSegments}
           isRecording={isRecording}
@@ -99,15 +107,17 @@ export function TranscriptPanel({
 
       {/* Custom prompt input at bottom of transcript section */}
       {!isRecording && convertedSegments.length > 0 && (
-        <div className="p-1 border-t border-gray-200">
+        <div className="border-t border-border p-3">
+          <label htmlFor="summary-context" className="app-eyebrow mb-2 block">Summary context</label>
           <textarea
+            id="summary-context"
             placeholder="Add context for AI summary. For example people involved, meeting overview, objective etc..."
-            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm min-h-[80px] resize-y"
+            className="min-h-[6rem] w-full resize-y rounded-[3px] border border-input bg-card px-3 py-2.5 text-sm leading-5 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/25"
             value={customPrompt}
             onChange={(e) => onPromptChange(e.target.value)}
           />
         </div>
       )}
-    </div>
+    </aside>
   );
 }

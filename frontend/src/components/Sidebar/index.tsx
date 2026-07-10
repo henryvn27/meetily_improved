@@ -153,8 +153,8 @@ export default function Sidebar() {
         aria-disabled={isPostProcessing}
         aria-current={isActive(item.href) ? 'page' : undefined}
         className={cn(
-          'group flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45',
-          isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5',
+          'group flex min-h-10 items-center rounded-[3px] text-[13px] font-medium tracking-[-0.01em] transition-colors disabled:cursor-not-allowed disabled:opacity-45',
+          isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3',
           isActive(item.href)
             ? 'bg-[hsl(var(--sidebar-strong))] text-[hsl(var(--sidebar-foreground))]'
             : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]',
@@ -179,18 +179,18 @@ export default function Sidebar() {
       aria-label="Meetily workspace"
       className={cn(
         'fixed inset-y-0 left-0 z-40 flex border-r border-white/[0.07] bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))] transition-[width] duration-200 ease-out',
-        isCollapsed ? 'w-16' : 'w-[15rem]',
+        isCollapsed ? 'w-[4.5rem]' : 'w-[17.5rem]',
       )}
     >
-      <div className="flex min-w-0 flex-1 flex-col px-2.5 pb-3 pt-3">
-        <div className={cn('flex min-h-10 items-center', isCollapsed ? 'justify-center' : 'justify-between gap-2 px-1')}>
+      <div className="flex min-w-0 flex-1 flex-col px-3 pb-4 pt-4">
+        <div className={cn('flex min-h-11 items-center border-b border-white/[0.08] pb-3', isCollapsed ? 'justify-center' : 'justify-between gap-2 px-0')}>
           <Logo isCollapsed={isCollapsed} />
           {!isCollapsed && (
             <button
               type="button"
               onClick={toggleCollapse}
               aria-label="Collapse sidebar"
-              className="grid size-8 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]"
+              className="grid size-9 place-items-center rounded-[3px] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]"
             >
               <PanelLeftClose className="size-[1.1rem]" aria-hidden="true" />
             </button>
@@ -202,18 +202,19 @@ export default function Sidebar() {
             type="button"
             onClick={toggleCollapse}
             aria-label="Expand sidebar"
-            className="mx-auto mt-2 grid size-9 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]"
+            className="mx-auto mt-3 grid size-10 place-items-center rounded-[3px] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]"
           >
             <PanelLeftOpen className="size-[1.1rem]" aria-hidden="true" />
           </button>
         )}
 
-        <nav aria-label="Primary" className="mt-4 space-y-0.5">
+        {!isCollapsed && <p className="mt-5 px-2 font-mono text-[0.625rem] font-medium uppercase tracking-[0.12em] text-[hsl(var(--sidebar-muted))]">Workbench</p>}
+        <nav aria-label="Primary" className={cn('space-y-1', isCollapsed ? 'mt-4' : 'mt-2')}>
           {primaryNavigation.map(navigationButton)}
         </nav>
 
         {!isCollapsed && (
-          <div className="mt-5 min-h-0 flex-1">
+          <div className="mt-6 min-h-0 flex-1">
             <div className="relative">
               <label htmlFor="meeting-search" className="sr-only">Search saved meetings</label>
               <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-[hsl(var(--sidebar-muted))]" aria-hidden="true" />
@@ -224,7 +225,7 @@ export default function Sidebar() {
                 onChange={(event) => handleSearchChange(event.target.value)}
                 disabled={isPostProcessing}
                 placeholder="Search meetings"
-                className="h-9 w-full rounded-md border border-white/10 bg-white/[0.055] pl-8 pr-8 text-[13px] text-[hsl(var(--sidebar-foreground))] placeholder:text-[hsl(var(--sidebar-muted))] focus-visible:border-accent/70 focus-visible:ring-offset-[hsl(var(--sidebar))] disabled:cursor-not-allowed disabled:opacity-45"
+                className="h-10 w-full rounded-[3px] border border-white/10 bg-white/[0.055] pl-8 pr-8 text-[13px] text-[hsl(var(--sidebar-foreground))] placeholder:text-[hsl(var(--sidebar-muted))] focus-visible:border-accent/70 focus-visible:ring-offset-[hsl(var(--sidebar))] disabled:cursor-not-allowed disabled:opacity-45"
               />
               {searchQuery && (
                 <button
@@ -239,9 +240,9 @@ export default function Sidebar() {
               )}
             </div>
 
-            <div className="mt-4 flex items-center justify-between px-1">
-              <p className="text-[11px] font-semibold tracking-[0.02em] text-[hsl(var(--sidebar-muted))]">Recent</p>
-              {isSearching && <span className="text-[11px] text-[hsl(var(--sidebar-muted))]">Searching…</span>}
+            <div className="mt-5 flex items-center justify-between px-1">
+              <p className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.12em] text-[hsl(var(--sidebar-muted))]">Meeting ledger</p>
+              {isSearching && <span className="font-mono text-[0.625rem] text-[hsl(var(--sidebar-muted))]">Searching…</span>}
             </div>
 
             <div className="app-rail-scrollbar mt-1.5 max-h-[calc(100dvh-25rem)] min-h-20 overflow-y-auto custom-scrollbar">
@@ -258,7 +259,7 @@ export default function Sidebar() {
                         onClick={() => openMeeting(meeting.id, meeting.title)}
                         disabled={isPostProcessing}
                         className={cn(
-                          'min-h-9 w-full truncate rounded-md py-2 pl-2.5 pr-16 text-left text-[13px] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-45',
+                          'min-h-10 w-full truncate rounded-[3px] py-2 pl-3 pr-16 text-left text-[13px] tracking-[-0.01em] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-45',
                           currentMeeting?.id === meeting.id && pathname === '/meeting-details' && 'bg-[hsl(var(--sidebar-strong))] font-medium',
                         )}
                       >
@@ -280,7 +281,7 @@ export default function Sidebar() {
           </div>
         )}
 
-        <div className={cn('mt-auto border-t border-white/[0.08] pt-3', isCollapsed ? 'space-y-1' : 'space-y-1.5')}>
+        <div className={cn('mt-auto border-t border-white/[0.08] pt-4', isCollapsed ? 'space-y-1.5' : 'space-y-2')}>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -288,8 +289,8 @@ export default function Sidebar() {
                 onClick={handleRecordingToggle}
                 disabled={isRecording || isPostProcessing}
                 className={cn(
-                  'flex min-h-9 items-center justify-center rounded-md bg-accent text-[13px] font-semibold text-accent-foreground transition-[background,transform] hover:bg-accent/90 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45',
-                  isCollapsed ? 'w-9' : 'w-full gap-2 px-3',
+                  'flex min-h-10 items-center justify-center rounded-[3px] bg-accent text-[13px] font-semibold tracking-[-0.01em] text-accent-foreground transition-[background,transform] hover:bg-accent/90 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45',
+                  isCollapsed ? 'w-10' : 'w-full gap-2.5 px-3',
                 )}
               >
                 {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : isRecording ? <Square className="size-4" aria-hidden="true" /> : <Mic className="size-4" aria-hidden="true" />}

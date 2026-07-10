@@ -13,15 +13,18 @@ const Logo = React.forwardRef<HTMLButtonElement, LogoProps>(({ isCollapsed }, re
     <Dialog aria-describedby={undefined}>
       {isCollapsed ? (
         <DialogTrigger asChild>
-          <button ref={ref} aria-label="About Meetily" className="grid size-9 place-items-center rounded-md transition-colors hover:bg-[hsl(var(--sidebar-hover))]">
-            <Image src="/logo-collapsed.png" alt="" width={24} height={24} priority />
+          <button ref={ref} aria-label="About Meetily Improved" className="grid size-10 place-items-center rounded-[3px] transition-colors hover:bg-[hsl(var(--sidebar-hover))]">
+            <Image src="/logo-collapsed.png" alt="" width={28} height={28} priority />
           </button>
         </DialogTrigger>
       ) : (
         <DialogTrigger asChild>
-          <button ref={ref} className="flex min-h-9 items-center gap-2 rounded-md px-1.5 text-left text-sm font-semibold tracking-[-0.01em] text-[hsl(var(--sidebar-foreground))] transition-colors hover:bg-[hsl(var(--sidebar-hover))]">
-            <Image src="/logo-collapsed.png" alt="" width={24} height={24} priority />
-            <span>Meetily</span>
+          <button ref={ref} className="flex min-h-11 items-center gap-2.5 rounded-[3px] px-2 text-left transition-colors hover:bg-[hsl(var(--sidebar-hover))]">
+            <Image src="/logo-collapsed.png" alt="" width={28} height={28} priority />
+            <span className="leading-none">
+              <span className="block text-[0.95rem] font-semibold tracking-[-0.045em] text-[hsl(var(--sidebar-foreground))]">meetily</span>
+              <span className="mt-1 block font-mono text-[0.625rem] uppercase tracking-[0.1em] text-[hsl(var(--sidebar-muted))]">local desk</span>
+            </span>
           </button>
         </DialogTrigger>
       )}

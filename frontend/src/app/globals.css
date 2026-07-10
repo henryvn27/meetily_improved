@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/InstrumentSans-Variable.woff2") format("woff2");
+}
+
 @keyframes vibrate {
   0% {
     transform: translate(0);
@@ -164,7 +172,8 @@
   /* html, */
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    font-family: "Instrument Sans", "Avenir Next", "Segoe UI", sans-serif;
+    font-feature-settings: "kern" 1, "liga" 1, "tnum" 1;
     overflow: hidden;
     height: 100%;
   }
@@ -257,11 +266,27 @@
 
 @layer components {
   .app-page {
-    @apply mx-auto w-full max-w-7xl px-6 pb-14 pt-8 sm:px-8 lg:px-12;
+    @apply mx-auto w-full max-w-[96rem] px-7 pb-16 pt-10 sm:px-10 lg:px-14;
   }
 
   .app-surface {
-    @apply rounded-[10px] border border-border bg-card text-card-foreground;
+    @apply rounded-[4px] border border-border bg-card text-card-foreground;
+  }
+
+  .settings-card {
+    @apply border-b border-border bg-card px-6 py-6 sm:px-8;
+  }
+
+  .settings-inset {
+    @apply rounded-[3px] border border-border bg-secondary/45 p-4;
+  }
+
+  .app-eyebrow {
+    @apply font-mono text-[0.6875rem] font-medium uppercase tracking-[0.11em] text-muted-foreground;
+  }
+
+  .app-display {
+    @apply text-[2.5rem] font-semibold leading-[0.98] tracking-[-0.055em] text-balance;
   }
 
   .app-rail-scrollbar::-webkit-scrollbar-thumb {
