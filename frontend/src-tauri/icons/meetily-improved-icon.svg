@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+  <title>Meetily Improved app icon</title>
+  <rect x="92" y="92" width="840" height="840" rx="208" fill="#F06A2A"/>
+  <path d="M332 270h276l152 152v314c0 36-28 64-64 64H332c-36 0-64-28-64-64V334c0-36 28-64 64-64Z" fill="none" stroke="#17171A" stroke-linecap="round" stroke-linejoin="round" stroke-width="64"/>
+  <path d="M608 270v120c0 18 14 32 32 32h120" fill="none" stroke="#17171A" stroke-linecap="round" stroke-linejoin="round" stroke-width="64"/>
+  <path d="M414 666v-70M512 706V526M610 666v-70" fill="none" stroke="#17171A" stroke-linecap="round" stroke-width="64"/>
+</svg>
