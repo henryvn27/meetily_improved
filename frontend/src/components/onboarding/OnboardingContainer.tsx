@@ -44,7 +44,7 @@ export function OnboardingContainer({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-background">
-      <div className={cn('flex h-full max-h-screen w-full max-w-3xl flex-col px-6 py-8', className)}>
+      <div className={cn('flex h-full max-h-screen w-full max-w-4xl flex-col px-8 py-10 sm:px-12', className)}>
         {/* Progress Indicator with Navigation - Fixed */}
         {step && !hideProgress && (
           <div className="mb-2 relative flex-shrink-0">
@@ -85,8 +85,9 @@ export function OnboardingContainer({
         )}
 
         {/* Header - Fixed */}
-        <div className="mb-6 flex-shrink-0 space-y-2 border-b border-border pb-5 text-left">
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-foreground">{title}</h1>
+        <div className="mb-8 flex-shrink-0 space-y-2 border-b border-border pb-7 text-left">
+          <p className="app-eyebrow">Meetily Improved / local setup</p>
+          <h1 className="text-[2.5rem] font-semibold leading-[0.98] tracking-[-0.055em] text-foreground">{title}</h1>
           {description && (
             <p className="max-w-xl text-sm leading-6 text-muted-foreground">
               {description}

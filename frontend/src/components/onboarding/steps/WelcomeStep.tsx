@@ -25,25 +25,25 @@ export function WelcomeStep() {
 
   return (
     <OnboardingContainer
-      title="Your local meeting workspace"
-      description="Record, transcribe, and revisit meetings without sending the default workflow to the cloud."
+      title="Your meeting workbench."
+      description="Record, transcribe, and revisit meetings with a local-first workflow."
       step={1}
       hideProgress={true}
     >
       <div className="flex flex-col space-y-6">
         <div className="flex items-center gap-3">
-          <Image src="/logo-collapsed.png" alt="" width={32} height={32} priority />
-          <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Meetily Improved</p>
+          <Image src="/logo-collapsed.png" alt="" width={36} height={36} priority />
+          <p className="app-eyebrow">Meetily Improved</p>
         </div>
 
-        <div className="w-full max-w-xl rounded-[10px] border border-border bg-card p-6 space-y-4">
+        <div className="w-full max-w-2xl border-y border-border bg-card py-2">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div key={index} className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  <div className="flex size-6 items-center justify-center rounded-md bg-secondary">
-                    <Icon className="size-3.5 text-muted-foreground" />
+              <div key={index} className="flex items-start gap-4 border-b border-border/70 px-2 py-4 last:border-b-0">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="flex size-8 items-center justify-center rounded-[3px] bg-secondary">
+                    <Icon className="size-4 text-muted-foreground" />
                   </div>
                 </div>
                 <p className="text-sm leading-relaxed text-foreground">{feature.title}</p>
@@ -60,7 +60,7 @@ export function WelcomeStep() {
           >
             Get Started
           </Button>
-          <p className="text-xs text-center text-gray-500">Takes less than 3 minutes</p>
+          <p className="text-center font-mono text-[0.6875rem] text-muted-foreground">Takes less than 3 minutes</p>
         </div>
       </div>
     </OnboardingContainer>
