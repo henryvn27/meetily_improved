@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Lock, Sparkles, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
@@ -24,27 +25,28 @@ export function WelcomeStep() {
 
   return (
     <OnboardingContainer
-      title="Welcome to Meetily"
-      description="Record and transcribe locally. Choose local or configured AI for summaries."
+      title="Your local meeting workspace"
+      description="Record, transcribe, and revisit meetings without sending the default workflow to the cloud."
       step={1}
       hideProgress={true}
     >
-      <div className="flex flex-col items-center space-y-10">
-        {/* Divider */}
-        <div className="w-16 h-px bg-gray-300" />
+      <div className="flex flex-col space-y-6">
+        <div className="flex items-center gap-3">
+          <Image src="/logo-collapsed.png" alt="" width={32} height={32} priority />
+          <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Meetily Improved</p>
+        </div>
 
-        {/* Features Card */}
-        <div className="w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-4">
+        <div className="w-full max-w-xl rounded-[10px] border border-border bg-card p-6 space-y-4">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <div key={index} className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-0.5">
-                  <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Icon className="w-3 h-3 text-gray-700" />
+                  <div className="flex size-6 items-center justify-center rounded-md bg-secondary">
+                    <Icon className="size-3.5 text-muted-foreground" />
                   </div>
                 </div>
-                <p className="text-sm text-gray-700 leading-relaxed">{feature.title}</p>
+                <p className="text-sm leading-relaxed text-foreground">{feature.title}</p>
               </div>
             );
           })}
@@ -54,7 +56,7 @@ export function WelcomeStep() {
         <div className="w-full max-w-xs space-y-3">
           <Button
             onClick={goNext}
-            className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white"
+            className="h-10 w-full"
           >
             Get Started
           </Button>

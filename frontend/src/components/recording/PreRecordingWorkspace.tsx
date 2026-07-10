@@ -120,62 +120,64 @@ export function PreRecordingWorkspace({
         }
       />
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <Surface className="flex min-h-[20rem] flex-col justify-between p-6">
-          <div>
-            <span className="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-              <Mic className="size-5" aria-hidden="true" />
-            </span>
-            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Capture locally</p>
-            <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-0.035em]">
-              Record without a meeting bot.
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-              Audio, live transcript checkpoints, and the saved meeting stay in Meetily&apos;s existing local workflow.
-            </p>
-          </div>
+      <div className="mt-6">
+        <Surface className="overflow-hidden p-0">
+          <div className="grid md:grid-cols-[minmax(0,1fr)_22rem]">
+            <div className="flex min-h-[22rem] flex-col justify-between p-6 sm:p-8">
+              <div className="flex items-start gap-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-[hsl(var(--accent-soft))] text-accent">
+                  <Mic className="size-[1.1rem]" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Capture locally</p>
+                  <h2 className="mt-1.5 max-w-xl text-xl font-semibold tracking-[-0.02em]">Record without a meeting bot</h2>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                    Audio, transcript checkpoints, and the saved meeting remain in Meetily&apos;s existing local workflow.
+                  </p>
+                </div>
+              </div>
 
-          <div className="mt-6 border-t border-border/70 pt-4">
-            <Button size="lg" onClick={() => void handleStart()} disabled={!canStart} className="min-w-44">
-              {isStarting ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Mic aria-hidden="true" />}
-              {isStarting ? 'Starting recording...' : 'Start recording'}
-              {!isStarting && <ArrowRight aria-hidden="true" />}
-            </Button>
-            <p className="mt-3 text-sm text-muted-foreground" role="status">
-              {isStarting
-                ? statusMessage || 'Initializing local capture...'
-                : readiness.canStart
-                  ? 'Microphone and local transcription are ready.'
-                  : readiness.blockDetail}
-            </p>
-          </div>
-        </Surface>
-
-        <Surface className="p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Readiness</p>
-              <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em]">Before you record</h2>
+              <div className="mt-8 border-t border-border pt-4">
+                <Button variant="recording" size="lg" onClick={() => void handleStart()} disabled={!canStart} className="min-w-44">
+                  {isStarting ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Mic aria-hidden="true" />}
+                  {isStarting ? 'Starting recording...' : 'Start recording'}
+                  {!isStarting && <ArrowRight aria-hidden="true" />}
+                </Button>
+                <p className="mt-3 text-sm text-muted-foreground" role="status">
+                  {isStarting
+                    ? statusMessage || 'Initializing local capture...'
+                    : readiness.canStart
+                      ? 'Microphone and local transcription are ready.'
+                      : readiness.blockDetail}
+                </p>
+              </div>
             </div>
-            <span className="grid size-9 place-items-center rounded-lg bg-secondary text-muted-foreground">
-              <ShieldCheck className="size-4" aria-hidden="true" />
-            </span>
-          </div>
 
-          <ul className="mt-4" aria-label="Recording readiness checks">
-            {readiness.items.map(item => <ReadinessRow key={item.id} item={item} />)}
-          </ul>
+            <aside className="border-t border-border bg-secondary/45 p-5 md:border-l md:border-t-0">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Readiness</p>
+                  <h2 className="mt-1.5 text-base font-semibold">Before you record</h2>
+                </div>
+                <ShieldCheck className="size-4 text-muted-foreground" aria-hidden="true" />
+              </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => void readiness.refresh()} disabled={readiness.isChecking}>
-              <RefreshCw className={readiness.isChecking ? 'animate-spin' : ''} aria-hidden="true" />
-              Recheck
-            </Button>
-            {!readiness.canStart && !readiness.isChecking && (
-              <Button variant="ghost" size="sm" onClick={openRelevantSettings}>
-                Resolve in settings
-              </Button>
-            )}
+              <ul className="mt-4" aria-label="Recording readiness checks">
+                {readiness.items.map(item => <ReadinessRow key={item.id} item={item} />)}
+              </ul>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => void readiness.refresh()} disabled={readiness.isChecking}>
+                  <RefreshCw className={readiness.isChecking ? 'animate-spin' : ''} aria-hidden="true" />
+                  Recheck
+                </Button>
+                {!readiness.canStart && !readiness.isChecking && (
+                  <Button variant="ghost" size="sm" onClick={openRelevantSettings}>
+                    Resolve in settings
+                  </Button>
+                )}
+              </div>
+            </aside>
           </div>
         </Surface>
       </div>

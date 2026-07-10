@@ -281,6 +281,37 @@
   }
 }
 
+@layer utilities {
+  /*
+   * Route migration bridge: behavior-heavy upstream components still contain
+   * literal Tailwind color utilities. Normalize those outputs to the global
+   * system until each component can be reduced to shared primitives.
+   */
+  .bg-white { background-color: hsl(var(--card)) !important; }
+  .bg-gray-50, .bg-slate-50 { background-color: hsl(var(--background)) !important; }
+  .bg-gray-100, .bg-slate-100 { background-color: hsl(var(--secondary)) !important; }
+  .bg-gray-200, .bg-slate-200 { background-color: hsl(var(--muted)) !important; }
+  .bg-gray-900, .bg-slate-900 { background-color: hsl(var(--primary)) !important; }
+  .bg-blue-50 { background-color: hsl(var(--accent-soft)) !important; }
+  .bg-blue-100 { background-color: hsl(var(--accent-soft)) !important; }
+  .bg-blue-500, .bg-blue-600, .bg-blue-700 { background-color: hsl(var(--primary)) !important; }
+  .bg-gradient-to-r { background-image: none !important; }
+
+  .text-gray-900, .text-slate-900 { color: hsl(var(--foreground)) !important; }
+  .text-gray-700, .text-slate-700 { color: hsl(var(--foreground)) !important; }
+  .text-gray-600, .text-gray-500, .text-gray-400, .text-slate-600, .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
+  .text-blue-800, .text-blue-700, .text-blue-600 { color: hsl(var(--info)) !important; }
+  .text-orange-700 { color: hsl(var(--warning)) !important; }
+
+  .border-gray-100, .border-gray-200, .border-gray-300, .border-slate-200 { border-color: hsl(var(--border)) !important; }
+  .border-blue-100, .border-blue-200, .border-blue-500 { border-color: hsl(var(--ring)) !important; }
+  .ring-blue-300, .ring-blue-500 { --tw-ring-color: hsl(var(--ring) / 0.25) !important; }
+
+  .hover\:bg-gray-50:hover, .hover\:bg-gray-100:hover, .hover\:bg-gray-200:hover, .hover\:bg-slate-100:hover { background-color: hsl(var(--secondary)) !important; }
+  .hover\:bg-blue-700:hover, .hover\:bg-blue-600:hover { background-color: hsl(var(--primary) / 0.88) !important; }
+  .hover\:text-gray-700:hover, .hover\:text-gray-600:hover, .hover\:text-blue-700:hover { color: hsl(var(--foreground)) !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
