@@ -35,7 +35,12 @@ export function useRecordingStart(
   const { clearTranscripts, setMeetingTitle } = useTranscripts();
   const { setIsMeetingActive } = useSidebar();
   const { selectedDevices } = useConfig();
-  const { setStatus } = useRecordingState();
+  const { status, setStatus } = useRecordingState();
+  const isPostProcessing = [
+    RecordingStatus.STOPPING,
+    RecordingStatus.PROCESSING_TRANSCRIPTS,
+    RecordingStatus.SAVING,
+  ].includes(status);
 
   // Generate meeting title with timestamp
   const generateMeetingTitle = useCallback(() => {
@@ -81,6 +86,8 @@ export function useRecordingStart(
 
   // Handle manual recording start (from button click)
   const handleRecordingStart = useCallback(async () => {
+    if (isPostProcessing) return;
+
     try {
       console.log('handleRecordingStart called - checking Parakeet model status');
 
@@ -141,13 +148,17 @@ export function useRecordingStart(
       // Re-throw so RecordingControls can handle device-specific errors
       throw error;
     }
-  }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, selectedDevices, showModal, setStatus]);
+  }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, selectedDevices, showModal, setStatus, isPostProcessing]);
 
   // Check for autoStartRecording flag and start recording automatically
   useEffect(() => {
     const checkAutoStartRecording = async () => {
       if (typeof window !== 'undefined') {
         const shouldAutoStart = sessionStorage.getItem('autoStartRecording');
+        if (shouldAutoStart === 'true' && isPostProcessing) {
+          sessionStorage.removeItem('autoStartRecording');
+          return;
+        }
         if (shouldAutoStart === 'true' && !isRecording && !isAutoStarting) {
           console.log('Auto-starting recording from navigation...');
           setIsAutoStarting(true);
@@ -228,13 +239,14 @@ export function useRecordingStart(
     checkIfModelDownloading,
     showModal,
     setStatus,
+    isPostProcessing,
   ]);
 
   // Listen for direct recording trigger from sidebar when already on home page
   useEffect(() => {
     const handleDirectStart = async () => {
-      if (isRecording || isAutoStarting) {
-        console.log('Recording already in progress, ignoring direct start event');
+      if (isRecording || isAutoStarting || isPostProcessing) {
+        console.log('Recording or local save already in progress, ignoring direct start event');
         return;
       }
 
@@ -317,6 +329,7 @@ export function useRecordingStart(
     checkIfModelDownloading,
     showModal,
     setStatus,
+    isPostProcessing,
   ]);
 
   return {

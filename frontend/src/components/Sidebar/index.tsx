@@ -8,6 +8,7 @@ import {
   FileText,
   Home,
   Import,
+  LoaderCircle,
   Mic,
   PanelLeftClose,
   PanelLeftOpen,
@@ -56,7 +57,8 @@ export default function Sidebar() {
     meetings,
     setMeetings,
   } = useSidebar();
-  const { isRecording } = useRecordingState();
+  const { isRecording, isStopping, isProcessing, isSaving } = useRecordingState();
+  const isPostProcessing = isStopping || isProcessing || isSaving;
   const { openImportDialog } = useImportDialog();
   const { betaFeatures } = useConfig();
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,12 +86,13 @@ export default function Sidebar() {
   }, [meetings, searchQuery, searchResults]);
 
   const openMeeting = (id: string, title: string) => {
+    if (isPostProcessing) return;
     setCurrentMeeting({ id, title });
     router.push(`/meeting-details?id=${id}`);
   };
 
   const handleDelete = async () => {
-    if (!deleteMeetingId) return;
+    if (!deleteMeetingId || isPostProcessing) return;
 
     try {
       await invoke('api_delete_meeting', { meetingId: deleteMeetingId });
@@ -107,11 +110,13 @@ export default function Sidebar() {
   };
 
   const beginEditing = (id: string, title: string) => {
+    if (isPostProcessing) return;
     setEditingMeeting({ id, title });
     setEditingTitle(title);
   };
 
   const saveTitle = async () => {
+    if (isPostProcessing) return;
     const title = editingTitle.trim();
     if (!editingMeeting || !title) {
       toast.error('Meeting title cannot be empty');
@@ -143,10 +148,12 @@ export default function Sidebar() {
       <button
         key={item.href}
         type="button"
-        onClick={() => router.push(item.href)}
+        onClick={() => !isPostProcessing && router.push(item.href)}
+        disabled={isPostProcessing}
+        aria-disabled={isPostProcessing}
         aria-current={isActive(item.href) ? 'page' : undefined}
         className={cn(
-          'group flex min-h-10 items-center rounded-lg text-sm font-medium transition-colors',
+          'group flex min-h-10 items-center rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
           isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3',
           isActive(item.href)
             ? 'bg-[hsl(var(--sidebar-strong))] text-foreground'
@@ -215,13 +222,15 @@ export default function Sidebar() {
                 type="search"
                 value={searchQuery}
                 onChange={(event) => handleSearchChange(event.target.value)}
+                disabled={isPostProcessing}
                 placeholder="Search meetings"
-                className="h-10 w-full rounded-lg border border-border/80 bg-card/65 pl-9 pr-9 text-sm placeholder:text-muted-foreground"
+                className="h-10 w-full rounded-lg border border-border/80 bg-card/65 pl-9 pr-9 text-sm placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => handleSearchChange('')}
+                  disabled={isPostProcessing}
                   aria-label="Clear meeting search"
                   className="absolute right-1.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
                 >
@@ -247,18 +256,19 @@ export default function Sidebar() {
                       <button
                         type="button"
                         onClick={() => openMeeting(meeting.id, meeting.title)}
+                        disabled={isPostProcessing}
                         className={cn(
-                          'min-h-10 w-full truncate rounded-lg py-2 pl-3 pr-16 text-left text-sm transition-colors hover:bg-[hsl(var(--sidebar-strong)/0.7)]',
+                          'min-h-10 w-full truncate rounded-lg py-2 pl-3 pr-16 text-left text-sm transition-colors hover:bg-[hsl(var(--sidebar-strong)/0.7)] disabled:cursor-not-allowed disabled:opacity-50',
                           currentMeeting?.id === meeting.id && pathname === '/meeting-details' && 'bg-[hsl(var(--sidebar-strong))] font-medium',
                         )}
                       >
                         {meeting.title}
                       </button>
                       <div className="absolute right-1 top-1/2 flex -translate-y-1/2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-                        <button type="button" onClick={() => beginEditing(meeting.id, meeting.title)} aria-label={`Rename ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground">
+                        <button type="button" onClick={() => beginEditing(meeting.id, meeting.title)} disabled={isPostProcessing} aria-label={`Rename ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50">
                           <Pencil className="size-3.5" aria-hidden="true" />
                         </button>
-                        <button type="button" onClick={() => setDeleteMeetingId(meeting.id)} aria-label={`Delete ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-destructive">
+                        <button type="button" onClick={() => setDeleteMeetingId(meeting.id)} disabled={isPostProcessing} aria-label={`Delete ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50">
                           <Trash2 className="size-3.5" aria-hidden="true" />
                         </button>
                       </div>
@@ -276,23 +286,23 @@ export default function Sidebar() {
               <button
                 type="button"
                 onClick={handleRecordingToggle}
-                disabled={isRecording}
+                disabled={isRecording || isPostProcessing}
                 className={cn(
                   'flex min-h-10 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-[background,transform] hover:bg-primary/90 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-55',
                   isCollapsed ? 'w-10' : 'w-full gap-2 px-3',
                 )}
               >
-                {isRecording ? <Square className="size-4" aria-hidden="true" /> : <Mic className="size-4" aria-hidden="true" />}
-                {!isCollapsed && <span>{isRecording ? 'Recording in progress' : 'Start recording'}</span>}
+                {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : isRecording ? <Square className="size-4" aria-hidden="true" /> : <Mic className="size-4" aria-hidden="true" />}
+                {!isCollapsed && <span>{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording in progress' : 'Start recording'}</span>}
               </button>
             </TooltipTrigger>
-            {isCollapsed && <TooltipContent side="right">{isRecording ? 'Recording in progress' : 'Start recording'}</TooltipContent>}
+            {isCollapsed && <TooltipContent side="right">{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording in progress' : 'Start recording'}</TooltipContent>}
           </Tooltip>
 
           {betaFeatures.importAndRetranscribe && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <button type="button" onClick={() => openImportDialog()} className={cn('flex min-h-10 items-center rounded-lg text-sm font-medium text-muted-foreground transition-colors hover:bg-[hsl(var(--sidebar-strong))] hover:text-foreground', isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3')}>
+                <button type="button" onClick={() => openImportDialog()} disabled={isPostProcessing} className={cn('flex min-h-10 items-center rounded-lg text-sm font-medium text-muted-foreground transition-colors hover:bg-[hsl(var(--sidebar-strong))] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50', isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3')}>
                   <Import className="size-[1.1rem]" aria-hidden="true" />
                   {!isCollapsed && <span>Import audio</span>}
                 </button>
@@ -303,7 +313,7 @@ export default function Sidebar() {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <button type="button" onClick={() => router.push('/settings')} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-10 items-center rounded-lg text-sm font-medium transition-colors', isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3', pathname === '/settings' ? 'bg-[hsl(var(--sidebar-strong))] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--sidebar-strong))] hover:text-foreground')}>
+              <button type="button" onClick={() => router.push('/settings')} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-10 items-center rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50', isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3', pathname === '/settings' ? 'bg-[hsl(var(--sidebar-strong))] text-foreground' : 'text-muted-foreground hover:bg-[hsl(var(--sidebar-strong))] hover:text-foreground')}>
                 <Settings className="size-[1.1rem]" aria-hidden="true" />
                 {!isCollapsed && <span>Settings</span>}
               </button>

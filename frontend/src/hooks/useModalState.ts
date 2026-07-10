@@ -40,7 +40,7 @@ interface UseModalStateReturn {
  *
  * Features:
  * - Unified modal state management
- * - Event listeners for chunk drops, transcription errors, model downloads
+ * - Event listeners for active transcription errors and model downloads
  * - Auto-close on model download completion
  */
 export function useModalState(transcriptModelConfig?: TranscriptModelProps): UseModalStateReturn {
@@ -97,33 +97,6 @@ export function useModalState(transcriptModelConfig?: TranscriptModelProps): Use
       modelSelector: '',
     });
   }, []);
-
-  // Set up chunk drop warning listener
-  useEffect(() => {
-    let unlistenFn: (() => void) | undefined;
-
-    const setupChunkDropListener = async () => {
-      try {
-        console.log('Setting up chunk-drop-warning listener...');
-        unlistenFn = await listen<string>('chunk-drop-warning', (event) => {
-          console.log('Chunk drop warning received:', event.payload);
-          showModal('chunkDropWarning', event.payload);
-        });
-        console.log('Chunk drop warning listener setup complete');
-      } catch (error) {
-        console.error('Failed to setup chunk drop warning listener:', error);
-      }
-    };
-
-    setupChunkDropListener();
-
-    return () => {
-      console.log('Cleaning up chunk drop warning listener...');
-      if (unlistenFn) {
-        unlistenFn();
-      }
-    };
-  }, [showModal]);
 
   // Set up transcription error listener for model loading failures
   useEffect(() => {

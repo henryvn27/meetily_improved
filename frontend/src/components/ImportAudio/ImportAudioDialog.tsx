@@ -2,16 +2,18 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   Upload,
   Globe,
-  Loader2,
-  AlertCircle,
+  LoaderCircle,
+  AlertTriangle,
   CheckCircle2,
   X,
   Cpu,
-  FileAudio,
+  FileAudio2,
   Clock,
   HardDrive,
   ChevronDown,
   ChevronUp,
+  ShieldCheck,
+  FolderOpen,
 } from 'lucide-react';
 import {
   Dialog,
@@ -37,31 +39,19 @@ import { useRouter } from 'next/navigation';
 import { useSidebar } from '../Sidebar/SidebarProvider';
 import { LANGUAGES } from '@/constants/languages';
 import { useTranscriptionModels, ModelOption } from '@/hooks/useTranscriptionModels';
-
+import { Progress } from '../ui/progress';
+import { getAudioFormatsDisplayList } from '@/constants/audioFormats';
+import {
+  formatImportDuration,
+  formatImportFileSize,
+  getImportProgressPresentation,
+} from '@/lib/import-audio';
 
 interface ImportAudioDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   preselectedFile?: string | null;
   onComplete?: () => void;
-}
-
-function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
 export function ImportAudioDialog({
@@ -170,6 +160,7 @@ export function ImportAudioDialog({
     return availableModels.find((m) => m.provider === provider && m.name === name);
   }, [selectedModelKey, availableModels]);
   const isParakeetModel = selectedModel?.provider === 'parakeet';
+  const progressPresentation = progress ? getImportProgressPresentation(progress) : null;
 
   useEffect(() => {
     if (isParakeetModel && selectedLang !== 'auto') {
@@ -198,7 +189,8 @@ export function ImportAudioDialog({
 
   const handleCancel = async () => {
     if (isProcessing) {
-      await cancelImport();
+      const cancelled = await cancelImport();
+      if (!cancelled) return;
       toast.info('Import cancelled');
     }
     onOpenChange(false);
@@ -227,248 +219,118 @@ export function ImportAudioDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="sm:max-w-[500px]"
+        className="overflow-hidden p-0 sm:max-w-[640px]"
         onEscapeKeyDown={handleEscapeKeyDown}
         onInteractOutside={handleInteractOutside}
       >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {isProcessing ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-                Importing Audio...
-              </>
-            ) : error ? (
-              <>
-                <AlertCircle className="h-5 w-5 text-red-600" />
-                Import Failed
-              </>
-            ) : status === 'complete' ? (
-              <>
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                Import Complete
-              </>
-            ) : (
-              <>
-                <Upload className="h-5 w-5 text-blue-600" />
-                Import Audio File
-              </>
-            )}
-          </DialogTitle>
-          <DialogDescription>
-            {isProcessing
-              ? progress?.message || 'Processing audio...'
-              : error
-              ? 'An error occurred during import'
-              : 'Import an audio file to create a new meeting with transcripts'}
-          </DialogDescription>
-        </DialogHeader>
+        <div className="border-b border-border/70 bg-secondary/35 px-6 py-5 sm:px-7">
+          <DialogHeader className="text-left">
+            <div className="flex items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary text-foreground">
+                {isProcessing ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : error ? <AlertTriangle className="size-5 text-destructive" aria-hidden="true" /> : status === 'complete' ? <CheckCircle2 className="size-5 text-emerald-700" aria-hidden="true" /> : <FileAudio2 className="size-5" aria-hidden="true" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Local audio import</p>
+                <DialogTitle className="mt-1 text-xl tracking-[-0.02em]">
+                  {isProcessing ? 'Creating your meeting' : error && !isProcessing ? 'Import needs attention' : status === 'complete' ? 'Meeting imported' : 'Import a recording'}
+                </DialogTitle>
+                <DialogDescription className="mt-1.5 leading-5">
+                  {isProcessing ? progressPresentation?.message || 'Waiting for the first local processing update…' : error && !isProcessing ? 'The original file was not changed. Review the local error below.' : 'Choose one recording. Meetily validates, transcribes, and saves it on this device.'}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+        </div>
 
-        <div className="space-y-4 py-4">
-          {/* File selection / info */}
+        <div className="max-h-[62vh] space-y-4 overflow-y-auto px-6 py-5 sm:px-7">
           {!isProcessing && !error && (
-            <>
-              {fileInfo ? (
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            fileInfo ? (
+              <>
+                <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
                   <div className="flex items-start gap-3">
-                    <FileAudio className="h-8 w-8 text-blue-600 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{fileInfo.filename}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {formatDuration(fileInfo.duration_seconds)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <HardDrive className="h-3.5 w-3.5" />
-                          {formatFileSize(fileInfo.size_bytes)}
-                        </span>
-                        <span className="text-blue-600 font-medium">{fileInfo.format}</span>
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary"><FileAudio2 className="size-5" aria-hidden="true" /></span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-foreground">{fileInfo.filename}</p>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5"><Clock className="size-3.5" aria-hidden="true" />{formatImportDuration(fileInfo.duration_seconds)}</span>
+                        <span className="flex items-center gap-1.5"><HardDrive className="size-3.5" aria-hidden="true" />{formatImportFileSize(fileInfo.size_bytes)}</span>
+                        <span className="rounded-full bg-secondary px-2 py-0.5 font-medium text-foreground">{fileInfo.format}</span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Editable title */}
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Meeting Title</label>
-                    <Input
-                      value={title}
-                      onChange={(e) => {
-                        setTitle(e.target.value);
-                        setTitleModifiedByUser(true);
-                      }}
-                      placeholder="Enter meeting title"
-                    />
+                  <div className="mt-4 space-y-1.5">
+                    <label htmlFor="import-meeting-title" className="text-sm font-medium">Meeting title</label>
+                    <Input id="import-meeting-title" value={title} onChange={(event) => { setTitle(event.target.value); setTitleModifiedByUser(true); }} placeholder="Enter meeting title" />
                   </div>
-
-                  <Button variant="outline" size="sm" onClick={handleSelectFile} className="w-full">
-                    Choose Different File
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleSelectFile} className="mt-3 w-full"><FolderOpen className="mr-2 size-4" aria-hidden="true" />Choose a different file</Button>
                 </div>
-              ) : (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <FileAudio className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <Button onClick={handleSelectFile} disabled={status === 'validating'}>
-                    {status === 'validating' ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Validating...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Select Audio File
-                      </>
-                    )}
-                  </Button>
-                  <p className="text-sm text-gray-500 mt-2">MP4, WAV, MP3, FLAC, OGG, MKV, WebM, WMA</p>
-                </div>
-              )}
 
-              {/* Advanced options (collapsible) */}
-              {fileInfo && (
-                <div className="border rounded-lg">
-                  <button
-                    onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="w-full flex items-center justify-between p-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    <span>Advanced Options</span>
-                    {showAdvanced ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
+                <div className="overflow-hidden rounded-xl border border-border/80">
+                  <button type="button" onClick={() => setShowAdvanced(!showAdvanced)} aria-expanded={showAdvanced} className="flex min-h-11 w-full items-center justify-between px-4 text-sm font-medium hover:bg-secondary/55">
+                    <span>Transcription options</span>
+                    {showAdvanced ? <ChevronUp className="size-4" aria-hidden="true" /> : <ChevronDown className="size-4" aria-hidden="true" />}
                   </button>
-
                   {showAdvanced && (
-                    <div className="p-3 pt-0 space-y-4 border-t">
-                      {/* Language selector */}
-                      {!isParakeetModel ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Language</span>
-                          </div>
-                          <Select value={selectedLang} onValueChange={setSelectedLang}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select language" />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-60">
-                              {LANGUAGES.map((lang) => (
-                                <SelectItem key={lang.code} value={lang.code}>
-                                  {lang.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Language</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Language selection isn&apos;t supported for Parakeet. It always uses automatic detection.
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Model selector */}
+                    <div className="grid gap-4 border-t border-border/70 p-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium"><Globe className="size-4 text-muted-foreground" aria-hidden="true" />Language</div>
+                        {!isParakeetModel ? (
+                          <Select value={selectedLang} onValueChange={setSelectedLang}><SelectTrigger><SelectValue placeholder="Select language" /></SelectTrigger><SelectContent className="max-h-60">{LANGUAGES.map((lang) => <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>)}</SelectContent></Select>
+                        ) : <p className="text-xs leading-5 text-muted-foreground">Parakeet uses automatic language detection.</p>}
+                      </div>
                       {availableModels.length > 0 && (
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Cpu className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Model</span>
-                          </div>
-                          <Select
-                            value={selectedModelKey}
-                            onValueChange={setSelectedModelKey}
-                            disabled={loadingModels}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder={loadingModels ? 'Loading models...' : 'Select model'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableModels.map((model) => (
-                                <SelectItem
-                                  key={`${model.provider}:${model.name}`}
-                                  value={`${model.provider}:${model.name}`}
-                                >
-                                  {model.displayName} ({Math.round(model.size_mb)} MB)
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="flex items-center gap-2 text-sm font-medium"><Cpu className="size-4 text-muted-foreground" aria-hidden="true" />Local model</div>
+                          <Select value={selectedModelKey} onValueChange={setSelectedModelKey} disabled={loadingModels}><SelectTrigger><SelectValue placeholder={loadingModels ? 'Loading models…' : 'Select model'} /></SelectTrigger><SelectContent>{availableModels.map((model) => <SelectItem key={`${model.provider}:${model.name}`} value={`${model.provider}:${model.name}`}>{model.displayName} ({Math.round(model.size_mb)} MB)</SelectItem>)}</SelectContent></Select>
                         </div>
                       )}
                     </div>
                   )}
                 </div>
-              )}
-            </>
+              </>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border bg-secondary/25 px-6 py-9 text-center">
+                <span className="mx-auto grid size-12 place-items-center rounded-xl bg-card shadow-sm"><Upload className="size-5" aria-hidden="true" /></span>
+                <h2 className="mt-4 font-semibold">Choose a recording</h2>
+                <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-muted-foreground">Drag one file anywhere into Meetily, or open the native file picker.</p>
+                <Button onClick={handleSelectFile} disabled={status === 'validating'} className="mt-4">
+                  {status === 'validating' ? <><LoaderCircle className="mr-2 size-4 animate-spin" aria-hidden="true" />Validating locally…</> : <><FolderOpen className="mr-2 size-4" aria-hidden="true" />Choose audio file</>}
+                </Button>
+                <p className="mt-4 text-xs leading-5 text-muted-foreground">Supported: {getAudioFormatsDisplayList()}</p>
+              </div>
+            )
           )}
 
-          {/* Progress display */}
-          {isProcessing && progress && (
-            <div className="space-y-2">
-              <div className="relative">
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${Math.min(progress.progress_percentage, 100)}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-600 mt-1">
-                  <span>{progress.stage}</span>
-                  <span>{Math.round(progress.progress_percentage)}%</span>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground text-center">{progress.message}</p>
+          {isProcessing && (
+            <div className="space-y-4 rounded-xl border border-border/80 bg-card p-5">
+              {progressPresentation ? (
+                <>
+                  <div className="flex items-center justify-between gap-4 text-sm"><span className="font-semibold">{progressPresentation.label}</span><span className="tabular-nums text-muted-foreground">{progressPresentation.percentage}%</span></div>
+                  <Progress value={progressPresentation.percentage} aria-label={`Native import progress ${progressPresentation.percentage}%`} />
+                  <p className="text-sm leading-6 text-muted-foreground">{progressPresentation.message}</p>
+                </>
+              ) : (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" aria-hidden="true" />Waiting for the native importer…</div>
+              )}
+              <div className="flex items-start gap-3 border-t border-border/70 pt-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><p>Keep Meetily open while the local transcript and meeting record are created.</p></div>
             </div>
           )}
 
-          {/* Error display */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-800">{error}</p>
+            <div role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 p-4">
+              <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" /><div><p className="text-sm font-semibold text-foreground">{isProcessing ? 'Cancellation did not complete' : 'Local import failed'}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{error}</p></div></div>
             </div>
           )}
         </div>
 
-        <DialogFooter>
-          {!isProcessing && !error && (
-            <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleStartImport}
-                className="bg-blue-600 hover:bg-blue-700"
-                disabled={!fileInfo}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Import
-              </Button>
-            </>
-          )}
-          {isProcessing && (
-            <Button variant="outline" onClick={handleCancel}>
-              <X className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-          )}
-          {error && (
-            <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Close
-              </Button>
-              <Button onClick={reset} variant="outline">
-                Try Again
-              </Button>
-            </>
-          )}
-        </DialogFooter>
+        <div className="flex items-center justify-between gap-3 border-t border-border/70 bg-secondary/25 px-6 py-4 sm:px-7">
+          <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"><ShieldCheck className="size-4" aria-hidden="true" />Audio stays on this device.</div>
+          <DialogFooter className="ml-auto flex-row gap-2 sm:space-x-0">
+            {!isProcessing && !error && <><Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={handleStartImport} disabled={!fileInfo || !title.trim()}><Upload className="mr-2 size-4" aria-hidden="true" />Import meeting</Button></>}
+            {isProcessing && <Button variant="outline" onClick={handleCancel}><X className="mr-2 size-4" aria-hidden="true" />Cancel import</Button>}
+            {error && !isProcessing && <><Button variant="ghost" onClick={() => onOpenChange(false)}>Close</Button><Button onClick={reset} variant="outline">Choose another file</Button></>}
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -12,7 +12,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { listen, UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { RecordingStateProvider } from '@/contexts/RecordingStateContext'
+import { RecordingStateProvider, useRecordingState } from '@/contexts/RecordingStateContext'
 import { OllamaDownloadProvider } from '@/contexts/OllamaDownloadContext'
 import { TranscriptProvider } from '@/contexts/TranscriptContext'
 import { ConfigProvider, useConfig } from '@/contexts/ConfigContext'
@@ -46,9 +46,17 @@ function ConditionalImportDialog({
   importFilePath: string | null;
 }) {
   const { betaFeatures } = useConfig();
+  const { isStopping, isProcessing, isSaving } = useRecordingState();
+  const isPostProcessing = isStopping || isProcessing || isSaving;
+
+  useEffect(() => {
+    if (isPostProcessing && showImportDialog) {
+      handleImportDialogClose(false);
+    }
+  }, [handleImportDialogClose, isPostProcessing, showImportDialog]);
 
   // Only mount ImportAudioDialog (and its hooks/listeners) when feature is enabled
-  if (!betaFeatures.importAndRetranscribe) {
+  if (!betaFeatures.importAndRetranscribe || isPostProcessing) {
     return null;
   }
 
@@ -59,6 +67,11 @@ function ConditionalImportDialog({
       preselectedFile={importFilePath}
     />
   );
+}
+
+function ConditionalImportDropOverlay({ visible }: { visible: boolean }) {
+  const { isStopping, isProcessing, isSaving } = useRecordingState();
+  return <ImportDropOverlay visible={visible && !isStopping && !isProcessing && !isSaving} />;
 }
 
 // export { metadata } from './metadata'
@@ -258,7 +271,7 @@ export default function RootLayout({
                                 </div>
                               )}
                               {/* Import audio overlay and dialog */}
-                              <ImportDropOverlay visible={showDropOverlay} />
+                              <ConditionalImportDropOverlay visible={showDropOverlay} />
                               <ConditionalImportDialog
                                 showImportDialog={showImportDialog}
                                 handleImportDialogClose={handleImportDialogClose}

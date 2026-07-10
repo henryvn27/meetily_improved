@@ -27,6 +27,8 @@ export interface VirtualizedTranscriptViewProps {
     showConfidence?: boolean;
     /** Completely disable auto-scroll behavior (for meeting details page) */
     disableAutoScroll?: boolean;
+    /** Hide the legacy inline status bar when the parent workspace owns recording status. */
+    showRecordingStatus?: boolean;
 
     // Pagination props (infinite scroll)
     hasMore?: boolean;
@@ -119,6 +121,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
     enableStreaming = false,
     showConfidence = true,
     disableAutoScroll = false,
+    showRecordingStatus = true,
     hasMore = false,
     isLoadingMore = false,
     totalCount = 0,
@@ -219,7 +222,7 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
         <div ref={scrollRef} className="flex flex-col h-full overflow-y-auto px-4 py-2">
             {/* Recording Status Bar - Sticky at top, always visible when recording */}
             <AnimatePresence>
-                {isRecording && (
+                {isRecording && showRecordingStatus && (
                     <div className="sticky top-0 z-10 bg-white pb-2">
                         <RecordingStatusBar isPaused={isPaused} />
                     </div>

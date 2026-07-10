@@ -7,6 +7,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import type { NativeRecordingShutdownProgress } from '@/lib/recording-lifecycle';
 
 export interface RecordingState {
   is_recording: boolean;
@@ -146,12 +147,22 @@ export class RecordingService {
   }
 
   /**
-   * Listen for chunk-drop-warning event (audio buffer overflow)
-   * @param callback - Function to call when chunks are dropped
+   * Listen for the active Rust shutdown pipeline's progress events.
    * @returns Promise that resolves to unlisten function
    */
-  async onChunkDropWarning(callback: (warning: string) => void): Promise<UnlistenFn> {
-    return listen<string>('chunk-drop-warning', (event) => {
+  async onRecordingShutdownProgress(
+    callback: (progress: NativeRecordingShutdownProgress) => void,
+  ): Promise<UnlistenFn> {
+    return listen<NativeRecordingShutdownProgress>('recording-shutdown-progress', (event) => {
+      callback(event.payload);
+    });
+  }
+
+  /**
+   * Listen for native recording failures emitted by the active recording manager.
+   */
+  async onRecordingError(callback: (error: unknown) => void): Promise<UnlistenFn> {
+    return listen<unknown>('recording-error', (event) => {
       callback(event.payload);
     });
   }
