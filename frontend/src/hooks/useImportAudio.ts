@@ -53,7 +53,7 @@ export interface UseImportAudioReturn {
     model?: string | null,
     provider?: string | null
   ) => Promise<void>;
-  cancelImport: () => Promise<void>;
+  cancelImport: () => Promise<boolean>;
   reset: () => void;
 }
 
@@ -253,8 +253,15 @@ export function useImportAudio({
       await invoke('cancel_import_command');
       setStatus('idle');
       setProgress(null);
+      setError(null);
+      return true;
     } catch (err: any) {
       console.error('Failed to cancel import:', err);
+      isCancelledRef.current = false;
+      const errorMsg = typeof err === 'string' ? err : (err?.message || String(err) || 'Failed to cancel import');
+      setError(`Could not cancel the active import: ${errorMsg}`);
+      onErrorRef.current?.(errorMsg);
+      return false;
     }
   }, []);
 
