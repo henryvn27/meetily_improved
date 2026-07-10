@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useReducer, startTransition, useEffect, useState, memo } from "react";
+import { useCallback, useRef, useEffect, useState, memo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { useTranscriptStreaming } from "@/hooks/useTranscriptStreaming";
@@ -130,20 +130,12 @@ export const VirtualizedTranscriptView: React.FC<VirtualizedTranscriptViewProps>
     // Ref for infinite scroll trigger element
     const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
 
-    // Force re-render without flushSync (avoids React warning)
-    const [, rerender] = useReducer((x: number) => x + 1, 0);
-
     // Setup virtualizer for efficient rendering of large lists
     const virtualizer = useVirtualizer({
         count: segments.length,
         getScrollElement: () => scrollRef.current,
         estimateSize: () => 60, // Estimated height per segment
         overscan: 10, // Render extra items above/below viewport
-        onChange: () => {
-            startTransition(() => {
-                rerender();
-            });
-        },
     });
 
     // Custom hook for auto-scrolling (supports both virtualized and non-virtualized)
