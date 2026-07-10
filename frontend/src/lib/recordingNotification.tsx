@@ -33,7 +33,7 @@ export async function showRecordingNotification(): Promise<void> {
                 }}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
               />
-              <span className="select-none text-gray-700">Don't show this again</span>
+              <span className="select-none text-gray-700">Don&apos;t show this again</span>
             </label>
             <button
               onClick={async () => {
@@ -48,7 +48,7 @@ export async function showRecordingNotification(): Promise<void> {
               }}
               className="w-full px-3 py-1.5 bg-gray-900 text-white text-xs rounded hover:bg-gray-800 transition-colors font-medium"
             >
-              I've Notified Participants
+              I&apos;ve Notified Participants
             </button>
           </div>
         ),

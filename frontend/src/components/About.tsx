@@ -127,7 +127,7 @@ export function About() {
             <div className="text-center space-y-2">
                 <h3 className="text-medium font-semibold text-gray-800">Ready to push your business further?</h3>
                 <p className="text-s text-gray-600">
-                    If you're planning to build privacy-first custom AI agents or a fully tailored product for your <span className="font-bold">business</span>, we can help you build it.
+                    If you&apos;re planning to build privacy-first custom AI agents or a fully tailored product for your <span className="font-bold">business</span>, we can help you build it.
                 </p>
                 <button
                     onClick={handleContactClick}
