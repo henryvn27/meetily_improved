@@ -264,7 +264,7 @@ Thanks for all the contributions. Our community is what makes this project possi
 
 ## License
 
-MIT License - Feel free to use this project for your own purposes.
+Licensed under the MIT License. The original copyright notice for Zackriya Solutions is preserved in [LICENSE](LICENSE). Meetily Improved remains an attributed public fork of [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily); third-party components remain subject to their own licenses.
 
 ## Acknowledgments
 
