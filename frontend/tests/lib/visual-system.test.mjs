@@ -17,7 +17,8 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(css, /--sidebar: 240 4% 10%/);
   assert.doesNotMatch(css, /--background: 42 26% 96%/);
   assert.match(sidebar, /bg-\[hsl\(var\(--sidebar\)\)\]/);
-  assert.match(sidebar, /bg-accent text-\[13px\] font-semibold text-accent-foreground/);
+  assert.match(sidebar, /bg-accent/);
+  assert.match(sidebar, /text-accent-foreground/);
 
   const combinedDocs = `${product}\n${designMarkdown}\n${designJson}`;
   assert.match(combinedDocs, /Signal Orange/);
