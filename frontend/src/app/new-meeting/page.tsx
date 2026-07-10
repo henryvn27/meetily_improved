@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { RecordingControls } from '@/components/RecordingControls';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
-import { usePermissionCheck } from '@/hooks/usePermissionCheck';
 import { useRecordingState, RecordingStatus } from '@/contexts/RecordingStateContext';
 import { useTranscripts } from '@/contexts/TranscriptContext';
 import { useConfig } from '@/contexts/ConfigContext';
@@ -21,6 +20,7 @@ import { TranscriptRecovery } from '@/components/TranscriptRecovery';
 import { indexedDBService } from '@/services/indexedDBService';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { PreRecordingWorkspace } from '@/components/recording/PreRecordingWorkspace';
 
 export default function NewMeetingPage() {
   // Local page state (not moved to contexts)
@@ -37,7 +37,6 @@ export default function NewMeetingPage() {
   const { status, isStopping, isProcessing, isSaving } = recordingState;
 
   // Hooks
-  const { hasMicrophone } = usePermissionCheck();
   const { setIsMeetingActive, isCollapsed: sidebarCollapsed, refetchMeetings } = useSidebar();
   const { modals, messages, showModal, hideModal } = useModalState(transcriptModelConfig);
   const { isRecordingDisabled, setIsRecordingDisabled } = useRecordingStateSync(isRecording, setIsRecordingState, setIsMeetingActive);
@@ -188,6 +187,11 @@ export default function NewMeetingPage() {
 
   // Computed values using global status
   const isProcessingStop = status === RecordingStatus.PROCESSING_TRANSCRIPTS || isProcessing;
+  const showPreRecording = !recordingState.isRecording && [
+    RecordingStatus.IDLE,
+    RecordingStatus.STARTING,
+    RecordingStatus.ERROR,
+  ].includes(status);
 
   return (
     <motion.div
@@ -213,15 +217,24 @@ export default function NewMeetingPage() {
         onDelete={deleteRecoverableMeeting}
         onLoadPreview={loadMeetingTranscripts}
       />
-      <div className="flex flex-1 overflow-hidden">
-        <TranscriptPanel
-          isProcessingStop={isProcessingStop}
-          isStopping={isStopping}
+      {showPreRecording ? (
+        <PreRecordingWorkspace
+          selectedDevices={selectedDevices}
+          status={status}
+          statusMessage={recordingState.statusMessage}
+          onStart={handleRecordingStart}
           showModal={showModal}
         />
+      ) : (
+        <div className="flex flex-1 overflow-hidden">
+          <TranscriptPanel
+            isProcessingStop={isProcessingStop}
+            isStopping={isStopping}
+            showModal={showModal}
+          />
 
-        {/* Recording controls - only show when permissions are granted or already recording and not showing status messages */}
-        {(hasMicrophone || isRecording) &&
+          {/* Recording controls - active capture only; pre-recording has its own readiness-aware action. */}
+          {isRecording &&
           status !== RecordingStatus.PROCESSING_TRANSCRIPTS &&
           status !== RecordingStatus.SAVING && (
             <div className="fixed bottom-12 left-0 right-0 z-10">
@@ -252,15 +265,16 @@ export default function NewMeetingPage() {
                 </div>
               </div>
             </div>
-          )}
+            )}
 
-        {/* Status Overlays - Processing and Saving */}
-        <StatusOverlays
-          isProcessing={status === RecordingStatus.PROCESSING_TRANSCRIPTS && !recordingState.isRecording}
-          isSaving={status === RecordingStatus.SAVING}
-          sidebarCollapsed={sidebarCollapsed}
-        />
-      </div>
+          {/* Status Overlays - Processing and Saving */}
+          <StatusOverlays
+            isProcessing={status === RecordingStatus.PROCESSING_TRANSCRIPTS && !recordingState.isRecording}
+            isSaving={status === RecordingStatus.SAVING}
+            sidebarCollapsed={sidebarCollapsed}
+          />
+        </div>
+      )}
     </motion.div>
   );
 }
