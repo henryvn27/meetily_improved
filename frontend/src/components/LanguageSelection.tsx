@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Globe } from 'lucide-react';
+import { AlertTriangle, Globe, Info, Languages } from 'lucide-react';
 import Analytics from '@/lib/analytics';
 import { toast } from 'sonner';
 import { useConfig } from '@/contexts/ConfigContext';
@@ -200,7 +200,7 @@ export function LanguageSelection({
         {/* Parakeet language limitation warning */}
         {isParakeet && (
           <div className="border border-warning/30 bg-warning/10 p-2 text-warning">
-            <p className="font-medium">ℹ️ Parakeet Language Support</p>
+            <p className="flex items-center gap-2 font-medium"><Info className="size-4" aria-hidden="true" />Parakeet language support</p>
             <p className="mt-1 text-xs">Parakeet currently only supports automatic language detection. Manual language selection is not available. Use Whisper if you need to specify a particular language.</p>
           </div>
         )}
@@ -212,13 +212,13 @@ export function LanguageSelection({
           </p>
           {selectedLanguage === 'auto' && (
             <div className="border border-warning/30 bg-warning/10 p-2 text-warning">
-              <p className="font-medium">⚠️ Auto Detect may produce incorrect results</p>
+              <p className="flex items-center gap-2 font-medium"><AlertTriangle className="size-4" aria-hidden="true" />Auto Detect may produce incorrect results</p>
               <p className="mt-1">For best accuracy, select your specific language (e.g., English, Spanish, etc.)</p>
             </div>
           )}
           {selectedLanguage === 'auto-translate' && (
             <div className="border border-accent/30 bg-accent-soft p-2 text-foreground">
-              <p className="font-medium">🌐 Translation Mode Active</p>
+              <p className="flex items-center gap-2 font-medium"><Languages className="size-4" aria-hidden="true" />Translation mode active</p>
               <p className="mt-1">All audio will be automatically translated to English. Best for multilingual meetings where you need English output.</p>
             </div>
           )}

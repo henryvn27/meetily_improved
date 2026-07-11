@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Summary, Block } from '@/types';
 import { Section } from './Section';
 import { EditableTitle } from '../EditableTitle';
-import { ExclamationTriangleIcon, CheckCircleIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
+import { ExclamationTriangleIcon, ClipboardDocumentCheckIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface Props {
   summary: Summary | null;
@@ -681,17 +681,17 @@ export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerat
           onClick={e => e.stopPropagation()}
         >
           <button
-            className="flex w-full items-center space-x-2 px-4 py-2 text-left hover:bg-muted"
+            className="flex w-full items-center space-x-2 px-4 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             onClick={handleCopyBlocks}
           >
-            <span className="text-muted-foreground">📋</span>
+            <ClipboardDocumentCheckIcon className="size-4 text-muted-foreground" aria-hidden="true" />
             <span>Copy {selectedBlocks.length > 1 ? `${selectedBlocks.length} blocks` : 'block'}</span>
           </button>
           <button
-            className="flex w-full items-center space-x-2 px-4 py-2 text-left text-destructive hover:bg-destructive/10"
+            className="flex w-full items-center space-x-2 px-4 py-2 text-left text-destructive transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             onClick={handleDeleteBlocks}
           >
-            <span>🗑️</span>
+            <TrashIcon className="size-4" aria-hidden="true" />
             <span>Delete {selectedBlocks.length > 1 ? `${selectedBlocks.length} blocks` : 'block'}</span>
           </button>
         </div>

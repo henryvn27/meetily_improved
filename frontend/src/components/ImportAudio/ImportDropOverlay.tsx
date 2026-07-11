@@ -13,8 +13,8 @@ export function ImportDropOverlay({ visible }: ImportDropOverlayProps) {
     <div
       className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-6 backdrop-blur-sm transition-opacity duration-200"
     >
-      <div className="w-full max-w-xl rounded-2xl border-2 border-dashed border-foreground/25 bg-card px-8 py-12 text-center shadow-xl">
-        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-secondary text-foreground">
+      <div className="w-full max-w-xl rounded-[10px] border border-dashed border-border bg-card px-8 py-12 text-center shadow-[0_24px_64px_hsl(var(--shadow-color)/0.18)]">
+        <span className="mx-auto grid size-14 place-items-center rounded-[10px] bg-secondary text-foreground">
           <FileAudio2 className="size-6" aria-hidden="true" />
         </span>
         <p className="mt-5 text-xl font-semibold tracking-[-0.02em] text-foreground">Drop one recording to import</p>
