@@ -89,14 +89,18 @@ pnpm run dev
 
 ### Run the desktop app
 
-Meetily uses a Rust helper sidecar. Build it once, then launch Tauri:
+Meetily uses a Rust helper sidecar. On Apple Silicon macOS, build the Metal-enabled helper and stage it for Tauri before launching or packaging:
 
 ```bash
 cd meetily_improved
-cargo build --release -p llama-helper
+cargo build --release -p llama-helper --features metal
+mkdir -p frontend/src-tauri/binaries
+cp target/release/llama-helper frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
 cd frontend
 pnpm run tauri:dev
 ```
+
+The staged sidecar is a generated local build artifact and is intentionally ignored by Git. For other architectures, use the matching target triple as documented in [docs/BUILDING.md](docs/BUILDING.md).
 
 GPU-specific and platform packaging details remain documented in [docs/BUILDING.md](docs/BUILDING.md).
 
