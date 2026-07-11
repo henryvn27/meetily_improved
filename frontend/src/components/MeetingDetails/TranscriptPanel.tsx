@@ -4,6 +4,9 @@ import { Transcript, TranscriptSegmentData } from '@/types';
 import { VirtualizedTranscriptView } from '@/components/VirtualizedTranscriptView';
 import { TranscriptButtonGroup } from './TranscriptButtonGroup';
 import { useMemo } from 'react';
+import { PanelRightClose } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface TranscriptPanelProps {
   transcripts: Transcript[];
@@ -27,6 +30,8 @@ interface TranscriptPanelProps {
   meetingId?: string;
   meetingFolderPath?: string | null;
   onRefetchTranscripts?: () => Promise<void>;
+  className?: string;
+  onCloseInspector?: () => void;
 }
 
 export function TranscriptPanel({
@@ -47,6 +52,8 @@ export function TranscriptPanel({
   meetingId,
   meetingFolderPath,
   onRefetchTranscripts,
+  className,
+  onCloseInspector,
 }: TranscriptPanelProps) {
   // Convert transcripts to segments if pagination is not used but we want virtualization
   const convertedSegments = useMemo(() => {
@@ -64,16 +71,36 @@ export function TranscriptPanel({
   }, [transcripts, usePagination, segments]);
 
   return (
-    <aside aria-label="Meeting transcript" className="hidden min-w-0 shrink-0 flex-col border-r border-border bg-secondary/35 md:flex md:w-[20rem] xl:w-[24rem]">
+    <aside
+      aria-label="Meeting transcript inspector"
+      className={cn(
+        'min-w-0 shrink-0 flex-col border-l border-border bg-secondary/35',
+        className,
+      )}
+    >
       <div className="border-b border-border px-4 py-4">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
             <p className="app-eyebrow">Source record</p>
             <h2 className="mt-1 text-base font-semibold tracking-[-0.03em]">Transcript</h2>
           </div>
-          <span className="font-mono text-[0.6875rem] text-muted-foreground">
-            {usePagination ? (totalCount ?? convertedSegments.length) : convertedSegments.length} segments
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[0.6875rem] text-muted-foreground">
+              {usePagination ? (totalCount ?? convertedSegments.length) : convertedSegments.length} segments
+            </span>
+            {onCloseInspector && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="xl:hidden"
+                onClick={onCloseInspector}
+                aria-label="Close transcript inspector"
+              >
+                <PanelRightClose className="size-4" aria-hidden="true" />
+              </Button>
+            )}
+          </div>
         </div>
         <TranscriptButtonGroup
           transcriptCount={usePagination ? (totalCount ?? convertedSegments.length) : (transcripts?.length || 0)}

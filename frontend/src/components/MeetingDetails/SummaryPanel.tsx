@@ -7,7 +7,7 @@ import { ModelConfig } from '@/components/ModelSettingsModal';
 import { SummaryGeneratorButtonGroup } from './SummaryGeneratorButtonGroup';
 import { SummaryUpdaterButtonGroup } from './SummaryUpdaterButtonGroup';
 import Analytics from '@/lib/analytics';
-import { useEffect, useRef, useState, RefObject } from 'react';
+import { useEffect, useRef, useState, RefObject, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Languages, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -59,6 +59,7 @@ interface SummaryPanelProps {
   onTemplateSelect: (templateId: string, templateName: string) => void;
   isModelConfigLoading?: boolean;
   onOpenModelSettings?: (openFn: () => void) => void;
+  inspectorControl?: ReactNode;
 }
 
 export function SummaryPanel({
@@ -94,7 +95,8 @@ export function SummaryPanel({
   selectedTemplate,
   onTemplateSelect,
   isModelConfigLoading = false,
-  onOpenModelSettings
+  onOpenModelSettings,
+  inspectorControl,
 }: SummaryPanelProps) {
   const [summaryLang, setSummaryLang] = useState<string | null>(null);
   const [summaryLangStorage, setSummaryLangStorage] = useState<SummaryLanguageStorage>('metadata');
@@ -257,7 +259,10 @@ export function SummaryPanel({
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0">
             <p className="app-eyebrow">Meeting note</p>
-            <h1 className="mt-2 truncate text-[1.625rem] font-semibold leading-tight tracking-[-0.045em]">{meetingTitle}</h1>
+            <div className="mt-2 flex items-start justify-between gap-3">
+              <h1 className="truncate text-[1.625rem] font-semibold leading-tight tracking-[-0.045em]">{meetingTitle}</h1>
+              {inspectorControl}
+            </div>
           </div>
         {aiSummary && !isSummaryLoading && (
           <div className="flex flex-wrap items-center gap-2">

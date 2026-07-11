@@ -17,6 +17,9 @@ import { useTemplates } from '@/hooks/meeting-details/useTemplates';
 import { useCopyOperations } from '@/hooks/meeting-details/useCopyOperations';
 import { useMeetingOperations } from '@/hooks/meeting-details/useMeetingOperations';
 import { useConfig } from '@/contexts/ConfigContext';
+import { Button } from '@/components/ui/button';
+import { PanelRightOpen } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function PageContent({
   meeting,
@@ -57,6 +60,7 @@ export default function PageContent({
   const [customPrompt, setCustomPrompt] = useState<string>('');
   const [isRecording] = useState(false);
   const [summaryResponse] = useState<SummaryResponse | null>(null);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
   // Ref to store the modal open function from SummaryGeneratorButtonGroup
   const openModelSettingsRef = useRef<(() => void) | null>(null);
@@ -171,27 +175,6 @@ export default function PageContent({
       className="flex h-full flex-col bg-background"
     >
       <div className="flex flex-1 overflow-hidden">
-        <TranscriptPanel
-          transcripts={meetingData.transcripts}
-          customPrompt={customPrompt}
-          onPromptChange={setCustomPrompt}
-          onCopyTranscript={copyOperations.handleCopyTranscript}
-          onOpenMeetingFolder={meetingOperations.handleOpenMeetingFolder}
-          isRecording={isRecording}
-          disableAutoScroll={true}
-          // Pagination props for efficient loading
-          usePagination={true}
-          segments={segments}
-          hasMore={hasMore}
-          isLoadingMore={isLoadingMore}
-          totalCount={totalCount}
-          loadedCount={loadedCount}
-          onLoadMore={onLoadMore}
-          // Retranscription props
-          meetingId={meeting.id}
-          meetingFolderPath={meeting.folder_path}
-          onRefetchTranscripts={onRefetchTranscripts}
-        />
         <SummaryPanel
           meeting={meeting}
           meetingTitle={meetingData.meetingTitle}
@@ -226,6 +209,43 @@ export default function PageContent({
           onTemplateSelect={templates.handleTemplateSelection}
           isModelConfigLoading={false}
           onOpenModelSettings={handleRegisterModalOpen}
+          inspectorControl={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 xl:hidden"
+              onClick={() => setIsInspectorOpen(true)}
+            >
+              <PanelRightOpen className="size-4" aria-hidden="true" />
+              Transcript
+            </Button>
+          }
+        />
+        <TranscriptPanel
+          transcripts={meetingData.transcripts}
+          customPrompt={customPrompt}
+          onPromptChange={setCustomPrompt}
+          onCopyTranscript={copyOperations.handleCopyTranscript}
+          onOpenMeetingFolder={meetingOperations.handleOpenMeetingFolder}
+          isRecording={isRecording}
+          disableAutoScroll={true}
+          usePagination={true}
+          segments={segments}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
+          totalCount={totalCount}
+          loadedCount={loadedCount}
+          onLoadMore={onLoadMore}
+          meetingId={meeting.id}
+          meetingFolderPath={meeting.folder_path}
+          onRefetchTranscripts={onRefetchTranscripts}
+          onCloseInspector={() => setIsInspectorOpen(false)}
+          className={cn(
+            'fixed inset-y-12 right-0 z-40 w-[min(28rem,100vw)] shadow-[-16px_0_32px_hsl(var(--foreground)/0.12)]',
+            'xl:static xl:z-auto xl:w-[22rem] xl:shadow-none',
+            isInspectorOpen ? 'flex' : 'hidden xl:flex',
+          )}
         />
       </div>
     </motion.div>

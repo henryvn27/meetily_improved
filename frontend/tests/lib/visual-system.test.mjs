@@ -5,7 +5,7 @@ import test from 'node:test';
 const root = new URL('../../', import.meta.url);
 
 test('global shell uses the documented signal-orange visual system', async () => {
-  const [css, sidebar, mainContent, pageHeader, homePage, themeContext, themeControl, meetingTranscript, meetingSummary, preRecording, postRecording, product, designMarkdown, designJson] = await Promise.all([
+  const [css, sidebar, mainContent, pageHeader, homePage, themeContext, themeControl, meetingPage, meetingTranscript, meetingSummary, preRecording, postRecording, product, designMarkdown, designJson] = await Promise.all([
     readFile(new URL('src/app/globals.css', root), 'utf8'),
     readFile(new URL('src/components/Sidebar/index.tsx', root), 'utf8'),
     readFile(new URL('src/components/MainContent/index.tsx', root), 'utf8'),
@@ -13,6 +13,7 @@ test('global shell uses the documented signal-orange visual system', async () =>
     readFile(new URL('src/app/page.tsx', root), 'utf8'),
     readFile(new URL('src/contexts/ThemeContext.tsx', root), 'utf8'),
     readFile(new URL('src/components/app-shell/ThemeControl.tsx', root), 'utf8'),
+    readFile(new URL('src/app/meeting-details/page-content.tsx', root), 'utf8'),
     readFile(new URL('src/components/MeetingDetails/TranscriptPanel.tsx', root), 'utf8'),
     readFile(new URL('src/components/MeetingDetails/SummaryPanel.tsx', root), 'utf8'),
     readFile(new URL('src/components/recording/PreRecordingWorkspace.tsx', root), 'utf8'),
@@ -47,6 +48,9 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(themeControl, /System theme/);
   assert.match(themeControl, /Light theme/);
   assert.match(themeControl, /Dark theme/);
+  assert.match(meetingPage, /setIsInspectorOpen\(true\)/);
+  assert.match(meetingPage, /xl:static xl:z-auto xl:w-\[22rem\]/);
+  assert.match(meetingPage, /isInspectorOpen \? 'flex' : 'hidden xl:flex'/);
   assert.match(meetingTranscript, /<VirtualizedTranscriptView/);
   assert.doesNotMatch(meetingTranscript, /from ['"]@\/components\/TranscriptView['"]/);
   assert.match(meetingSummary, /summaryResponse &&/);
