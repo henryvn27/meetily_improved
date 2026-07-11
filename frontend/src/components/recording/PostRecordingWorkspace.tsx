@@ -52,7 +52,7 @@ export function PostRecordingWorkspace() {
           <div className="border-b border-border/70 px-6 py-7 sm:px-8 sm:py-8">
             <div className="flex items-start gap-5">
               <span className={cn(
-                'grid size-12 shrink-0 place-items-center rounded-xl',
+                'grid size-12 shrink-0 place-items-center rounded-[3px]',
                 isError
                   ? 'bg-destructive/10 text-destructive'
                   : isComplete
@@ -99,7 +99,7 @@ export function PostRecordingWorkspace() {
                 <div
                   key={step.label}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg border px-3 py-3 text-sm',
+                    'flex items-center gap-3 rounded-[3px] border px-3 py-3 text-sm',
                     state === 'active' && 'border-foreground/20 bg-secondary text-foreground',
                     state === 'complete' && 'border-emerald-200 bg-emerald-50/70 text-emerald-900',
                     state === 'error' && 'border-destructive/25 bg-destructive/5 text-destructive',

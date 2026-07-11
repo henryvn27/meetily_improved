@@ -53,7 +53,7 @@ function ReadinessRow({ item }: { item: RecordingReadinessItem }) {
 
   return (
     <li className="flex items-start gap-3 border-b border-border/60 py-3 last:border-b-0">
-      <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground">
+        <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-[3px] bg-secondary text-muted-foreground">
         <Icon className="size-4" aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1">
