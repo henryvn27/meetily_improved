@@ -19,5 +19,11 @@ test('QA launcher isolates the native dev instance without changing the release 
   assert.equal(qa.identifier, 'com.meetily.improved.qa');
   assert.equal(qa.productName, 'Meetily Improved QA');
   assert.equal(qa.app.windows[0].title, 'Meetily Improved QA');
+  for (const config of [qa, release]) {
+    assert.equal(config.app.windows[0].width, 1280);
+    assert.equal(config.app.windows[0].height, 820);
+    assert.equal(config.app.windows[0].minWidth, 1100);
+    assert.equal(config.app.windows[0].minHeight, 720);
+  }
   assert.equal(release.identifier, 'com.meetily.ai');
 });

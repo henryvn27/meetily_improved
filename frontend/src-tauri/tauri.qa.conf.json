@@ -4,7 +4,12 @@
   "app": {
     "windows": [
       {
-        "title": "Meetily Improved QA"
+        "title": "Meetily Improved QA",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 1100,
+        "minHeight": 720,
+        "resizable": true
       }
     ]
   }
