@@ -269,7 +269,7 @@ export default function Sidebar() {
                         <button type="button" onClick={() => beginEditing(meeting.id, meeting.title)} disabled={isPostProcessing} aria-label={`Rename ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] hover:bg-white/10 hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-50">
                           <Pencil className="size-3.5" aria-hidden="true" />
                         </button>
-                        <button type="button" onClick={() => setDeleteMeetingId(meeting.id)} disabled={isPostProcessing} aria-label={`Delete ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] hover:bg-white/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50">
+                        <button type="button" onClick={() => setDeleteMeetingId(meeting.id)} disabled={isPostProcessing} aria-label={`Delete ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] hover:bg-white/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50">
                           <Trash2 className="size-3.5" aria-hidden="true" />
                         </button>
                       </div>
