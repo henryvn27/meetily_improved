@@ -23,6 +23,7 @@ assert.match(cargoManifest, /repository = "https:\/\/github\.com\/henryvn27\/mee
 assert.match(releaseWorkflow, /Meetily Improved v/, 'names GitHub releases for the public app');
 assert.match(releaseWorkflow, /asset-prefix: "meetily-improved"/, 'names release assets for the public app');
 assert.match(buildWorkflow, /version: 11\.7\.0/, 'uses a pnpm version compatible with the checked-in lockfile');
+assert.match(buildWorkflow, /node-version: '22'/, 'uses a Node runtime compatible with pnpm 11');
 assert.match(updateManifest, /henryvn27\/meetily_improved/, 'generates fork-owned update manifest links');
 assert.doesNotMatch(`${tauriConfig}\n${cargoManifest}\n${releaseWorkflow}\n${updateManifest}`, /Zackriya-Solutions\/meeting-minutes/, 'removes upstream release endpoints from active distribution metadata');
 
