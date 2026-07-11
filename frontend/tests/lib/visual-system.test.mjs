@@ -52,6 +52,8 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(meetingPage, /xl:static xl:z-auto xl:w-\[22rem\]/);
   assert.match(meetingPage, /isInspectorOpen \? 'flex' : 'hidden xl:flex'/);
   assert.match(meetingTranscript, /<VirtualizedTranscriptView/);
+  assert.match(meetingTranscript, /No recording folder linked/);
+  assert.match(meetingTranscript, /Local transcription:/);
   assert.doesNotMatch(meetingTranscript, /from ['"]@\/components\/TranscriptView['"]/);
   assert.match(meetingSummary, /summaryResponse &&/);
   assert.match(meetingSummary, /border-t border-border bg-card/);

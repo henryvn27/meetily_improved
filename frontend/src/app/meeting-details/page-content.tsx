@@ -240,6 +240,7 @@ export default function PageContent({
           meetingId={meeting.id}
           meetingFolderPath={meeting.folder_path}
           onRefetchTranscripts={onRefetchTranscripts}
+          transcriptionModel={modelConfig.whisperModel}
           onCloseInspector={() => setIsInspectorOpen(false)}
           className={cn(
             'fixed inset-y-12 right-0 z-40 w-[min(28rem,100vw)] shadow-[-16px_0_32px_hsl(var(--foreground)/0.12)]',

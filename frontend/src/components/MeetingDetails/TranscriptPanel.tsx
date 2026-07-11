@@ -30,6 +30,7 @@ interface TranscriptPanelProps {
   meetingId?: string;
   meetingFolderPath?: string | null;
   onRefetchTranscripts?: () => Promise<void>;
+  transcriptionModel?: string | null;
   className?: string;
   onCloseInspector?: () => void;
 }
@@ -52,6 +53,7 @@ export function TranscriptPanel({
   meetingId,
   meetingFolderPath,
   onRefetchTranscripts,
+  transcriptionModel,
   className,
   onCloseInspector,
 }: TranscriptPanelProps) {
@@ -110,6 +112,16 @@ export function TranscriptPanel({
           meetingFolderPath={meetingFolderPath}
           onRefetchTranscripts={onRefetchTranscripts}
         />
+        <div className="mt-3 grid gap-1.5 border-t border-border/70 pt-3 text-xs text-muted-foreground">
+          <p>
+            <span className="font-medium text-foreground">Source:</span>{' '}
+            {meetingFolderPath ? 'Recording folder linked' : 'No recording folder linked'}
+          </p>
+          <p>
+            <span className="font-medium text-foreground">Local transcription:</span>{' '}
+            {transcriptionModel || 'Not configured'}
+          </p>
+        </div>
       </div>
 
       {/* Transcript content - use virtualized view for better performance */}
