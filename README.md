@@ -21,7 +21,7 @@ The upstream project is capable, but its interface feels like a collection of ut
 - **Clearer recording readiness.** Capture dependencies, permissions, local transcription readiness, and optional system audio are explained before recording begins.
 - **Truthful local-first states.** Loading, empty, error, permission, recovery, and model states say what the app knows and what the user can do next.
 - **Better information density.** A graphite tool rail, cool document canvas, compact controls, restrained signal orange, and keyboard-visible states keep attention on the meeting.
-- **Local meeting recall, built honestly.** A global meeting-chat workspace is planned around local models and source meeting citations. It will not be called complete until the native bridge and citation behavior are implemented and tested.
+- **Local meeting recall, built honestly.** Ask Meetings uses a loopback-only local Ollama bridge, bounded excerpts from saved local transcripts, and app-generated source links. It never falls back to cloud providers; real-model QA remains a release gate.
 
 ## Current workspace
 
@@ -37,7 +37,7 @@ The screenshot above is the current native desktop shell using real local applic
 | Desktop shell and design system | Complete | The graphite/cool-canvas shell, original icon, persistent Light/Dark/System themes, and shared primitives are implemented across the active Phase 1 routes. |
 | Capture and meeting lifecycle | Complete | Pre-recording, active recording, processing, import, recovery, and failure presentation use the shared visual system without replacing native capture behavior. |
 | Meeting history and detail | Complete | Saved meetings open into a reading-first workspace with transcript, summary, playback/export controls, partial-data handling, and a persistent local inspector. |
-| Ask Meetings / local recall | Workspace shipped; generation not implemented | The route provides truthful local recall entry points. It does not generate answers, claim citations, or use embeddings until a local model and source-backed behavior are implemented and tested. |
+| Ask Meetings / local recall | Implemented; real-model QA pending | The route answers only through a loopback Ollama model from bounded local transcript excerpts, returns app-generated source links, and refuses cloud, calendar, internet, account, and filesystem scope. |
 | Packaging and release QA | In progress | Native QA bundles and codesign checks pass; clean-checkout launch/package proof and final human E2E verification still gate a public release. |
 
 The execution plan is tracked in Linear and repository history as the project develops. A feature is only moved to complete after implementation, verification, and evidence.
@@ -67,6 +67,8 @@ The default meeting workflow is local-first:
 - Analytics is off by default and can be enabled or disabled in Settings.
 
 If you explicitly configure a remote summary provider or a remote Ollama endpoint, the content required for that request is sent to that provider. Meetily Improved does not describe those paths as local.
+
+Ask Meetings is stricter: it accepts only a loopback Ollama endpoint and never sends recall questions or excerpts to a remote provider.
 
 There is no cloud sync, account system, calendar integration, or persistent embedding index in v1.
 
@@ -123,7 +125,7 @@ The redesign preserves native recording and transcription command contracts inst
 - Desktop-only interface redesign
 - Reliable recording and import lifecycle presentation
 - Searchable saved meetings and improved meeting detail workspace
-- Ask Meetings recall workspace; generated local answers and citations remain unshipped
+- Ask Meetings real-model QA with a locally installed Ollama model and real matching transcript data
 - Settings, privacy guidance, packaging, and release QA
 
 ### Later

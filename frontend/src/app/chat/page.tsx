@@ -37,9 +37,9 @@ export default function ChatPage() {
   return (
     <div className="app-page">
       <PageHeader eyebrow="Local meeting recall" title="Ask meetings" description="Questions and excerpts stay on this device and use only your configured local Ollama model." />
-      <form className="mt-8 border-y border-border py-5" onSubmit={ask}>
+      <form className="mt-8 pb-6" onSubmit={ask}>
         <label className="app-eyebrow" htmlFor="meeting-question">Question</label>
-        <div className="mt-2 flex gap-3">
+        <div className="mt-2 flex border-b border-border pb-4">
           <input id="meeting-question" value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={1000} placeholder="What decisions were discussed?" className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground" />
           <Button type="submit" disabled={!question.trim() || isAsking}>{isAsking ? 'Asking locally…' : 'Ask locally'}</Button>
         </div>

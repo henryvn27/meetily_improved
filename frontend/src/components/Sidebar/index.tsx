@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LoaderCircle, Pencil, Trash2 } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -139,7 +139,7 @@ export default function Sidebar() {
           'group flex min-h-9 items-center rounded-[5px] text-[13px] font-medium tracking-[-0.01em] transition-colors disabled:cursor-not-allowed disabled:opacity-45',
           isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3',
           isActive(item.href)
-            ? 'bg-[hsl(var(--sidebar-hover))] text-[hsl(var(--sidebar-foreground))]'
+            ? 'bg-[hsl(var(--accent-soft))] text-[hsl(var(--sidebar-foreground))]'
             : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]',
         )}
       >
@@ -243,17 +243,17 @@ export default function Sidebar() {
                         disabled={isPostProcessing}
                         className={cn(
                           'min-h-10 w-full truncate rounded-[3px] py-2 pl-3 pr-16 text-left text-[13px] tracking-[-0.01em] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-45',
-                          currentMeeting?.id === meeting.id && pathname === '/meeting-details' && 'bg-[hsl(var(--sidebar-hover))] font-medium text-[hsl(var(--sidebar-foreground))]',
+                          currentMeeting?.id === meeting.id && pathname === '/meeting-details' && 'bg-[hsl(var(--accent-soft))] font-medium text-[hsl(var(--sidebar-foreground))]',
                         )}
                       >
                         {meeting.title}
                       </button>
                       <div className="absolute right-1 top-1/2 flex -translate-y-1/2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                         <button type="button" onClick={() => beginEditing(meeting.id, meeting.title)} disabled={isPostProcessing} aria-label={`Rename ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] hover:bg-white/10 hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-50">
-                          <Pencil className="size-3.5" aria-hidden="true" />
+                          <MeetilyGlyph name="pencil" className="size-3.5" />
                         </button>
                         <button type="button" onClick={() => setDeleteMeetingId(meeting.id)} disabled={isPostProcessing} aria-label={`Delete ${meeting.title}`} className="grid size-7 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] hover:bg-white/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50">
-                          <Trash2 className="size-3.5" aria-hidden="true" />
+                          <MeetilyGlyph name="trash" className="size-3.5" />
                         </button>
                       </div>
                     </li>
@@ -297,7 +297,7 @@ export default function Sidebar() {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <button type="button" onClick={() => router.push('/settings')} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5', pathname === '/settings' ? 'bg-[hsl(var(--sidebar-hover))] text-[hsl(var(--sidebar-foreground))]' : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]')}>
+                <button type="button" onClick={() => router.push('/settings')} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5', pathname === '/settings' ? 'bg-[hsl(var(--accent-soft))] text-[hsl(var(--sidebar-foreground))]' : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]')}>
                 <MeetilyGlyph name="settings" className={cn('size-[1.1rem]', pathname === '/settings' && 'text-accent')} />
                 {!isCollapsed && <span>Settings</span>}
               </button>

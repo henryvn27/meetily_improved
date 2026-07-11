@@ -266,7 +266,7 @@
   }
 
   .app-surface {
-    @apply rounded-[4px] border border-border bg-card text-card-foreground;
+    @apply rounded-[10px] border border-border bg-card text-card-foreground;
   }
 
   .settings-card {
@@ -274,7 +274,7 @@
   }
 
   .settings-inset {
-    @apply rounded-[3px] border border-border bg-secondary/45 p-4;
+    @apply rounded-[8px] border border-border bg-secondary/45 p-4;
   }
 
   .app-eyebrow {
