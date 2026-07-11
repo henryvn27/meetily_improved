@@ -280,7 +280,7 @@ export function RetranscribeDialog({
               </>
             ) : error ? (
               <>
-                <AlertCircle className="h-5 w-5 text-red-600" />
+                <AlertCircle className="h-5 w-5 text-destructive" />
                 Retranscription Failed
               </>
             ) : (
@@ -369,7 +369,7 @@ export function RetranscribeDialog({
                     style={{ width: `${Math.min(progress.progress_percentage, 100)}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-gray-600 mt-1">
+                <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                   <span>{progress.stage}</span>
                   <span>{Math.round(progress.progress_percentage)}%</span>
                 </div>
@@ -382,7 +382,7 @@ export function RetranscribeDialog({
 
           {error && (
             <div className="rounded-[3px] border border-destructive/25 bg-destructive/5 p-3">
-              <p className="text-sm text-red-800">{error}</p>
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
         </div>
