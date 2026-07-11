@@ -137,7 +137,7 @@ export const RecordingControls: React.FC<RecordingControlsProps> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="destructive"
+              variant="recording"
               onClick={() => void handleStopRecording()}
               disabled={controlsDisabled || pauseBusy || !isRecording}
             >

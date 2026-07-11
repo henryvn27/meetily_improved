@@ -22,13 +22,13 @@ export function EmptyStateSummary({ onGenerate, hasModel, isGenerating = false }
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="flex flex-col items-center justify-center h-full p-8 text-center"
+      className="flex h-full flex-col items-center justify-center p-8 text-center"
     >
-      <FileQuestion className="w-16 h-16 text-gray-300 mb-4" />
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+      <FileQuestion className="mb-4 h-16 w-16 text-muted-foreground/35" />
+      <h3 className="mb-2 text-lg font-semibold text-foreground">
         No Summary Generated Yet
       </h3>
-      <p className="text-sm text-gray-500 mb-6 max-w-md">
+      <p className="mb-6 max-w-md text-sm text-muted-foreground">
         Generate an AI-powered summary of your meeting transcript to get key points, action items, and decisions.
       </p>
 
@@ -55,7 +55,7 @@ export function EmptyStateSummary({ onGenerate, hasModel, isGenerating = false }
       </TooltipProvider>
 
       {!hasModel && (
-        <p className="text-xs text-amber-600 mt-3">
+        <p className="mt-3 text-xs text-warning">
           Please select a model in Settings first
         </p>
       )}

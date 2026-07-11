@@ -8,6 +8,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSummaryModelSizeLabel, getSummaryModelSizeMb } from '@/lib/onboarding-summary-model';
+import { isNativeQaMode } from '@/lib/native-qa-mode';
 
 const PARAKEET_MODEL = 'parakeet-tdt-0.6b-v3-int8';
 
@@ -166,6 +167,7 @@ export function DownloadProgressStep() {
 
   // Start the required transcription model immediately; summary readiness must not block it.
   useEffect(() => {
+    if (isNativeQaMode) return;
     if (parakeetDownloadStartedRef.current) return;
     parakeetDownloadStartedRef.current = true;
 
@@ -186,6 +188,7 @@ export function DownloadProgressStep() {
 
   // Start the selected summary model only after the backend recommendation is known.
   useEffect(() => {
+    if (isNativeQaMode) return;
     if (summaryDownloadStartedRef.current) return;
     if (!selectedSummaryModel) return;
     summaryDownloadStartedRef.current = true;
@@ -394,31 +397,31 @@ export function DownloadProgressStep() {
     modelSize: string,
     sizeUnit = 'MB'
   ) => (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-border bg-card px-5 py-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <div className="flex size-10 items-center justify-center rounded-[3px] bg-secondary">
             {icon}
           </div>
           <div>
-            <h3 className="font-medium text-gray-900">{title}</h3>
-            <p className="text-sm text-gray-500">{modelSize}</p>
+            <h3 className="font-medium">{title}</h3>
+            <p className="text-sm text-muted-foreground">{modelSize}</p>
           </div>
         </div>
         <div>
           {state.status === 'waiting' && (
-            <span className="text-sm text-gray-500">Waiting...</span>
+            <span className="text-sm text-muted-foreground">Waiting...</span>
           )}
           {state.status === 'downloading' && (
-            <Loader2 className="w-5 h-5 text-gray-700 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin text-foreground" />
           )}
           {state.status === 'completed' && (
-            <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-              <Check className="w-4 h-4 text-green-600" />
+            <div className="flex size-6 items-center justify-center rounded-[3px] bg-[hsl(var(--success)/0.1)]">
+              <Check className="h-4 w-4 text-success" />
             </div>
           )}
           {state.status === 'error' && (
-            <span className="text-sm text-red-500">Failed</span>
+            <span className="text-sm text-destructive">Failed</span>
           )}
         </div>
       </div>
@@ -426,23 +429,23 @@ export function DownloadProgressStep() {
       {/* Progress Bar */}
       {(state.status === 'downloading' || state.status === 'completed') && (
         <div className="space-y-2">
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-2 w-full overflow-hidden rounded-[3px] bg-secondary">
             <div
-              className="h-full bg-gradient-to-r from-gray-700 to-gray-900 rounded-full transition-all duration-300"
+              className="h-full bg-accent transition-all duration-300"
               style={{ width: `${state.progress}%` }}
             />
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">
+            <span className="text-muted-foreground">
               {state.downloadedMb.toFixed(1)} {sizeUnit} / {state.totalMb.toFixed(1)} {sizeUnit}
             </span>
             <div className="flex items-center gap-2">
               {state.speedMbps > 0 && (
-                <span className="text-gray-500">
+                <span className="text-muted-foreground">
                   {state.speedMbps.toFixed(1)} {sizeUnit}/s
                 </span>
               )}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-foreground">
                 {Math.round(state.progress)}%
               </span>
             </div>
@@ -451,13 +454,13 @@ export function DownloadProgressStep() {
       )}
 
       {state.status === 'error' && state.error && (
-        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-600 font-medium">Download Error</p>
-          <p className="text-xs text-red-500 mt-1">{state.error}</p>
+        <div className="mt-2 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3">
+          <p className="text-sm font-medium text-destructive">Download Error</p>
+          <p className="mt-1 text-xs text-destructive">{state.error}</p>
           {(title === 'Transcription Engine' || title === 'Summary Engine') && (
             <button
               onClick={title === 'Transcription Engine' ? handleRetryDownload : handleRetrySummaryDownload}
-              className="mt-3 w-full h-9 px-4 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2"
+              className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-[3px] bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -483,14 +486,14 @@ export function DownloadProgressStep() {
         <div className="w-full max-w-lg space-y-4">
           {renderDownloadCard(
             'Transcription Engine',
-            <Mic className="w-5 h-5 text-gray-600" />,
+            <Mic className="h-5 w-5 text-muted-foreground" />,
             parakeetState,
             '~670 MB'
           )}
 
           {renderDownloadCard(
             'Summary Engine',
-            <Sparkles className="w-5 h-5 text-gray-600" />,
+            <Sparkles className="h-5 w-5 text-muted-foreground" />,
             summaryState,
             getSummaryModelSizeLabel(selectedSummaryModel || recommendedSummaryModel),
             'MiB'
@@ -505,13 +508,13 @@ export function DownloadProgressStep() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="w-full max-w-lg bg-gray-100 rounded-lg p-4 text-sm text-gray-800"
+              className="w-full max-w-lg rounded-[3px] border border-border bg-muted p-4 text-sm text-foreground"
             >
               <div className="flex items-start gap-3">
-                <Download className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
+                <Download className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                 <div>
                   <p className="font-medium">You can continue while this finishes</p>
-                  <p className="text-gray-700 mt-1">
+                  <p className="mt-1 text-muted-foreground">
                     Download will continue in the background.
                   </p>
                 </div>
@@ -525,7 +528,7 @@ export function DownloadProgressStep() {
           <Button
             onClick={handleContinue}
             disabled={!parakeetDownloaded || isCompleting}
-            className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {(isCompleting || !parakeetDownloaded) ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

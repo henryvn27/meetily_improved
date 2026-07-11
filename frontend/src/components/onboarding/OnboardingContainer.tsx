@@ -43,8 +43,8 @@ export function OnboardingContainer({
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-50 flex items-center justify-center z-50 overflow-hidden">
-      <div className={cn('w-full max-w-2xl h-full max-h-screen flex flex-col px-6 py-6', className)}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-background">
+      <div className={cn('flex h-full max-h-screen w-full max-w-4xl flex-col px-8 py-10 sm:px-12', className)}>
         {/* Progress Indicator with Navigation - Fixed */}
         {step && !hideProgress && (
           <div className="mb-2 relative flex-shrink-0">
@@ -55,9 +55,9 @@ export function OnboardingContainer({
                   onClick={handlePrevious}
                   disabled={!canGoPrevious || step === 1}
                   className={cn(
-                    'pointer-events-auto w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center transition-all duration-200',
+                    'pointer-events-auto flex size-8 items-center justify-center rounded-md border border-border bg-card transition-colors duration-200',
                     canGoPrevious && step !== 1
-                      ? 'hover:bg-gray-50 hover:shadow-md hover:scale-110 text-gray-700'
+                      ? 'hover:bg-secondary text-foreground'
                       : 'opacity-0 cursor-not-allowed'
                   )}
                 >
@@ -68,9 +68,9 @@ export function OnboardingContainer({
                   onClick={handleNext}
                   disabled={!canGoNext || step === totalSteps}
                   className={cn(
-                    'pointer-events-auto w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center transition-all duration-200',
+                    'pointer-events-auto flex size-8 items-center justify-center rounded-md border border-border bg-card transition-colors duration-200',
                     canGoNext && step !== totalSteps
-                      ? 'hover:bg-gray-50 hover:shadow-md hover:scale-110 text-gray-700'
+                      ? 'hover:bg-secondary text-foreground'
                       : 'opacity-0 cursor-not-allowed'
                   )}
                 >
@@ -85,10 +85,11 @@ export function OnboardingContainer({
         )}
 
         {/* Header - Fixed */}
-        <div className="mb-4 text-center space-y-3 flex-shrink-0">
-          <h1 className="text-4xl font-semibold text-gray-900 animate-fade-in-up">{title}</h1>
+        <div className="mb-8 flex-shrink-0 space-y-2 border-b border-border pb-7 text-left">
+          <p className="app-eyebrow">Meetily Improved / local setup</p>
+          <h1 className="text-[2.5rem] font-semibold leading-[0.98] tracking-[-0.055em] text-foreground">{title}</h1>
           {description && (
-            <p className="text-base text-gray-600 max-w-md mx-auto animate-fade-in-up delay-75">
+            <p className="max-w-xl text-sm leading-6 text-muted-foreground">
               {description}
             </p>
           )}

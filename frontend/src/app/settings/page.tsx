@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { Settings2, Mic, Database as DatabaseIcon, SparkleIcon, FlaskConical } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
 import { TranscriptSettings } from '@/components/TranscriptSettings';
@@ -13,15 +12,16 @@ import { useConfig } from '@/contexts/ConfigContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/app-shell/PageHeader';
 import { AppState } from '@/components/app-shell/AppState';
+import { MeetilyGlyph, type MeetilyGlyphName } from '@/components/app-shell/MeetilyGlyph';
 
 // Tabs configuration (constant)
 const TABS = [
-  { value: 'general', label: 'General', icon: Settings2 },
-  { value: 'recording', label: 'Recordings', icon: Mic },
-  { value: 'Transcriptionmodels', label: 'Transcription', icon: DatabaseIcon },
-  { value: 'summaryModels', label: 'Summary', icon: SparkleIcon },
-  { value: 'beta', label: 'Beta', icon: FlaskConical }
-] as const;
+  { value: 'general', label: 'General', glyph: 'settings' },
+  { value: 'recording', label: 'Recordings', glyph: 'capture' },
+  { value: 'Transcriptionmodels', label: 'Transcription', glyph: 'library' },
+  { value: 'summaryModels', label: 'Summary', glyph: 'recall' },
+  { value: 'beta', label: 'Beta', glyph: 'beta' }
+] as const satisfies ReadonlyArray<{ value: string; label: string; glyph: MeetilyGlyphName }>;
 
 export default function SettingsPage() {
   const { transcriptModelConfig, setTranscriptModelConfig } = useConfig();
@@ -86,15 +86,14 @@ export default function SettingsPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList aria-label="Settings sections" className="relative h-auto max-w-full justify-start overflow-x-auto rounded-none border-b border-border bg-transparent p-0">
               {TABS.map((tab, index) => {
-                const Icon = tab.icon;
                 return (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
                     ref={el => { tabRefs.current[index] = el }}
-                    className="relative z-10 flex min-h-11 items-center gap-2 rounded-none border-0 bg-transparent px-5 py-3 text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    className="relative z-10 flex min-h-11 items-center gap-2 rounded-none border-0 bg-transparent px-5 py-3 text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                   >
-                    <Icon className="w-4 h-4" />
+                    <MeetilyGlyph name={tab.glyph} className="size-4 shrink-0" />
                     {tab.label}
                   </TabsTrigger>
                 );

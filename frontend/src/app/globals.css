@@ -102,11 +102,12 @@
     --input: 230 7% 77%;
     --ring: 19 87% 55%;
     --radius: 0.625rem;
-    --sidebar: 240 4% 10%;
-    --sidebar-hover: 240 5% 15%;
-    --sidebar-strong: 240 5% 20%;
-    --sidebar-foreground: 240 9% 96%;
-    --sidebar-muted: 235 5% 67%;
+    --sidebar: 225 12% 91%;
+    --sidebar-hover: 225 12% 87%;
+    --sidebar-selection: 19 87% 55%;
+    --sidebar-foreground: 240 6% 10%;
+    --sidebar-muted: 233 4% 40%;
+    --sidebar-border: 230 7% 82%;
     --shadow-color: 240 6% 10%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -139,11 +140,12 @@
     --border: 240 5% 21%;
     --input: 240 5% 28%;
     --ring: 19 92% 62%;
-    --sidebar: 240 5% 6%;
-    --sidebar-hover: 240 5% 12%;
-    --sidebar-strong: 240 5% 18%;
+    --sidebar: 240 5% 10%;
+    --sidebar-hover: 240 5% 15%;
+    --sidebar-selection: 19 92% 62%;
     --sidebar-foreground: 240 9% 96%;
     --sidebar-muted: 235 5% 67%;
+    --sidebar-border: 240 5% 21%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -159,12 +161,15 @@
 
   html {
     height: 100%;
+    min-width: 1100px;
   }
 
   /* html, */
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+    font-feature-settings: "kern" 1, "liga" 1, "tnum" 1, "calt" 1;
+    font-kerning: normal;
     overflow: hidden;
     height: 100%;
   }
@@ -257,19 +262,35 @@
 
 @layer components {
   .app-page {
-    @apply mx-auto w-full max-w-7xl px-6 pb-14 pt-8 sm:px-8 lg:px-12;
+    @apply mx-auto w-full max-w-[96rem] px-7 pb-16 pt-9 sm:px-10 xl:px-14;
   }
 
   .app-surface {
     @apply rounded-[10px] border border-border bg-card text-card-foreground;
   }
 
+  .settings-card {
+    @apply border-b border-border bg-card px-6 py-6 sm:px-8;
+  }
+
+  .settings-inset {
+    @apply rounded-[8px] border border-border bg-secondary/45 p-4;
+  }
+
+  .app-eyebrow {
+    @apply font-mono text-[0.6875rem] font-medium uppercase tracking-[0.09em] text-muted-foreground;
+  }
+
+  .app-display {
+    @apply text-[2.25rem] font-semibold leading-[1.06] tracking-[-0.04em] text-balance;
+  }
+
   .app-rail-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--sidebar-strong));
+    background: hsl(var(--sidebar-hover));
   }
 
   .app-rail-scrollbar {
-    scrollbar-color: hsl(var(--sidebar-strong)) transparent;
+    scrollbar-color: hsl(var(--sidebar-hover)) transparent;
   }
 
   .skip-link {
@@ -279,6 +300,37 @@
   .skip-link:focus {
     @apply translate-y-0;
   }
+}
+
+@layer utilities {
+  /*
+   * Route migration bridge: behavior-heavy upstream components still contain
+   * literal Tailwind color utilities. Normalize those outputs to the global
+   * system until each component can be reduced to shared primitives.
+   */
+  .bg-white { background-color: hsl(var(--card)) !important; }
+  .bg-gray-50, .bg-slate-50 { background-color: hsl(var(--background)) !important; }
+  .bg-gray-100, .bg-slate-100 { background-color: hsl(var(--secondary)) !important; }
+  .bg-gray-200, .bg-slate-200 { background-color: hsl(var(--muted)) !important; }
+  .bg-gray-900, .bg-slate-900 { background-color: hsl(var(--primary)) !important; }
+  .bg-blue-50 { background-color: hsl(var(--accent-soft)) !important; }
+  .bg-blue-100 { background-color: hsl(var(--accent-soft)) !important; }
+  .bg-blue-500, .bg-blue-600, .bg-blue-700 { background-color: hsl(var(--primary)) !important; }
+  .bg-gradient-to-r { background-image: none !important; }
+
+  .text-gray-900, .text-slate-900 { color: hsl(var(--foreground)) !important; }
+  .text-gray-700, .text-slate-700 { color: hsl(var(--foreground)) !important; }
+  .text-gray-600, .text-gray-500, .text-gray-400, .text-slate-600, .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
+  .text-blue-800, .text-blue-700, .text-blue-600 { color: hsl(var(--info)) !important; }
+  .text-orange-700 { color: hsl(var(--warning)) !important; }
+
+  .border-gray-100, .border-gray-200, .border-gray-300, .border-slate-200 { border-color: hsl(var(--border)) !important; }
+  .border-blue-100, .border-blue-200, .border-blue-500 { border-color: hsl(var(--ring)) !important; }
+  .ring-blue-300, .ring-blue-500 { --tw-ring-color: hsl(var(--ring) / 0.25) !important; }
+
+  .hover\:bg-gray-50:hover, .hover\:bg-gray-100:hover, .hover\:bg-gray-200:hover, .hover\:bg-slate-100:hover { background-color: hsl(var(--secondary)) !important; }
+  .hover\:bg-blue-700:hover, .hover\:bg-blue-600:hover { background-color: hsl(var(--primary) / 0.88) !important; }
+  .hover\:text-gray-700:hover, .hover\:text-gray-600:hover, .hover\:text-blue-700:hover { color: hsl(var(--foreground)) !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -10,7 +10,10 @@ module.exports = {
   	extend: {
 		fontFamily: {
 			sans: [
-				'-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Segoe UI', 'sans-serif'
+				'-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', 'sans-serif'
+			],
+			mono: [
+				'SFMono-Regular', 'SF Mono', 'ui-monospace', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'
 			]
   		},
   		colors: {

@@ -21,7 +21,7 @@ The upstream project is capable, but its interface feels like a collection of ut
 - **Clearer recording readiness.** Capture dependencies, permissions, local transcription readiness, and optional system audio are explained before recording begins.
 - **Truthful local-first states.** Loading, empty, error, permission, recovery, and model states say what the app knows and what the user can do next.
 - **Better information density.** A graphite tool rail, cool document canvas, compact controls, restrained signal orange, and keyboard-visible states keep attention on the meeting.
-- **Local meeting recall, built honestly.** A global meeting-chat workspace is planned around local models and source meeting citations. It will not be called complete until the native bridge and citation behavior are implemented and tested.
+- **Local meeting recall, built honestly.** Ask Meetings uses a loopback-only local Ollama bridge, bounded excerpts from saved local transcripts, and app-generated source links. It never falls back to cloud providers; real-model QA remains a release gate.
 
 ## Current workspace
 
@@ -34,11 +34,11 @@ The screenshot above is the current native desktop shell using real local applic
 | Area | Status | What that means |
 | --- | --- | --- |
 | Repository and behavior audit | Complete | Routes, native command boundaries, storage, privacy, and upstream attribution are mapped. |
-| Desktop shell and design system | In progress | The replacement graphite/cool-canvas shell and shared primitives are implemented; remaining routes are being migrated out of inherited Meetily styling. |
-| Capture and meeting lifecycle | In progress | Pre-recording, active recording, processing, import, recovery, and failure presentation are being redesigned without replacing native capture behavior. |
-| Meeting history and detail | Planned for v1 | Search, transcript/summary hierarchy, copy/export, and partial-data states will be rebuilt next. |
-| Local global chat | Planned for v1 | Answers must use a local model and cite saved meetings. No persistent embeddings or cloud fallback are claimed. |
-| Packaging and release QA | Not started | A public release waits on clean-checkout, packaging, and end-to-end verification. |
+| Desktop shell and design system | Complete | The graphite/cool-canvas shell, original icon, persistent Light/Dark/System themes, and shared primitives are implemented across the active Phase 1 routes. |
+| Capture and meeting lifecycle | Complete | Pre-recording, active recording, processing, import, recovery, and failure presentation use the shared visual system without replacing native capture behavior. |
+| Meeting history and detail | Complete | Saved meetings open into a reading-first workspace with transcript, summary, playback/export controls, partial-data handling, and a persistent local inspector. |
+| Ask Meetings / local recall | Implemented; real-model QA pending | The route answers only through a loopback Ollama model from bounded local transcript excerpts, returns app-generated source links, and refuses cloud, calendar, internet, account, and filesystem scope. |
+| Packaging and release QA | In progress | Native QA bundles and codesign checks pass; clean-checkout launch/package proof and final human E2E verification still gate a public release. |
 
 The execution plan is tracked in Linear and repository history as the project develops. A feature is only moved to complete after implementation, verification, and evidence.
 
@@ -68,6 +68,8 @@ The default meeting workflow is local-first:
 
 If you explicitly configure a remote summary provider or a remote Ollama endpoint, the content required for that request is sent to that provider. Meetily Improved does not describe those paths as local.
 
+Ask Meetings is stricter: it accepts only a loopback Ollama endpoint and never sends recall questions or excerpts to a remote provider.
+
 There is no cloud sync, account system, calendar integration, or persistent embedding index in v1.
 
 ## Build from source
@@ -89,14 +91,18 @@ pnpm run dev
 
 ### Run the desktop app
 
-Meetily uses a Rust helper sidecar. Build it once, then launch Tauri:
+Meetily uses a Rust helper sidecar. On Apple Silicon macOS, build the Metal-enabled helper and stage it for Tauri before launching or packaging:
 
 ```bash
 cd meetily_improved
-cargo build --release -p llama-helper
+cargo build --release -p llama-helper --features metal
+mkdir -p frontend/src-tauri/binaries
+cp target/release/llama-helper frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
 cd frontend
 pnpm run tauri:dev
 ```
+
+The staged sidecar is a generated local build artifact and is intentionally ignored by Git. For other architectures, use the matching target triple as documented in [docs/BUILDING.md](docs/BUILDING.md).
 
 GPU-specific and platform packaging details remain documented in [docs/BUILDING.md](docs/BUILDING.md).
 
@@ -119,7 +125,7 @@ The redesign preserves native recording and transcription command contracts inst
 - Desktop-only interface redesign
 - Reliable recording and import lifecycle presentation
 - Searchable saved meetings and improved meeting detail workspace
-- Local-model meeting chat with meeting citations
+- Ask Meetings real-model QA with a locally installed Ollama model and real matching transcript data
 - Settings, privacy guidance, packaging, and release QA
 
 ### Later

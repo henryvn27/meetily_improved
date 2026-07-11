@@ -1078,7 +1078,7 @@ export function ModelSettingsModal({
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsApiKeyLocked(!isApiKeyLocked)}
-                    className={isLockButtonVibrating ? 'animate-vibrate text-red-500' : ''}
+                    className={isLockButtonVibrating ? 'animate-vibrate text-destructive' : ''}
                     title={isApiKeyLocked ? 'Unlock to edit' : 'Lock to prevent editing'}
                   >
                     {isApiKeyLocked ? <Lock /> : <Unlock />}
@@ -1132,14 +1132,14 @@ export function ModelSettingsModal({
                       placeholder="http://localhost:11434"
                       className={cn(
                         "pr-10",
-                        endpointValidationState === 'invalid' && "border-red-500"
+                        endpointValidationState === 'invalid' && "border-destructive"
                       )}
                     />
                     {endpointValidationState === 'valid' && (
-                      <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+                      <CheckCircle2 className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-success" />
                     )}
                     {endpointValidationState === 'invalid' && (
-                      <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
+                      <XCircle className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-destructive" />
                     )}
                   </div>
                   <Button
@@ -1164,8 +1164,8 @@ export function ModelSettingsModal({
                   </Button>
                 </div>
                 {ollamaEndpointChanged && !error && (
-                  <Alert className="mt-3 border-yellow-500 bg-yellow-50">
-                    <AlertDescription className="text-yellow-800">
+                  <Alert className="mt-3 border-warning/40 bg-warning/10">
+                    <AlertDescription className="text-warning">
                       Endpoint changed. Please click &quot;Fetch Models&quot; to load models from the new endpoint before saving.
                     </AlertDescription>
                   </Alert>
@@ -1208,8 +1208,8 @@ export function ModelSettingsModal({
                 {ollamaNotInstalled ? (
                   /* Show Ollama download link when not installed */
                   <div className="space-y-4">
-                    <Alert className="border-orange-500 bg-orange-50">
-                      <AlertDescription className="text-orange-800">
+                    <Alert className="border-warning/40 bg-warning/10">
+                      <AlertDescription className="text-warning">
                         Ollama is not installed or not running. Please download and install Ollama to use local models.
                       </AlertDescription>
                     </Alert>
@@ -1217,7 +1217,7 @@ export function ModelSettingsModal({
                       variant="default"
                       size="sm"
                       onClick={() => invoke('open_external_url', { url: 'https://ollama.com/download' })}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      className="w-full bg-primary hover:bg-primary/90"
                     >
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Download Ollama
@@ -1260,16 +1260,16 @@ export function ModelSettingsModal({
 
                         {/* Show progress for gemma3:1b download */}
                         {isDownloading('gemma3:1b') && getProgress('gemma3:1b') !== undefined && (
-                          <div className="bg-white rounded-md border p-3">
+                          <div className="border border-border bg-card p-3">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-blue-600">Downloading gemma3:1b</span>
-                              <span className="text-sm font-semibold text-blue-600">
+                              <span className="text-sm font-medium text-accent">Downloading gemma3:1b</span>
+                              <span className="text-sm font-semibold text-accent">
                                 {Math.round(getProgress('gemma3:1b')!)}%
                               </span>
                             </div>
-                            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                               <div
-                                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
+                                className="h-full rounded-full bg-accent transition-all duration-300"
                                 style={{ width: `${getProgress('gemma3:1b')}%` }}
                               />
                             </div>
@@ -1298,9 +1298,9 @@ export function ModelSettingsModal({
                         <div
                           key={model.id}
                           className={cn(
-                            'bg-card p-2 m-0 rounded-md border transition-colors',
+                            'm-0 border border-border bg-card p-2 transition-colors',
                             modelConfig.model === model.name
-                              ? 'ring-1 ring-blue-500 border-blue-500 background-blue-100'
+                              ? 'border-accent bg-accent-soft ring-1 ring-accent'
                               : 'hover:bg-muted/50',
                             !modelIsDownloading && 'cursor-pointer'
                           )}
@@ -1318,14 +1318,14 @@ export function ModelSettingsModal({
 
                           {/* Progress bar for downloading models */}
                           {modelIsDownloading && progress !== undefined && (
-                            <div className="mt-3 pt-3 border-t border-gray-200">
+                            <div className="mt-3 border-t border-border pt-3">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-blue-600">Downloading...</span>
-                                <span className="text-sm font-semibold text-blue-600">{Math.round(progress)}%</span>
+                                <span className="text-sm font-medium text-accent">Downloading...</span>
+                                <span className="text-sm font-semibold text-accent">{Math.round(progress)}%</span>
                               </div>
-                              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                                 <div
-                                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
+                                  className="h-full rounded-full bg-accent transition-all duration-300"
                                   style={{ width: `${progress}%` }}
                                 />
                               </div>
@@ -1377,8 +1377,8 @@ export function ModelSettingsModal({
       <div className="mt-6 flex justify-end">
         <Button
           className={cn(
-            'px-4 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
-            isDoneDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            'rounded-[3px] px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring',
+            isDoneDisabled ? 'cursor-not-allowed bg-muted text-muted-foreground' : 'bg-accent text-accent-foreground hover:bg-accent/90'
           )}
           onClick={handleSave}
           disabled={isDoneDisabled}

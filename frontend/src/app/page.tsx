@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AppState } from '@/components/app-shell/AppState';
 import { PageHeader } from '@/components/app-shell/PageHeader';
-import { Surface } from '@/components/app-shell/Surface';
 import { Button } from '@/components/ui/button';
 import { useConfig } from '@/contexts/ConfigContext';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
@@ -60,9 +59,9 @@ export default function DashboardPage() {
         onLoadPreview={loadMeetingTranscripts}
       />
       <PageHeader
-        eyebrow="Meetily / Home"
-        title="Your meeting desk"
-        description="Record, revisit, and work with your conversations. Everything here stays on this device."
+        eyebrow="This device / meeting workbench"
+        title="Work from what was said."
+        description="Capture a conversation, keep the record local, then return to the decisions without a meeting bot in the call."
         actions={
           <Button onClick={() => router.push('/new-meeting')}>
             <Mic aria-hidden="true" />
@@ -71,21 +70,20 @@ export default function DashboardPage() {
         }
       />
 
-      <section aria-labelledby="workspace-heading" className="mt-6">
-        <Surface className="overflow-hidden p-0">
-          <div className="grid lg:grid-cols-[minmax(0,1fr)_19rem]">
-            <div className="p-6 sm:p-8">
-              <div className="flex items-start gap-4">
-                <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-md bg-[hsl(var(--accent-soft))] text-accent">
-                  <Mic className="size-[1.1rem]" aria-hidden="true" />
+      <section aria-labelledby="workspace-heading" className="mt-10 border-y border-border">
+          <div className="grid xl:grid-cols-[minmax(0,1fr)_20rem]">
+            <div className="p-7 sm:p-10">
+              <div className="flex items-start gap-5">
+                <span className="mt-1 grid size-7 shrink-0 place-items-center text-accent">
+                  <Mic className="size-[1.15rem]" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Capture</p>
-                  <h2 id="workspace-heading" className="mt-1.5 text-xl font-semibold tracking-[-0.02em]">Start a meeting</h2>
-                  <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted-foreground">
+                  <p className="app-eyebrow">Capture</p>
+                  <h2 id="workspace-heading" className="mt-2 text-[1.625rem] font-semibold leading-tight tracking-[-0.045em]">Start a meeting</h2>
+                  <p className="mt-2 max-w-xl text-[0.9375rem] leading-6 text-muted-foreground">
                     Record system and microphone audio without adding a bot to the call.
                   </p>
-                  <Button className="mt-5" onClick={() => router.push('/new-meeting')}>
+                  <Button className="mt-7" onClick={() => router.push('/new-meeting')}>
                     Open recorder
                     <ArrowRight aria-hidden="true" />
                   </Button>
@@ -93,19 +91,19 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <aside aria-label="Local model status" className="border-t border-border bg-secondary/45 p-5 lg:border-l lg:border-t-0">
+            <aside aria-label="Local model status" className="border-t border-border bg-secondary/55 p-6 xl:border-l xl:border-t-0">
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <div className="app-eyebrow flex items-center gap-2">
                   <Bot className="size-3.5" aria-hidden="true" />
                   Local model
                 </div>
-                <span className="flex items-center gap-1.5 text-xs font-medium">
+                <span className="flex items-center gap-1.5 font-mono text-[0.6875rem] font-medium">
                   <Circle className={`size-2 fill-current ${localModelStatus.ready ? 'text-[hsl(var(--success))]' : 'text-[hsl(var(--warning))]'}`} aria-hidden="true" />
                   {localModelStatus.ready ? 'Ready' : 'Check setup'}
                 </span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{localModelStatus.description}</p>
-              <div className="mt-5 flex flex-wrap gap-2">
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">{localModelStatus.description}</p>
+              <div className="mt-6 flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => router.push('/settings')}>
                   <Settings2 aria-hidden="true" />
                   Settings
@@ -116,7 +114,6 @@ export default function DashboardPage() {
               </div>
             </aside>
           </div>
-        </Surface>
       </section>
 
       {recoverableMeetings.length > 0 && (
@@ -130,11 +127,11 @@ export default function DashboardPage() {
         />
       )}
 
-      <section aria-labelledby="recent-heading" className="mt-8">
-        <div className="mb-3 flex items-end justify-between border-b border-border pb-3">
+      <section aria-labelledby="recent-heading" className="mt-12">
+        <div className="mb-4 flex items-end justify-between border-b border-border pb-4">
           <div>
-            <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Library</p>
-            <h2 id="recent-heading" className="mt-1 text-base font-semibold">Recent meetings</h2>
+            <p className="app-eyebrow">Meeting ledger</p>
+            <h2 id="recent-heading" className="mt-2 text-lg font-semibold tracking-[-0.03em]">Recent meetings</h2>
           </div>
           {meetings.length > 0 && (
             <Button variant="ghost" size="sm" onClick={() => router.push('/meetings')}>

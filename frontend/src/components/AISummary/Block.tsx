@@ -220,8 +220,8 @@ export const BlockComponent: React.FC<BlockProps> = ({
 
   return (
     <div 
-      className={`group relative min-h-[24px] flex items-start rounded transition-all duration-150 ease-in-out
-        ${isSelected ? 'bg-blue-50 ring-1 ring-blue-200 shadow-sm' : 'hover:bg-gray-50'}`}
+      className={`group relative flex min-h-[24px] items-start rounded-[3px] transition-all duration-150 ease-in-out
+        ${isSelected ? 'bg-accent-soft ring-1 ring-accent/40 shadow-sm' : 'hover:bg-muted/60'}`}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
       onMouseUp={onMouseUp}
@@ -246,7 +246,7 @@ export const BlockComponent: React.FC<BlockProps> = ({
           className={`
             w-full resize-none overflow-hidden bg-transparent border-none p-0 focus:outline-none focus:ring-0
             transition-all duration-150 ease-in-out
-            ${block.color === 'gray' ? 'text-gray-500' : ''}
+            ${block.color === 'gray' ? 'text-muted-foreground' : ''}
             ${block.type === 'heading1' ? 'text-xl font-bold' : ''}
             ${block.type === 'heading2' ? 'text-lg font-semibold' : ''}
           `}
@@ -256,25 +256,25 @@ export const BlockComponent: React.FC<BlockProps> = ({
         {showCommands && (
           <div 
             ref={commandsRef}
-            className="absolute left-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50
+            className="absolute left-0 top-full z-50 mt-1 w-64 border border-border bg-popover py-2 shadow-[0_12px_30px_hsl(var(--shadow-color)/0.14)]
                        animate-in fade-in slide-in-from-top-2 duration-150"
           >
             {filteredCommands.map((cmd, index) => (
               <button
                 key={cmd.id}
                 className={`
-                  w-full text-left px-3 py-2 flex items-center space-x-3 hover:bg-gray-50
-                  ${index === selectedCommandIndex ? 'bg-gray-50' : ''}
+                  flex w-full items-center space-x-3 px-3 py-2 text-left hover:bg-muted
+                  ${index === selectedCommandIndex ? 'bg-muted' : ''}
                 `}
                 onClick={() => handleCommandSelect(cmd)}
                 onMouseEnter={() => setSelectedCommandIndex(index)}
               >
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-gray-600">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[2px] bg-muted text-muted-foreground">
                   {cmd.icon}
                 </span>
                 <div className="flex-1">
                   <div className="font-medium">{cmd.label}</div>
-                  <div className="text-sm text-gray-500">{cmd.description}</div>
+                  <div className="text-sm text-muted-foreground">{cmd.description}</div>
                 </div>
               </button>
             ))}

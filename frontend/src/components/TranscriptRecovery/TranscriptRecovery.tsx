@@ -115,9 +115,9 @@ export function TranscriptRecovery({ isOpen, onClose, recoverableMeetings, onRec
         <div className="border-b border-border/70 bg-secondary/35 px-6 py-5 sm:px-7">
           <DialogHeader className="text-left">
             <div className="flex items-start gap-4">
-              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary"><ShieldCheck className="size-5" aria-hidden="true" /></span>
+              <span className="grid size-11 shrink-0 place-items-center rounded-[3px] bg-secondary"><ShieldCheck className="size-5" aria-hidden="true" /></span>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Local recovery</p>
+                <p className="app-eyebrow">Local recovery</p>
                 <DialogTitle className="mt-1 text-xl tracking-[-0.02em]">Review interrupted meetings</DialogTitle>
                 <DialogDescription className="mt-1.5 leading-5">These are real local transcript checkpoints that were not marked saved. Review what exists before recovering or discarding one.</DialogDescription>
               </div>
@@ -127,11 +127,11 @@ export function TranscriptRecovery({ isOpen, onClose, recoverableMeetings, onRec
 
         <div className="grid min-h-0 flex-1 md:grid-cols-[15rem_minmax(0,1fr)]">
           <div className="min-h-0 border-b border-border/70 bg-secondary/20 p-3 md:border-b-0 md:border-r">
-            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{recoverableMeetings.length} recovery {recoverableMeetings.length === 1 ? 'copy' : 'copies'}</p>
+            <p className="app-eyebrow px-2 pb-2">{recoverableMeetings.length} recovery {recoverableMeetings.length === 1 ? 'copy' : 'copies'}</p>
             <ScrollArea className="h-40 md:h-[25rem]">
               <div className="space-y-1.5">
                 {recoverableMeetings.map((meeting) => (
-                  <button key={meeting.meetingId} type="button" onClick={() => void handleMeetingSelect(meeting.meetingId)} disabled={isBusy} className={cn('w-full rounded-lg border px-3 py-3 text-left transition-colors disabled:opacity-60', selectedMeetingId === meeting.meetingId ? 'border-foreground/20 bg-card shadow-sm' : 'border-transparent hover:bg-card/70')}>
+                  <button key={meeting.meetingId} type="button" onClick={() => void handleMeetingSelect(meeting.meetingId)} disabled={isBusy} className={cn('w-full rounded-[3px] border px-3 py-3 text-left transition-colors disabled:opacity-60', selectedMeetingId === meeting.meetingId ? 'border-foreground/20 bg-card' : 'border-transparent hover:bg-card/70')}>
                     <p className="truncate text-sm font-semibold">{meeting.title}</p>
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><Clock3 className="size-3" aria-hidden="true" />{formatDistanceToNow(new Date(meeting.lastUpdated), { addSuffix: true })}</p>
                     <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><span className="flex items-center gap-1"><FileText className="size-3" aria-hidden="true" />{meeting.transcriptCount}</span><span>·</span><span>{meeting.folderPath ? 'Audio checkpoints' : 'Transcript only'}</span></div>
@@ -146,12 +146,12 @@ export function TranscriptRecovery({ isOpen, onClose, recoverableMeetings, onRec
               <div className="flex h-full min-h-0 flex-col">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div><h2 className="text-lg font-semibold tracking-[-0.02em]">{selectedMeeting.title}</h2><p className="mt-1 text-xs text-muted-foreground">Started {new Date(selectedMeeting.startTime).toLocaleString()}</p></div>
-                  <div className={cn('flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium', selectedMeeting.folderPath ? 'bg-emerald-50 text-emerald-800' : 'bg-secondary text-muted-foreground')}>
+                  <div className={cn('flex items-center gap-2 rounded-[3px] px-3 py-1 text-xs font-medium', selectedMeeting.folderPath ? 'bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]' : 'bg-secondary text-muted-foreground')}>
                     {selectedMeeting.folderPath ? <FileAudio2 className="size-3.5" aria-hidden="true" /> : <FileText className="size-3.5" aria-hidden="true" />}{selectedMeeting.folderPath ? 'Transcript + audio checkpoints' : 'Transcript only'}
                   </div>
                 </div>
 
-                <div className="mt-4 min-h-0 flex-1 overflow-hidden rounded-xl border border-border/80 bg-card">
+                <div className="mt-4 min-h-0 flex-1 overflow-hidden rounded-[3px] border border-border/80 bg-card">
                   <div className="flex items-center justify-between border-b border-border/70 px-4 py-3"><p className="text-sm font-semibold">Stored transcript preview</p><p className="text-xs text-muted-foreground">{selectedMeeting.transcriptCount} segments</p></div>
                   <ScrollArea className="h-[14rem]">
                     <div className="space-y-3 p-4">
@@ -163,8 +163,8 @@ export function TranscriptRecovery({ isOpen, onClose, recoverableMeetings, onRec
                   </ScrollArea>
                 </div>
 
-                {actionError && <div role="alert" className="mt-3 flex items-start gap-3 rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm"><AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" /><div><p className="font-semibold">Recovery did not complete</p><p className="mt-1 leading-5 text-muted-foreground">{actionError}</p></div></div>}
-                {confirmDelete && <div role="alert" className="mt-3 rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm"><p className="font-semibold">Discard this recovery copy?</p><p className="mt-1 leading-5 text-muted-foreground">This removes the selected IndexedDB transcript recovery copy. Meetily does not delete the recording folder or claim other files were removed.</p></div>}
+                {actionError && <div role="alert" className="mt-3 flex items-start gap-3 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3 text-sm"><AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" /><div><p className="font-semibold">Recovery did not complete</p><p className="mt-1 leading-5 text-muted-foreground">{actionError}</p></div></div>}
+                {confirmDelete && <div role="alert" className="mt-3 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3 text-sm"><p className="font-semibold">Discard this recovery copy?</p><p className="mt-1 leading-5 text-muted-foreground">This removes the selected IndexedDB transcript recovery copy. Meetily does not delete the recording folder or claim other files were removed.</p></div>}
               </div>
             ) : <div className="grid h-full min-h-56 place-items-center text-sm text-muted-foreground">Select a local recovery copy to review it.</div>}
           </div>

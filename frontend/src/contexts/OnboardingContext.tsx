@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import type { PermissionStatus, OnboardingPermissions } from '@/types/onboarding';
 import { resolveOnboardingSummaryModelStatus } from '@/lib/onboarding-summary-model';
+import { isNativeQaMode } from '@/lib/native-qa-mode';
 
 const PARAKEET_MODEL = 'parakeet-tdt-0.6b-v3-int8';
 
@@ -150,8 +151,27 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     loadOnboardingStatus();
     checkDatabaseStatus();
+    if (isNativeQaMode) {
+      initializeNativeQaDatabase();
+      return;
+    }
     initializeDatabaseInBackground();
   }, []);
+
+  // QA receives its own bundle identifier and app-data directory. Initialize only
+  // that empty database; never scan or import a person's legacy Meetily data.
+  const initializeNativeQaDatabase = async () => {
+    try {
+      const isFirstLaunch = await invoke<boolean>('check_first_launch');
+      if (isFirstLaunch) {
+        console.info('[OnboardingContext] Initializing isolated native QA database');
+        await invoke('initialize_fresh_database');
+      }
+      setDatabaseExists(true);
+    } catch (error) {
+      console.error('[OnboardingContext] Native QA database initialization failed:', error);
+    }
+  };
 
   // Initialize database silently in background (moved from SetupOverviewStep)
   const initializeDatabaseInBackground = async () => {

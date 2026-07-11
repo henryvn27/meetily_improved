@@ -11,6 +11,8 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground hover:bg-primary/88",
+        recording:
+          "bg-accent text-accent-foreground hover:bg-accent/88",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:

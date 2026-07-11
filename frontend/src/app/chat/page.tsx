@@ -1,29 +1,55 @@
 'use client';
 
-import { Settings2 } from 'lucide-react';
+import { FormEvent, useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { useRouter } from 'next/navigation';
 import { AppState } from '@/components/app-shell/AppState';
+import { MeetilyGlyph } from '@/components/app-shell/MeetilyGlyph';
 import { PageHeader } from '@/components/app-shell/PageHeader';
 import { Button } from '@/components/ui/button';
 
+type RecallSource = { meeting_id: string; title: string; matchContext: string; timestamp: string };
+type RecallResponse = { answer: string; sources: RecallSource[] };
+
 export default function ChatPage() {
   const router = useRouter();
+  const [question, setQuestion] = useState('');
+  const [result, setResult] = useState<RecallResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isAsking, setIsAsking] = useState(false);
+
+  async function ask(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmed = question.trim();
+    if (!trimmed || isAsking) return;
+    setIsAsking(true);
+    setError(null);
+    setResult(null);
+    try {
+      setResult(await invoke<RecallResponse>('api_answer_meetings_locally', { question: trimmed }));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+    } finally {
+      setIsAsking(false);
+    }
+  }
 
   return (
     <div className="app-page">
-      <PageHeader
-        eyebrow="All saved meetings"
-        title="Ask meetings"
-        description="A local-only question workspace is scheduled for Milestone 4."
-      />
-      <div className="mt-8">
-        <AppState
-          kind="model"
-          title="Meeting recall is not available yet"
-          description="This shell does not fabricate answers. Milestone 4 will connect saved local meeting context to an approved local-model bridge and show source meetings with each answer."
-          action={<Button variant="outline" onClick={() => router.push('/settings')}><Settings2 />Review local model settings</Button>}
-        />
-      </div>
+      <PageHeader eyebrow="Local meeting recall" title="Ask meetings" description="Questions and excerpts stay on this device and use only your configured local Ollama model." />
+      <form className="mt-8 pb-6" onSubmit={ask}>
+        <label className="app-eyebrow" htmlFor="meeting-question">Question</label>
+        <div className="mt-2 flex border-b border-border pb-4">
+          <input id="meeting-question" value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={1000} placeholder="What decisions were discussed?" className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground" />
+          <Button type="submit" disabled={!question.trim() || isAsking}>{isAsking ? 'Asking locally…' : 'Ask locally'}</Button>
+        </div>
+      </form>
+      {isAsking && <AppState className="mt-6" kind="loading" title="Searching local meeting excerpts" description="Meetily is sending matching local excerpts to your configured Ollama model." />}
+      {error && <AppState className="mt-6" kind="model" title="Local recall is unavailable" description={error} action={<Button variant="outline" onClick={() => router.push('/settings')}><MeetilyGlyph name="settings" className="size-4" />Review local model settings</Button>} />}
+      {result && <section className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
+        <article aria-label="Local meeting answer" className="min-w-0 text-[0.975rem] leading-7 whitespace-pre-wrap">{result.answer}</article>
+        <aside aria-label="Answer sources" className="border-l border-border pl-5"><p className="app-eyebrow">Local sources</p><div className="mt-3 space-y-4">{result.sources.map((source) => <button key={`${source.meeting_id}-${source.timestamp}`} type="button" onClick={() => router.push(`/meeting-details?id=${source.meeting_id}`)} className="block w-full text-left"><p className="text-sm font-medium">{source.title}</p><p className="mt-1 line-clamp-3 text-xs leading-5 text-muted-foreground">{source.matchContext}</p></button>)}</div></aside>
+      </section>}
     </div>
   );
 }

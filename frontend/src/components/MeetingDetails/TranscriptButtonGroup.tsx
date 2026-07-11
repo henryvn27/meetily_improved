@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { Copy, FolderOpen, RefreshCw } from 'lucide-react';
+import { Copy, Download, FolderOpen, RefreshCw } from 'lucide-react';
 import Analytics from '@/lib/analytics';
 import { RetranscribeDialog } from './RetranscribeDialog';
 import { useConfig } from '@/contexts/ConfigContext';
@@ -13,6 +13,7 @@ interface TranscriptButtonGroupProps {
   transcriptCount: number;
   onCopyTranscript: () => void;
   onOpenMeetingFolder: () => Promise<void>;
+  onExportMeeting: () => Promise<void>;
   meetingId?: string;
   meetingFolderPath?: string | null;
   onRefetchTranscripts?: () => Promise<void>;
@@ -23,6 +24,7 @@ export function TranscriptButtonGroup({
   transcriptCount,
   onCopyTranscript,
   onOpenMeetingFolder,
+  onExportMeeting,
   meetingId,
   meetingFolderPath,
   onRefetchTranscripts,
@@ -54,6 +56,11 @@ export function TranscriptButtonGroup({
           <span className="hidden lg:inline">Copy</span>
         </Button>
 
+        <Button size="sm" variant="outline" onClick={onExportMeeting} title="Export local meeting as Markdown">
+          <Download className="xl:mr-2" size={18} />
+          <span className="hidden lg:inline">Export</span>
+        </Button>
+
         <Button
           size="sm"
           variant="outline"
@@ -72,7 +79,7 @@ export function TranscriptButtonGroup({
           <Button
             size="sm"
             variant="outline"
-            className="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border-blue-200 xl:px-4"
+            className="border-accent/30 bg-[hsl(var(--accent-soft))] hover:bg-[hsl(var(--accent-soft))] xl:px-4"
             onClick={() => {
               Analytics.trackButtonClick('enhance_transcript', 'meeting_details');
               setShowRetranscribeDialog(true);

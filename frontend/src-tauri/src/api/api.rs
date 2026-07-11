@@ -2,6 +2,7 @@ use log::{debug as log_debug, error as log_error, info as log_info, warn as log_
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::{AppHandle, Runtime};
+use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::StoreExt;
 
 use crate::{
@@ -13,11 +14,28 @@ use crate::{
         },
     },
     state::AppState,
-    summary::CustomOpenAIConfig,
+    summary::{llm_client::{generate_summary, LLMProvider}, CustomOpenAIConfig},
 };
 
 // Hardcoded server URL
 const APP_SERVER_URL: &str = "http://localhost:5167";
+
+fn is_loopback_ollama_endpoint(endpoint: Option<&str>) -> bool {
+    let Some(endpoint) = endpoint.map(str::trim).filter(|value| !value.is_empty()) else {
+        return true;
+    };
+    let Ok(url) = reqwest::Url::parse(endpoint) else {
+        return false;
+    };
+    matches!(url.host_str(), Some("localhost") | Some("127.0.0.1") | Some("::1") | Some("[::1]"))
+}
+
+fn is_unsupported_recall_question(question: &str) -> bool {
+    let question = question.to_lowercase();
+    ["calendar", "email", "inbox", "internet", "web search", "browser", "account", "drive", "file system", "filesystem"]
+        .iter()
+        .any(|term| question.contains(term))
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiResponse<T> {
@@ -44,6 +62,29 @@ pub struct TranscriptSearchResult {
     #[serde(rename = "matchContext")]
     pub match_context: String,
     pub timestamp: String,
+}
+
+/// A source the local recall command actually supplied to the local model.
+/// The UI must render this independently from the answer text; the model is
+/// never trusted to invent citations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalRecallSource {
+    pub meeting_id: String,
+    pub title: String,
+    #[serde(rename = "matchContext")]
+    pub match_context: String,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LocalRecallResponse {
+    pub answer: String,
+    pub sources: Vec<LocalRecallSource>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct LocalExportResult {
+    pub saved: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -379,6 +420,106 @@ pub async fn api_search_transcripts<R: Runtime>(
             log_error!("Error searching transcripts for query '{}': {}", query, e);
             Err(format!("Failed to search transcripts: {}", e))
         }
+    }
+}
+
+/// Answer a question only from matching local transcript snippets via a
+/// configured local Ollama model. This intentionally has no cloud fallback.
+#[tauri::command]
+pub async fn api_answer_meetings_locally<R: Runtime>(
+    _app: AppHandle<R>,
+    state: tauri::State<'_, AppState>,
+    question: String,
+) -> Result<LocalRecallResponse, String> {
+    let question = question.trim();
+    if question.is_empty() {
+        return Err("Enter a question about your saved meetings.".to_string());
+    }
+    if question.chars().count() > 1_000 {
+        return Err("Questions must be 1,000 characters or fewer.".to_string());
+    }
+    if is_unsupported_recall_question(question) {
+        return Err("Ask Meetings can answer only from saved local Meetily transcripts. It cannot access calendars, email, accounts, internet search, or files outside Meetily.".to_string());
+    }
+
+    let pool = state.db_manager.pool();
+    let config = SettingsRepository::get_model_config(pool)
+        .await
+        .map_err(|error| format!("Could not read the local model configuration: {error}"))?
+        .ok_or_else(|| "Configure a local Ollama model before asking meetings.".to_string())?;
+    if config.provider != "ollama" {
+        return Err("Ask Meetings only uses a local Ollama model. Choose Ollama in Settings to continue.".to_string());
+    }
+    if !is_loopback_ollama_endpoint(config.ollama_endpoint.as_deref()) {
+        return Err("Ask Meetings only permits an Ollama server on this device. Use localhost in Settings to continue.".to_string());
+    }
+    if config.model.trim().is_empty() {
+        return Err("Choose a local Ollama model before asking meetings.".to_string());
+    }
+
+    let matches = TranscriptsRepository::search_transcripts(pool, question)
+        .await
+        .map_err(|error| format!("Could not search local meeting transcripts: {error}"))?;
+    if matches.is_empty() {
+        return Err("No saved local transcript matched that question.".to_string());
+    }
+
+    // Bound context and sources so a broad query cannot turn into an
+    // unbounded local-model request. All text comes from the local database.
+    let sources = matches.into_iter().take(8).map(|item| LocalRecallSource {
+        meeting_id: item.id,
+        title: item.title,
+        match_context: item.match_context,
+        timestamp: item.timestamp,
+    }).collect::<Vec<_>>();
+    let context = sources.iter().enumerate().map(|(index, source)| {
+        format!("[Source {} | {} | {}]\n{}", index + 1, source.title, source.timestamp, source.match_context)
+    }).collect::<Vec<_>>().join("\n\n");
+    let system_prompt = "You answer only from the supplied local meeting excerpts. If the excerpts do not answer the question, say so plainly. Do not claim access to any other meeting data, do not invent facts, and do not invent citations.";
+    let user_prompt = format!("Question: {question}\n\nLocal meeting excerpts:\n{context}");
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .map_err(|error| format!("Could not start the local Ollama request: {error}"))?;
+    let answer = generate_summary(
+        &client,
+        &LLMProvider::Ollama,
+        &config.model,
+        "",
+        system_prompt,
+        &user_prompt,
+        config.ollama_endpoint.as_deref(),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    ).await.map_err(|error| format!("Local Ollama could not answer from your saved meetings: {error}"))?;
+
+    Ok(LocalRecallResponse { answer, sources })
+}
+
+#[cfg(test)]
+mod local_recall_tests {
+    use super::is_loopback_ollama_endpoint;
+
+    #[test]
+    fn recall_allows_only_loopback_ollama_endpoints() {
+        assert!(is_loopback_ollama_endpoint(None));
+        assert!(is_loopback_ollama_endpoint(Some("http://localhost:11434")));
+        assert!(is_loopback_ollama_endpoint(Some("http://127.0.0.1:11434")));
+        assert!(is_loopback_ollama_endpoint(Some("http://[::1]:11434")));
+        assert!(!is_loopback_ollama_endpoint(Some("https://ollama.example.com")));
+        assert!(!is_loopback_ollama_endpoint(Some("http://localhost.example.com:11434")));
+        assert!(!is_loopback_ollama_endpoint(Some("not a url")));
+    }
+
+    #[test]
+    fn recall_refuses_product_scope_outside_saved_meetings() {
+        assert!(super::is_unsupported_recall_question("Search the internet for this"));
+        assert!(super::is_unsupported_recall_question("What is on my calendar?"));
+        assert!(!super::is_unsupported_recall_question("What decision did we make?"));
     }
 }
 
@@ -1072,6 +1213,52 @@ pub async fn open_meeting_folder<R: Runtime>(
             Err("Meeting not found".to_string())
         }
     }
+}
+
+/// Exports only persisted local meeting fields after the user chooses a destination.
+#[tauri::command]
+pub async fn api_export_meeting_locally<R: Runtime>(
+    app: AppHandle<R>,
+    state: tauri::State<'_, AppState>,
+    meeting_id: String,
+) -> Result<LocalExportResult, String> {
+    let pool = state.db_manager.pool();
+    let meeting: Option<MeetingModel> = sqlx::query_as(
+        "SELECT id, title, created_at, updated_at, folder_path FROM meetings WHERE id = ?",
+    )
+    .bind(&meeting_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|error| format!("Could not read the local meeting: {error}"))?;
+    let Some(meeting) = meeting else {
+        return Err("Meeting not found".to_string());
+    };
+
+    let transcripts: Vec<(String, String)> = sqlx::query_as(
+        "SELECT timestamp, transcript FROM transcripts WHERE meeting_id = ? ORDER BY timestamp ASC",
+    )
+    .bind(&meeting_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|error| format!("Could not read local transcripts: {error}"))?;
+
+    let filename = format!("{}.md", meeting.title.replace(['/', ':'], "-"));
+    let Some(path) = app.dialog().file().set_file_name(&filename).blocking_save_file() else {
+        return Ok(LocalExportResult { saved: false });
+    };
+    let transcript = transcripts
+        .iter()
+        .map(|(timestamp, text)| format!("- {timestamp} {text}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let contents = format!(
+        "# {}\n\nCreated: {}\nUpdated: {}\n\n## Transcript\n\n{}\n",
+        meeting.title, meeting.created_at.0.to_rfc3339(), meeting.updated_at.0.to_rfc3339(), transcript
+    );
+    let path = path.as_path().ok_or_else(|| "The selected export destination is not a local path".to_string())?;
+    std::fs::write(path, contents)
+        .map_err(|error| format!("Could not write the local export: {error}"))?;
+    Ok(LocalExportResult { saved: true })
 }
 
 // Simple test command to check backend connectivity

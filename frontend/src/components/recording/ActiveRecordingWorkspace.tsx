@@ -69,8 +69,8 @@ export function ActiveRecordingWorkspace({
       <Surface className="flex shrink-0 flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <span className={cn(
-            'relative grid size-11 shrink-0 place-items-center rounded-xl',
-            isPaused ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
+            'relative grid size-11 shrink-0 place-items-center rounded-md',
+            isPaused ? 'bg-[hsl(var(--warning)/0.14)] text-[hsl(var(--warning))]' : 'bg-[hsl(var(--accent-soft))] text-accent',
           )}>
             {isPaused ? (
               <PauseCircle className="size-5" aria-hidden="true" />
@@ -81,7 +81,7 @@ export function ActiveRecordingWorkspace({
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <p className={cn('text-sm font-semibold', isPaused ? 'text-amber-800 dark:text-amber-300' : 'text-red-700 dark:text-red-300')} role="status" aria-live="polite">
+              <p className={cn('text-sm font-semibold', isPaused ? 'text-[hsl(var(--warning))]' : 'text-accent')} role="status" aria-live="polite">
                 {isPaused ? 'Recording paused' : 'Recording locally'}
               </p>
               <span className="font-mono text-sm tabular-nums text-muted-foreground" aria-label={`Elapsed recording time ${formatRecordingDuration(recordingDuration)}`}>
@@ -122,11 +122,11 @@ export function ActiveRecordingWorkspace({
                   role="status"
                   aria-live="polite"
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium',
+                    'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium',
                     isPaused
-                      ? 'border-amber-200 bg-amber-50 text-amber-800'
+                      ? 'border-[hsl(var(--warning)/0.30)] bg-[hsl(var(--warning)/0.10)] text-[hsl(var(--warning))]'
                       : speechDetected
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                        ? 'border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.10)] text-[hsl(var(--success))]'
                         : 'border-border bg-secondary text-muted-foreground',
                   )}
                 >

@@ -4,6 +4,7 @@ import {
   deriveRecordingReadiness,
   RecordingReadiness,
 } from '@/lib/recording-readiness';
+import { withTimeout } from '@/lib/with-timeout';
 import type { SelectedDevices } from '@/components/DeviceSelection';
 
 interface AudioDevice {
@@ -45,8 +46,11 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
     setSnapshot(initialSnapshot);
 
     const [audioResult, modelResult] = await Promise.allSettled([
-      invoke<AudioDevice[]>('get_audio_devices'),
-      (async () => {
+      withTimeout(
+        invoke<AudioDevice[]>('get_audio_devices'),
+        'Audio-device check timed out. Check macOS audio permissions, then try again.',
+      ),
+      withTimeout((async () => {
         await invoke('parakeet_init');
         const hasAvailableModels = await invoke<boolean>('parakeet_has_available_models');
         if (hasAvailableModels) {
@@ -58,7 +62,7 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
           state: models.some(isDownloadingModel) ? 'downloading' as const : 'missing' as const,
           error: null,
         };
-      })(),
+      })(), 'Local-model check timed out. Restart Meetily, then try again.'),
     ]);
 
     const audioDevices = audioResult.status === 'fulfilled' ? audioResult.value : [];

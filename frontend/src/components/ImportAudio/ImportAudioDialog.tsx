@@ -226,11 +226,11 @@ export function ImportAudioDialog({
         <div className="border-b border-border/70 bg-secondary/35 px-6 py-5 sm:px-7">
           <DialogHeader className="text-left">
             <div className="flex items-start gap-4">
-              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary text-foreground">
-                {isProcessing ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : error ? <AlertTriangle className="size-5 text-destructive" aria-hidden="true" /> : status === 'complete' ? <CheckCircle2 className="size-5 text-emerald-700" aria-hidden="true" /> : <FileAudio2 className="size-5" aria-hidden="true" />}
+              <span className="grid size-11 shrink-0 place-items-center rounded-[3px] bg-secondary text-foreground">
+                {isProcessing ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : error ? <AlertTriangle className="size-5 text-destructive" aria-hidden="true" /> : status === 'complete' ? <CheckCircle2 className="size-5 text-[hsl(var(--success))]" aria-hidden="true" /> : <FileAudio2 className="size-5" aria-hidden="true" />}
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Local audio import</p>
+                <p className="app-eyebrow">Local audio import</p>
                 <DialogTitle className="mt-1 text-xl tracking-[-0.02em]">
                   {isProcessing ? 'Creating your meeting' : error && !isProcessing ? 'Import needs attention' : status === 'complete' ? 'Meeting imported' : 'Import a recording'}
                 </DialogTitle>
@@ -246,15 +246,15 @@ export function ImportAudioDialog({
           {!isProcessing && !error && (
             fileInfo ? (
               <>
-                <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
+                <div className="rounded-[3px] border border-border/80 bg-card p-4">
                   <div className="flex items-start gap-3">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary"><FileAudio2 className="size-5" aria-hidden="true" /></span>
+                    <span className="grid size-10 shrink-0 place-items-center rounded-[3px] bg-secondary"><FileAudio2 className="size-5" aria-hidden="true" /></span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-foreground">{fileInfo.filename}</p>
                       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5"><Clock className="size-3.5" aria-hidden="true" />{formatImportDuration(fileInfo.duration_seconds)}</span>
                         <span className="flex items-center gap-1.5"><HardDrive className="size-3.5" aria-hidden="true" />{formatImportFileSize(fileInfo.size_bytes)}</span>
-                        <span className="rounded-full bg-secondary px-2 py-0.5 font-medium text-foreground">{fileInfo.format}</span>
+                        <span className="rounded-[3px] bg-secondary px-2 py-0.5 font-mono text-[0.6875rem] text-foreground">{fileInfo.format}</span>
                       </div>
                     </div>
                   </div>
@@ -265,7 +265,7 @@ export function ImportAudioDialog({
                   <Button variant="outline" size="sm" onClick={handleSelectFile} className="mt-3 w-full"><FolderOpen className="mr-2 size-4" aria-hidden="true" />Choose a different file</Button>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-border/80">
+                <div className="overflow-hidden rounded-[3px] border border-border/80">
                   <button type="button" onClick={() => setShowAdvanced(!showAdvanced)} aria-expanded={showAdvanced} className="flex min-h-11 w-full items-center justify-between px-4 text-sm font-medium hover:bg-secondary/55">
                     <span>Transcription options</span>
                     {showAdvanced ? <ChevronUp className="size-4" aria-hidden="true" /> : <ChevronDown className="size-4" aria-hidden="true" />}
@@ -289,8 +289,8 @@ export function ImportAudioDialog({
                 </div>
               </>
             ) : (
-              <div className="rounded-xl border border-dashed border-border bg-secondary/25 px-6 py-9 text-center">
-                <span className="mx-auto grid size-12 place-items-center rounded-xl bg-card shadow-sm"><Upload className="size-5" aria-hidden="true" /></span>
+              <div className="rounded-[3px] border border-dashed border-border bg-secondary/25 px-6 py-9 text-center">
+                <span className="mx-auto grid size-12 place-items-center rounded-[3px] bg-card"><Upload className="size-5" aria-hidden="true" /></span>
                 <h2 className="mt-4 font-semibold">Choose a recording</h2>
                 <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-muted-foreground">Drag one file anywhere into Meetily, or open the native file picker.</p>
                 <Button onClick={handleSelectFile} disabled={status === 'validating'} className="mt-4">
@@ -302,7 +302,7 @@ export function ImportAudioDialog({
           )}
 
           {isProcessing && (
-            <div className="space-y-4 rounded-xl border border-border/80 bg-card p-5">
+            <div className="space-y-4 rounded-[3px] border border-border/80 bg-card p-5">
               {progressPresentation ? (
                 <>
                   <div className="flex items-center justify-between gap-4 text-sm"><span className="font-semibold">{progressPresentation.label}</span><span className="tabular-nums text-muted-foreground">{progressPresentation.percentage}%</span></div>
@@ -317,7 +317,7 @@ export function ImportAudioDialog({
           )}
 
           {error && (
-            <div role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 p-4">
+            <div role="alert" className="rounded-[3px] border border-destructive/25 bg-destructive/5 p-4">
               <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" /><div><p className="text-sm font-semibold text-foreground">{isProcessing ? 'Cancellation did not complete' : 'Local import failed'}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{error}</p></div></div>
             </div>
           )}

@@ -9,13 +9,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        // Consistent color palette
-        primary: "hsl(221, 83%, 53%)", // blue-600
-        secondary: "hsl(210, 40%, 96%)", // gray-50
-        accent: "hsl(221, 83%, 53%)", // blue-600
-        destructive: "hsl(0, 84%, 60%)", // red-500
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
+        primary: "hsl(var(--primary) / <alpha-value>)",
+        secondary: "hsl(var(--secondary) / <alpha-value>)",
+        accent: "hsl(var(--accent) / <alpha-value>)",
+        destructive: "hsl(var(--destructive) / <alpha-value>)",
       },
       fontSize: {
         'display': ['32px', { lineHeight: '1.2', fontWeight: '700' }],

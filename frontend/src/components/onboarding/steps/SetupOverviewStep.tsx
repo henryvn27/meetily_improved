@@ -45,30 +45,30 @@ export function SetupOverviewStep() {
 
   return (
     <OnboardingContainer
-      title="Setup Overview"
-      description="Meetily requires that you download the Transcription & Summarization AI models for the software to work."
+      title="Set up local intelligence."
+      description="Download the transcription and summary models Meetily uses on this device."
       step={2}
       totalSteps={isMac ? 4 : 3}
     >
       <div className="flex flex-col items-center space-y-10">
-        {/* Steps Card */}
-        <div className="w-full max-w-md bg-white rounded-lg border border-gray-200 p-4">
-          <div className="space-y-4">
+        <div className="w-full max-w-2xl border-y border-border bg-card py-2">
+          <div>
             {steps.map((step, idx) => {
               return (
                 <div
                   key={step.number}
-                  className={`flex items-start gap-4 p-1`}
+                  className="flex items-start gap-4 border-b border-border/70 px-4 py-5 last:border-b-0"
                 >
-                  <div className="flex-1 ml-1">
-                    <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                        Step {step.number} :  {step.title}
+                  <span className="grid size-7 shrink-0 place-items-center rounded-[3px] bg-secondary font-mono text-xs text-muted-foreground">{step.number}</span>
+                  <div className="flex-1">
+                    <h3 className="flex items-center gap-2 font-medium tracking-[-0.02em]">
+                        {step.title}
 
                         {step.type === "summarization" && (
                             <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                <button className="text-gray-400 hover:text-gray-600">
+                                <button className="text-muted-foreground hover:text-foreground">
                                     <Info className="w-4 h-4" />
                                 </button>
                                 </TooltipTrigger>
@@ -92,16 +92,16 @@ export function SetupOverviewStep() {
         <div className="w-full max-w-xs space-y-4">
           <Button
             onClick={handleContinue}
-            className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white"
+            className="h-11 w-full"
           >
             Let&apos;s Go
           </Button>
           <div className="text-center">
             <a
-              href="https://github.com/Zackriya-Solutions/meeting-minutes"
+              href="https://github.com/henryvn27/meetily_improved/issues"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-gray-600 hover:underline"
+              className="text-xs text-muted-foreground hover:text-foreground hover:underline"
             >
               Report issues on GitHub
             </a>

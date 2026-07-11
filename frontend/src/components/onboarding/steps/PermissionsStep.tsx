@@ -113,16 +113,16 @@ export function PermissionsStep() {
 
   return (
     <OnboardingContainer
-      title="Grant Permissions"
-      description="Meetily needs access to your microphone and system audio to record meetings"
+      title="Let Meetily hear the meeting."
+      description="Allow microphone and system-audio access before you start local capture."
       step={4}
       hideProgress={true}
       showNavigation={allPermissionsGranted}
       canGoNext={allPermissionsGranted}
     >
-      <div className="max-w-lg mx-auto space-y-6">
+      <div className="mx-auto max-w-2xl space-y-6">
         {/* Permission Rows */}
-        <div className="space-y-4">
+        <div className="border-y border-border bg-card py-1">
           {/* Microphone */}
           <PermissionRow
             icon={<Mic className="w-5 h-5" />}
@@ -146,13 +146,13 @@ export function PermissionsStep() {
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 pt-4">
-          <Button onClick={handleFinish} disabled={!allPermissionsGranted} className="w-full h-11">
+          <Button onClick={handleFinish} disabled={!allPermissionsGranted} className="h-11 w-full">
             Finish Setup
           </Button>
 
           <button
             onClick={handleSkip}
-            className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             I&apos;ll do this later
           </button>

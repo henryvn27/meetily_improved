@@ -170,6 +170,9 @@ export function usePaginatedTranscripts({
     useEffect(() => {
         if (!meetingId) {
             reset();
+            // A missing selection is an immediate route error, not a pending fetch.
+            // Let the parent render its existing error state instead of a permanent loader.
+            setIsLoading(false);
             return;
         }
 
