@@ -20,7 +20,17 @@ export function useMeetingOperations({
     }
   }, [meeting.id]);
 
+  const handleExportMeeting = useCallback(async () => {
+    try {
+      const result = await invokeTauri<{ saved: boolean }>('api_export_meeting_locally', { meetingId: meeting.id });
+      if (result.saved) toast.success('Meeting exported locally');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to export local meeting');
+    }
+  }, [meeting.id]);
+
   return {
     handleOpenMeetingFolder,
+    handleExportMeeting,
   };
 }

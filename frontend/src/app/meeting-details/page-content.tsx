@@ -228,6 +228,7 @@ export default function PageContent({
           onPromptChange={setCustomPrompt}
           onCopyTranscript={copyOperations.handleCopyTranscript}
           onOpenMeetingFolder={meetingOperations.handleOpenMeetingFolder}
+          onExportMeeting={meetingOperations.handleExportMeeting}
           isRecording={isRecording}
           disableAutoScroll={true}
           usePagination={true}

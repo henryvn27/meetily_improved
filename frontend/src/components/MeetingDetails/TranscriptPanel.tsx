@@ -14,6 +14,7 @@ interface TranscriptPanelProps {
   onPromptChange: (value: string) => void;
   onCopyTranscript: () => void;
   onOpenMeetingFolder: () => Promise<void>;
+  onExportMeeting: () => Promise<void>;
   isRecording: boolean;
   disableAutoScroll?: boolean;
 
@@ -41,6 +42,7 @@ export function TranscriptPanel({
   onPromptChange,
   onCopyTranscript,
   onOpenMeetingFolder,
+  onExportMeeting,
   isRecording,
   disableAutoScroll = false,
   usePagination = false,
@@ -108,6 +110,7 @@ export function TranscriptPanel({
           transcriptCount={usePagination ? (totalCount ?? convertedSegments.length) : (transcripts?.length || 0)}
           onCopyTranscript={onCopyTranscript}
           onOpenMeetingFolder={onOpenMeetingFolder}
+          onExportMeeting={onExportMeeting}
           meetingId={meetingId}
           meetingFolderPath={meetingFolderPath}
           onRefetchTranscripts={onRefetchTranscripts}

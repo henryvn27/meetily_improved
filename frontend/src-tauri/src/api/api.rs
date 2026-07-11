@@ -2,6 +2,7 @@ use log::{debug as log_debug, error as log_error, info as log_info, warn as log_
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::{AppHandle, Runtime};
+use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::StoreExt;
 
 use crate::{
@@ -79,6 +80,11 @@ pub struct LocalRecallSource {
 pub struct LocalRecallResponse {
     pub answer: String,
     pub sources: Vec<LocalRecallSource>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct LocalExportResult {
+    pub saved: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -1207,6 +1213,52 @@ pub async fn open_meeting_folder<R: Runtime>(
             Err("Meeting not found".to_string())
         }
     }
+}
+
+/// Exports only persisted local meeting fields after the user chooses a destination.
+#[tauri::command]
+pub async fn api_export_meeting_locally<R: Runtime>(
+    app: AppHandle<R>,
+    state: tauri::State<'_, AppState>,
+    meeting_id: String,
+) -> Result<LocalExportResult, String> {
+    let pool = state.db_manager.pool();
+    let meeting: Option<MeetingModel> = sqlx::query_as(
+        "SELECT id, title, created_at, updated_at, folder_path FROM meetings WHERE id = ?",
+    )
+    .bind(&meeting_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|error| format!("Could not read the local meeting: {error}"))?;
+    let Some(meeting) = meeting else {
+        return Err("Meeting not found".to_string());
+    };
+
+    let transcripts: Vec<(String, String)> = sqlx::query_as(
+        "SELECT timestamp, transcript FROM transcripts WHERE meeting_id = ? ORDER BY timestamp ASC",
+    )
+    .bind(&meeting_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|error| format!("Could not read local transcripts: {error}"))?;
+
+    let filename = format!("{}.md", meeting.title.replace(['/', ':'], "-"));
+    let Some(path) = app.dialog().file().set_file_name(&filename).blocking_save_file() else {
+        return Ok(LocalExportResult { saved: false });
+    };
+    let transcript = transcripts
+        .iter()
+        .map(|(timestamp, text)| format!("- {timestamp} {text}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let contents = format!(
+        "# {}\n\nCreated: {}\nUpdated: {}\n\n## Transcript\n\n{}\n",
+        meeting.title, meeting.created_at.0.to_rfc3339(), meeting.updated_at.0.to_rfc3339(), transcript
+    );
+    let path = path.as_path().ok_or_else(|| "The selected export destination is not a local path".to_string())?;
+    std::fs::write(path, contents)
+        .map_err(|error| format!("Could not write the local export: {error}"))?;
+    Ok(LocalExportResult { saved: true })
 }
 
 // Simple test command to check backend connectivity
