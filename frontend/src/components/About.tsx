@@ -86,7 +86,7 @@ export function About() {
                         )}
                     </Button>
                     {updateInfo?.available && (
-                        <div className="mt-2 text-xs text-blue-600">
+                        <div className="mt-2 text-xs text-accent">
                             Update available: v{updateInfo.version}
                         </div>
                     )}
