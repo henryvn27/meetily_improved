@@ -25,7 +25,7 @@ import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
 import { ThemeProvider } from '@/contexts/ThemeContext'
-import { bypassOnboardingForNativeQa } from '@/lib/native-qa-mode'
+import { bypassOnboardingForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
 
 
 // Module-level component — stable reference across RootLayout re-renders.
@@ -85,6 +85,11 @@ export default function RootLayout({
   const [importFilePath, setImportFilePath] = useState<string | null>(null)
 
   useEffect(() => {
+    if (openMeetingErrorForNativeQa) {
+      window.location.replace('/meeting-details')
+      return
+    }
+
     if (bypassOnboardingForNativeQa) {
       console.info('[Layout] Native QA routes mode: opening the real empty workspace')
       return
