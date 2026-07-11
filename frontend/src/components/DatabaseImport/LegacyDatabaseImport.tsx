@@ -159,9 +159,9 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
 
           {/* Detection Result */}
           {detectedPath && (
-            <div className="border border-emerald-500/25 bg-emerald-500/10 p-3">
+            <div className="border border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.10)] p-3">
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-400" />
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--success))]" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">Database found!</p>
                   <p className="mt-1 break-all text-xs text-muted-foreground">{detectedPath}</p>
@@ -187,7 +187,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
             <button
               onClick={handleImport}
               disabled={!canImport || isLoading}
-              className="flex w-full items-center justify-center gap-2 bg-emerald-600 px-4 py-3 text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45"
+              className="flex w-full items-center justify-center gap-2 bg-[hsl(var(--success))] px-4 py-3 text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
             >
               {importState === 'importing' ? (
                 <>

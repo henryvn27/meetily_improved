@@ -43,7 +43,7 @@ export function ModelDownloadProgress({ status, modelName, onCancel }: ModelDown
       </div>
       
       {isCompleted && (
-        <div className="mt-2 text-xs text-emerald-700 dark:text-emerald-400">
+        <div className="mt-2 text-xs text-[hsl(var(--success))]">
           ✓ Download completed, loading model...
         </div>
       )}
@@ -121,7 +121,7 @@ export function DownloadSummary({ totalModels, downloadedModels, totalSizeMb }: 
         </span>
       </div>
       {downloadedModels > 0 && (
-        <div className="mt-1 text-xs text-emerald-700 dark:text-emerald-400">
+        <div className="mt-1 text-xs text-[hsl(var(--success))]">
           ✓ Models run locally - no internet required for transcription
         </div>
       )}

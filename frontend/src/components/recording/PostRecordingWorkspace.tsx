@@ -56,7 +56,7 @@ export function PostRecordingWorkspace() {
                 isError
                   ? 'bg-destructive/10 text-destructive'
                   : isComplete
-                    ? 'bg-emerald-50 text-emerald-700'
+                    ? 'bg-[hsl(var(--success)/0.10)] text-[hsl(var(--success))]'
                     : 'bg-secondary text-foreground',
               )}>
                 {isError ? (
@@ -101,7 +101,7 @@ export function PostRecordingWorkspace() {
                   className={cn(
                     'flex items-center gap-3 rounded-[3px] border px-3 py-3 text-sm',
                     state === 'active' && 'border-foreground/20 bg-secondary text-foreground',
-                    state === 'complete' && 'border-emerald-200 bg-emerald-50/70 text-emerald-900',
+                    state === 'complete' && 'border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))]',
                     state === 'error' && 'border-destructive/25 bg-destructive/5 text-destructive',
                     state === 'pending' && 'border-border/70 text-muted-foreground',
                   )}

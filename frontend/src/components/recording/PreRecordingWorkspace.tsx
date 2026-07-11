@@ -61,7 +61,7 @@ function ReadinessRow({ item }: { item: RecordingReadinessItem }) {
           <h3 className="text-sm font-semibold">{item.label}</h3>
           <span className={cn(
             'inline-flex items-center gap-1.5 text-xs font-medium',
-            item.state === 'ready' && 'text-emerald-700 dark:text-emerald-400',
+            item.state === 'ready' && 'text-[hsl(var(--success))]',
             item.state === 'optional' && 'text-muted-foreground',
             (item.state === 'blocked' || item.state === 'error') && 'text-destructive',
             item.state === 'checking' && 'text-muted-foreground',

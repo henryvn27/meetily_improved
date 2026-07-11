@@ -227,7 +227,7 @@ export function ImportAudioDialog({
           <DialogHeader className="text-left">
             <div className="flex items-start gap-4">
               <span className="grid size-11 shrink-0 place-items-center rounded-[3px] bg-secondary text-foreground">
-                {isProcessing ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : error ? <AlertTriangle className="size-5 text-destructive" aria-hidden="true" /> : status === 'complete' ? <CheckCircle2 className="size-5 text-emerald-700" aria-hidden="true" /> : <FileAudio2 className="size-5" aria-hidden="true" />}
+                {isProcessing ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : error ? <AlertTriangle className="size-5 text-destructive" aria-hidden="true" /> : status === 'complete' ? <CheckCircle2 className="size-5 text-[hsl(var(--success))]" aria-hidden="true" /> : <FileAudio2 className="size-5" aria-hidden="true" />}
               </span>
               <div className="min-w-0">
                 <p className="app-eyebrow">Local audio import</p>
