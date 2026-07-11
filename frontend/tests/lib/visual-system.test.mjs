@@ -32,6 +32,8 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(meetingSummary, /border-t border-border bg-card/);
   assert.doesNotMatch(meetingSummary, /bg-white/);
   assert.doesNotMatch(preRecording, /rounded-lg/);
+  assert.match(preRecording, /xl:grid-cols-\[minmax\(0,1fr\)_22rem\]/);
+  assert.doesNotMatch(preRecording, /md:grid-cols-\[minmax\(0,1fr\)_22rem\]/);
   assert.doesNotMatch(postRecording, /rounded-(?:lg|xl)/);
 
   const combinedDocs = `${product}\n${designMarkdown}\n${designJson}`;

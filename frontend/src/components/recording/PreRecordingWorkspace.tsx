@@ -122,7 +122,7 @@ export function PreRecordingWorkspace({
 
       <div className="mt-6">
         <Surface className="overflow-hidden p-0">
-          <div className="grid md:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="grid xl:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="flex min-h-[22rem] flex-col justify-between p-6 sm:p-8">
               <div className="flex items-start gap-4">
                 <span className="grid size-10 shrink-0 place-items-center rounded-md bg-[hsl(var(--accent-soft))] text-accent">
@@ -153,7 +153,7 @@ export function PreRecordingWorkspace({
               </div>
             </div>
 
-            <aside className="border-t border-border bg-secondary/45 p-5 md:border-l md:border-t-0">
+            <aside className="border-t border-border bg-secondary/45 p-5 xl:border-l xl:border-t-0">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Readiness</p>
