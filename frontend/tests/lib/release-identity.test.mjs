@@ -3,11 +3,12 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const root = (file) => fileURLToPath(new URL(file, import.meta.url));
-const [tauriConfig, cargoManifest, frontendPackage, releaseWorkflow, updateManifest] = await Promise.all([
+const [tauriConfig, cargoManifest, frontendPackage, releaseWorkflow, buildWorkflow, updateManifest] = await Promise.all([
   readFile(root('../../src-tauri/tauri.conf.json'), 'utf8'),
   readFile(root('../../src-tauri/Cargo.toml'), 'utf8'),
   readFile(root('../../package.json'), 'utf8'),
   readFile(root('../../../.github/workflows/release.yml'), 'utf8'),
+  readFile(root('../../../.github/workflows/build.yml'), 'utf8'),
   readFile(root('../../../scripts/generate-update-manifest-github.js'), 'utf8'),
 ]);
 
@@ -21,6 +22,7 @@ assert.match(tauriConfig, /henryvn27\/meetily_improved\/releases\/latest\/downlo
 assert.match(cargoManifest, /repository = "https:\/\/github\.com\/henryvn27\/meetily_improved"/, 'publishes fork-owned Cargo metadata');
 assert.match(releaseWorkflow, /Meetily Improved v/, 'names GitHub releases for the public app');
 assert.match(releaseWorkflow, /asset-prefix: "meetily-improved"/, 'names release assets for the public app');
+assert.match(buildWorkflow, /version: 11\.7\.0/, 'uses a pnpm version compatible with the checked-in lockfile');
 assert.match(updateManifest, /henryvn27\/meetily_improved/, 'generates fork-owned update manifest links');
 assert.doesNotMatch(`${tauriConfig}\n${cargoManifest}\n${releaseWorkflow}\n${updateManifest}`, /Zackriya-Solutions\/meeting-minutes/, 'removes upstream release endpoints from active distribution metadata');
 
