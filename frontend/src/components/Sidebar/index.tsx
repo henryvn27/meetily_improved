@@ -1,13 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ChatBubbleLeftRightIcon,
-  DocumentTextIcon,
-  HomeIcon,
-  MicrophoneIcon,
-} from '@heroicons/react/24/outline';
-import { Import, LoaderCircle, PanelLeftClose, PanelLeftOpen, Pencil, Search, Settings, Square, Trash2, X } from 'lucide-react';
+import { LoaderCircle, Pencil, Trash2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -22,13 +16,14 @@ import { useImportDialog } from '@/contexts/ImportDialogContext';
 import { useRecordingState } from '@/contexts/RecordingStateContext';
 import { cn } from '@/lib/utils';
 import Analytics from '@/lib/analytics';
+import { MeetilyGlyph } from '@/components/app-shell/MeetilyGlyph';
 import { useSidebar } from './SidebarProvider';
 
 const primaryNavigation = [
-  { label: 'Home', href: '/', icon: HomeIcon },
-  { label: 'New meeting', href: '/new-meeting', icon: MicrophoneIcon },
-  { label: 'Saved meetings', href: '/meetings', icon: DocumentTextIcon },
-  { label: 'Ask meetings', href: '/chat', icon: ChatBubbleLeftRightIcon },
+  { label: 'Home', href: '/', icon: 'home' },
+  { label: 'New meeting', href: '/new-meeting', icon: 'capture' },
+  { label: 'Saved meetings', href: '/meetings', icon: 'library' },
+  { label: 'Ask meetings', href: '/chat', icon: 'recall' },
 ] as const;
 
 export default function Sidebar() {
@@ -132,7 +127,6 @@ export default function Sidebar() {
   };
 
   const navigationButton = (item: typeof primaryNavigation[number]) => {
-    const Icon = item.icon;
     const button = (
       <button
         key={item.href}
@@ -142,14 +136,14 @@ export default function Sidebar() {
         aria-disabled={isPostProcessing}
         aria-current={isActive(item.href) ? 'page' : undefined}
         className={cn(
-          'group flex min-h-10 items-center rounded-[3px] text-[13px] font-medium tracking-[-0.01em] transition-colors disabled:cursor-not-allowed disabled:opacity-45',
+          'group flex min-h-9 items-center rounded-[5px] text-[13px] font-medium tracking-[-0.01em] transition-colors disabled:cursor-not-allowed disabled:opacity-45',
           isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3',
           isActive(item.href)
-            ? 'bg-[hsl(var(--sidebar-selection))] text-accent-foreground shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.2)]'
+            ? 'bg-[hsl(var(--sidebar-hover))] text-[hsl(var(--sidebar-foreground))]'
             : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]',
         )}
       >
-        <Icon className="size-[1.1rem] shrink-0" aria-hidden="true" />
+        <MeetilyGlyph name={item.icon} className={cn('size-[1.1rem] shrink-0', isActive(item.href) && 'text-accent')} />
         {!isCollapsed && <span>{item.label}</span>}
       </button>
     );
@@ -181,7 +175,7 @@ export default function Sidebar() {
               aria-label="Collapse sidebar"
               className="grid size-9 place-items-center rounded-[3px] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]"
             >
-              <PanelLeftClose className="size-[1.1rem]" aria-hidden="true" />
+              <MeetilyGlyph name="chevron-left" className="size-[1.1rem]" />
             </button>
           )}
         </div>
@@ -193,7 +187,7 @@ export default function Sidebar() {
             aria-label="Expand sidebar"
             className="mx-auto mt-3 grid size-10 place-items-center rounded-[3px] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]"
           >
-            <PanelLeftOpen className="size-[1.1rem]" aria-hidden="true" />
+            <MeetilyGlyph name="chevron-right" className="size-[1.1rem]" />
           </button>
         )}
 
@@ -206,7 +200,7 @@ export default function Sidebar() {
           <div className="mt-6 min-h-0 flex-1">
             <div className="relative">
               <label htmlFor="meeting-search" className="sr-only">Search saved meetings</label>
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-[hsl(var(--sidebar-muted))]" aria-hidden="true" />
+              <MeetilyGlyph name="search" className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-[hsl(var(--sidebar-muted))]" />
               <input
                 id="meeting-search"
                 type="search"
@@ -224,7 +218,7 @@ export default function Sidebar() {
                   aria-label="Clear meeting search"
                   className="absolute right-1 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]"
                 >
-                  <X className="size-4" aria-hidden="true" />
+                  <MeetilyGlyph name="close" className="size-4" />
                 </button>
               )}
             </div>
@@ -249,7 +243,7 @@ export default function Sidebar() {
                         disabled={isPostProcessing}
                         className={cn(
                           'min-h-10 w-full truncate rounded-[3px] py-2 pl-3 pr-16 text-left text-[13px] tracking-[-0.01em] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-45',
-                          currentMeeting?.id === meeting.id && pathname === '/meeting-details' && 'bg-[hsl(var(--sidebar-selection))] font-medium text-accent-foreground',
+                          currentMeeting?.id === meeting.id && pathname === '/meeting-details' && 'bg-[hsl(var(--sidebar-hover))] font-medium text-[hsl(var(--sidebar-foreground))]',
                         )}
                       >
                         {meeting.title}
@@ -282,7 +276,7 @@ export default function Sidebar() {
                   isCollapsed ? 'w-10' : 'w-full gap-2.5 px-3',
                 )}
               >
-                {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : isRecording ? <Square className="size-4" aria-hidden="true" /> : <MicrophoneIcon className="size-4" aria-hidden="true" />}
+                {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : isRecording ? <MeetilyGlyph name="stop" className="size-4" /> : <MeetilyGlyph name="capture" className="size-4" />}
                 {!isCollapsed && <span>{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording in progress' : 'Start recording'}</span>}
               </button>
             </TooltipTrigger>
@@ -293,7 +287,7 @@ export default function Sidebar() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button type="button" onClick={() => openImportDialog()} disabled={isPostProcessing} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5')}>
-                  <Import className="size-[1.1rem]" aria-hidden="true" />
+                  <MeetilyGlyph name="import" className="size-[1.1rem]" />
                   {!isCollapsed && <span>Import audio</span>}
                 </button>
               </TooltipTrigger>
@@ -303,8 +297,8 @@ export default function Sidebar() {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <button type="button" onClick={() => router.push('/settings')} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5', pathname === '/settings' ? 'bg-[hsl(var(--sidebar-selection))] text-accent-foreground' : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]')}>
-                <Settings className="size-[1.1rem]" aria-hidden="true" />
+              <button type="button" onClick={() => router.push('/settings')} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5', pathname === '/settings' ? 'bg-[hsl(var(--sidebar-hover))] text-[hsl(var(--sidebar-foreground))]' : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]')}>
+                <MeetilyGlyph name="settings" className={cn('size-[1.1rem]', pathname === '/settings' && 'text-accent')} />
                 {!isCollapsed && <span>Settings</span>}
               </button>
             </TooltipTrigger>

@@ -24,31 +24,31 @@ colors:
   border-strong: "#B9BBC3"
 typography:
   display:
-    fontFamily: "Instrument Sans, Avenir Next, Segoe UI, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, SF Pro Text, Helvetica Neue, Segoe UI, sans-serif"
     fontSize: "32px"
     fontWeight: 650
     lineHeight: 1.08
     letterSpacing: "-0.03em"
   headline:
-    fontFamily: "Instrument Sans, Avenir Next, Segoe UI, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, SF Pro Text, Helvetica Neue, Segoe UI, sans-serif"
     fontSize: "24px"
     fontWeight: 650
     lineHeight: 1.15
     letterSpacing: "-0.02em"
   title:
-    fontFamily: "Instrument Sans, Avenir Next, Segoe UI, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, SF Pro Text, Helvetica Neue, Segoe UI, sans-serif"
     fontSize: "17px"
     fontWeight: 600
     lineHeight: 1.3
     letterSpacing: "-0.01em"
   body:
-    fontFamily: "Instrument Sans, Avenir Next, Segoe UI, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, SF Pro Text, Helvetica Neue, Segoe UI, sans-serif"
     fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.55
     letterSpacing: "normal"
   label:
-    fontFamily: "Instrument Sans, Avenir Next, Segoe UI, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, SF Pro Text, Helvetica Neue, Segoe UI, sans-serif"
     fontSize: "12px"
     fontWeight: 600
     lineHeight: 1.3
@@ -168,8 +168,8 @@ The palette is cool-neutral and high-contrast. Color is functional, scarce, and 
 
 ## Typography
 
-**Display and Body Font:** Instrument Sans, bundled locally under SIL OFL 1.1, with Avenir Next and Segoe UI fallbacks.
-**Label/Mono Font:** SF Mono through the native monospace stack.
+**Display and Body Font:** The native desktop text stack, beginning with SF Pro Text on macOS and a high-quality system fallback elsewhere. This keeps controls, notes, and long transcripts firmly native rather than web-branded.
+**Label/Mono Font:** SF Mono through the native monospace stack, reserved for timestamps, model identifiers, and technical values.
 
 **Character:** Precise, calm, and slightly editorial. The hierarchy comes from confident weight, compact letter-spacing, and deliberate reading measures rather than oversized marketing copy.
 
@@ -237,7 +237,7 @@ Components are compact and familiar. Their personality comes from precision and 
 
 ### Navigation
 
-The graphite rail uses muted labels at rest, a quiet darker hover layer, and a clearly filled selected row. Icons are 16–18px with consistent stroke. The recording control is separated from route navigation and uses Signal Orange only when it needs to dominate.
+The graphite rail uses muted labels at rest, a quiet darker hover layer, and a clearly filled selected row. The persistent shell uses original Meetily structural glyphs at 16–18px with a consistent 1.45px rounded stroke; descriptive content actions may use the established semantic icon library. The recording control is separated from route navigation and uses Signal Orange only when it needs to dominate.
 
 ### Meeting Workspace
 

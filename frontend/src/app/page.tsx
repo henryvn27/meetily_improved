@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AppState } from '@/components/app-shell/AppState';
 import { PageHeader } from '@/components/app-shell/PageHeader';
-import { Surface } from '@/components/app-shell/Surface';
 import { Button } from '@/components/ui/button';
 import { useConfig } from '@/contexts/ConfigContext';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
@@ -71,13 +70,12 @@ export default function DashboardPage() {
         }
       />
 
-      <section aria-labelledby="workspace-heading" className="mt-10">
-        <Surface className="overflow-hidden rounded-[4px] p-0">
+      <section aria-labelledby="workspace-heading" className="mt-10 border-y border-border">
           <div className="grid xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="p-7 sm:p-10">
               <div className="flex items-start gap-5">
-                <span className="mt-0.5 grid size-11 shrink-0 place-items-center rounded-[3px] bg-[hsl(var(--accent-soft))] text-accent">
-                  <Mic className="size-5" aria-hidden="true" />
+                <span className="mt-1 grid size-7 shrink-0 place-items-center text-accent">
+                  <Mic className="size-[1.15rem]" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <p className="app-eyebrow">Capture</p>
@@ -116,7 +114,6 @@ export default function DashboardPage() {
               </div>
             </aside>
           </div>
-        </Surface>
       </section>
 
       {recoverableMeetings.length > 0 && (

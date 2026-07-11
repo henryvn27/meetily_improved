@@ -30,13 +30,14 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(css, /--sidebar-selection: 19 87% 55%/);
   assert.doesNotMatch(css, /--background: 42 26% 96%/);
   assert.match(sidebar, /bg-\[hsl\(var\(--sidebar\)\/0\.94\)\]/);
-  assert.match(sidebar, /@heroicons\/react\/24\/outline/);
+  assert.match(sidebar, /MeetilyGlyph/);
+  assert.doesNotMatch(sidebar, /@heroicons\/react\/24\/outline/);
   assert.match(sidebar, /bg-accent/);
   assert.match(sidebar, /text-accent-foreground/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /animation-duration: 0\.01ms !important/);
   assert.match(css, /transition-duration: 0\.01ms !important/);
-  assert.match(mainContent, /h-12 shrink-0/);
+  assert.match(mainContent, /h-11 shrink-0/);
   assert.match(mainContent, /h-dvh min-w-0 overflow-hidden/);
   assert.match(mainContent, /w-\[calc\(100%-4\.5rem\)\]/);
   assert.match(mainContent, /w-\[calc\(100%-17\.5rem\)\]/);

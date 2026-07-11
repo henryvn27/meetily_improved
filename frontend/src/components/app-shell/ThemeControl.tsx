@@ -1,13 +1,13 @@
 'use client';
 
-import { Monitor, Moon, Sun } from 'lucide-react';
 import { ThemePreference, useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
+import { MeetilyGlyph, MeetilyGlyphName } from './MeetilyGlyph';
 
-const themes: Array<{ value: ThemePreference; label: string; icon: typeof Sun }> = [
-  { value: 'system', label: 'System theme', icon: Monitor },
-  { value: 'light', label: 'Light theme', icon: Sun },
-  { value: 'dark', label: 'Dark theme', icon: Moon },
+const themes: Array<{ value: ThemePreference; label: string; icon: MeetilyGlyphName }> = [
+  { value: 'system', label: 'System theme', icon: 'theme-system' },
+  { value: 'light', label: 'Light theme', icon: 'theme-light' },
+  { value: 'dark', label: 'Dark theme', icon: 'theme-dark' },
 ];
 
 export function ThemeControl() {
@@ -24,10 +24,10 @@ export function ThemeControl() {
           onClick={() => setPreference(value)}
           className={cn(
             'grid size-7 place-items-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground',
-            preference === value && 'bg-accent text-accent-foreground hover:bg-accent/90 hover:text-accent-foreground',
+            preference === value && 'bg-secondary text-foreground hover:bg-secondary hover:text-foreground',
           )}
         >
-          <Icon className="size-3.5" aria-hidden="true" />
+          <MeetilyGlyph name={Icon} className="size-3.5" />
         </button>
       ))}
     </div>
