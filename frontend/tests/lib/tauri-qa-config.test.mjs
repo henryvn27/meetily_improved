@@ -15,6 +15,7 @@ test('QA launcher isolates the native dev instance without changing the release 
   const release = JSON.parse(releaseConfig);
 
   assert.equal(scripts['tauri:dev:qa'], 'tauri dev --config src-tauri/tauri.qa.conf.json -- --features metal');
+  assert.equal(scripts['tauri:build:qa'], 'tauri build --debug --bundles app --config src-tauri/tauri.qa.conf.json --features metal');
   assert.equal(qa.identifier, 'com.meetily.improved.qa');
   assert.equal(qa.productName, 'Meetily Improved QA');
   assert.equal(qa.app.windows[0].title, 'Meetily Improved QA');

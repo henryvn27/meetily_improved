@@ -23,6 +23,7 @@
         "tauri:build:cuda": "tauri build -- --features cuda",
         "tauri:build:vulkan": "tauri build -- --features vulkan",
         "tauri:build:metal": "tauri build -- --features metal",
+        "tauri:build:qa": "tauri build --debug --bundles app --config src-tauri/tauri.qa.conf.json --features metal",
         "tauri:build:coreml": "tauri build -- --features coreml",
         "tauri:build:openblas": "tauri build -- --features openblas",
         "tauri:build:hipblas": "tauri build -- --features hipblas",
