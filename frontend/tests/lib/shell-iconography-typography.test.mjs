@@ -30,6 +30,8 @@ test('persistent workspace shell uses the Meetily glyph and native type systems'
   assert.doesNotMatch(settings, /from 'lucide-react'/);
   assert.match(appState, /MeetilyGlyph/);
   assert.doesNotMatch(appState, /from 'lucide-react'/);
+  assert.match(appState, /role=\{kind === 'error' \? 'alert' : 'status'\}/);
+  assert.match(appState, /aria-live=\{kind === 'loading' \? 'polite' : undefined\}/);
 
   for (const glyph of ['home', 'capture', 'library', 'recall', 'search', 'settings', 'beta', 'alert', 'lock', 'model', 'mic-off', 'unavailable', 'theme-system', 'theme-light', 'theme-dark']) {
     assert.match(glyphs, new RegExp(`'${glyph}'`));
