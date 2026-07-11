@@ -20,7 +20,7 @@ const MainContent: React.FC<MainContentProps> = ({ children }) => {
       }`}
     >
       <div className="flex h-full min-w-0 flex-col">
-        <header className="titlebar flex h-11 shrink-0 items-center justify-end border-b border-border bg-background px-4">
+        <header className="titlebar flex h-12 shrink-0 items-center justify-end border-b border-border/80 bg-background/85 px-4 backdrop-blur-xl">
           <ThemeControl />
         </header>
         <div className="min-h-0 flex-1 overflow-auto custom-scrollbar">

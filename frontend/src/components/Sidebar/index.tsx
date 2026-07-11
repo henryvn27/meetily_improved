@@ -2,23 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Bot,
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-  Home,
-  Import,
-  LoaderCircle,
-  Mic,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Pencil,
-  Search,
-  Settings,
-  Square,
-  Trash2,
-  X,
-} from 'lucide-react';
+  ChatBubbleLeftRightIcon,
+  DocumentTextIcon,
+  HomeIcon,
+  MicrophoneIcon,
+} from '@heroicons/react/24/outline';
+import { Import, LoaderCircle, PanelLeftClose, PanelLeftOpen, Pencil, Search, Settings, Square, Trash2, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -36,10 +25,10 @@ import Analytics from '@/lib/analytics';
 import { useSidebar } from './SidebarProvider';
 
 const primaryNavigation = [
-  { label: 'Home', href: '/', icon: Home },
-  { label: 'New meeting', href: '/new-meeting', icon: Mic },
-  { label: 'Saved meetings', href: '/meetings', icon: FileText },
-  { label: 'Ask meetings', href: '/chat', icon: Bot },
+  { label: 'Home', href: '/', icon: HomeIcon },
+  { label: 'New meeting', href: '/new-meeting', icon: MicrophoneIcon },
+  { label: 'Saved meetings', href: '/meetings', icon: DocumentTextIcon },
+  { label: 'Ask meetings', href: '/chat', icon: ChatBubbleLeftRightIcon },
 ] as const;
 
 export default function Sidebar() {
@@ -156,7 +145,7 @@ export default function Sidebar() {
           'group flex min-h-10 items-center rounded-[3px] text-[13px] font-medium tracking-[-0.01em] transition-colors disabled:cursor-not-allowed disabled:opacity-45',
           isCollapsed ? 'w-10 justify-center' : 'w-full gap-3 px-3',
           isActive(item.href)
-            ? 'bg-[hsl(var(--sidebar-strong))] text-[hsl(var(--sidebar-foreground))]'
+            ? 'bg-[hsl(var(--sidebar-selection))] text-accent-foreground shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.2)]'
             : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]',
         )}
       >
@@ -178,12 +167,12 @@ export default function Sidebar() {
     <aside
       aria-label="Meetily workspace"
       className={cn(
-        'fixed inset-y-0 left-0 z-40 flex border-r border-white/[0.07] bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))] transition-[width] duration-200 ease-out',
+        'fixed inset-y-0 left-0 z-40 flex border-r border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar)/0.94)] text-[hsl(var(--sidebar-foreground))] backdrop-blur-xl transition-[width] duration-200 ease-out',
         isCollapsed ? 'w-[4.5rem]' : 'w-[17.5rem]',
       )}
     >
       <div className="flex min-w-0 flex-1 flex-col px-3 pb-4 pt-4">
-        <div className={cn('flex min-h-11 items-center border-b border-white/[0.08] pb-3', isCollapsed ? 'justify-center' : 'justify-between gap-2 px-0')}>
+        <div className={cn('flex min-h-11 items-center border-b border-[hsl(var(--sidebar-border))] pb-3', isCollapsed ? 'justify-center' : 'justify-between gap-2 px-0')}>
           <Logo isCollapsed={isCollapsed} />
           {!isCollapsed && (
             <button
@@ -225,7 +214,7 @@ export default function Sidebar() {
                 onChange={(event) => handleSearchChange(event.target.value)}
                 disabled={isPostProcessing}
                 placeholder="Search meetings"
-                className="h-10 w-full rounded-[3px] border border-white/10 bg-white/[0.055] pl-8 pr-8 text-[13px] text-[hsl(var(--sidebar-foreground))] placeholder:text-[hsl(var(--sidebar-muted))] focus-visible:border-accent/70 focus-visible:ring-offset-[hsl(var(--sidebar))] disabled:cursor-not-allowed disabled:opacity-45"
+                className="h-9 w-full rounded-[6px] border border-[hsl(var(--sidebar-border))] bg-[hsl(var(--card)/0.6)] pl-8 pr-8 text-[13px] text-[hsl(var(--sidebar-foreground))] placeholder:text-[hsl(var(--sidebar-muted))] focus-visible:border-accent/70 focus-visible:ring-offset-[hsl(var(--sidebar))] disabled:cursor-not-allowed disabled:opacity-45"
               />
               {searchQuery && (
                 <button
@@ -260,7 +249,7 @@ export default function Sidebar() {
                         disabled={isPostProcessing}
                         className={cn(
                           'min-h-10 w-full truncate rounded-[3px] py-2 pl-3 pr-16 text-left text-[13px] tracking-[-0.01em] text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-45',
-                          currentMeeting?.id === meeting.id && pathname === '/meeting-details' && 'bg-[hsl(var(--sidebar-strong))] font-medium',
+                          currentMeeting?.id === meeting.id && pathname === '/meeting-details' && 'bg-[hsl(var(--sidebar-selection))] font-medium text-accent-foreground',
                         )}
                       >
                         {meeting.title}
@@ -281,7 +270,7 @@ export default function Sidebar() {
           </div>
         )}
 
-        <div className={cn('mt-auto border-t border-white/[0.08] pt-4', isCollapsed ? 'space-y-1.5' : 'space-y-2')}>
+        <div className={cn('mt-auto border-t border-[hsl(var(--sidebar-border))] pt-4', isCollapsed ? 'space-y-1.5' : 'space-y-2')}>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -293,7 +282,7 @@ export default function Sidebar() {
                   isCollapsed ? 'w-10' : 'w-full gap-2.5 px-3',
                 )}
               >
-                {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : isRecording ? <Square className="size-4" aria-hidden="true" /> : <Mic className="size-4" aria-hidden="true" />}
+                {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : isRecording ? <Square className="size-4" aria-hidden="true" /> : <MicrophoneIcon className="size-4" aria-hidden="true" />}
                 {!isCollapsed && <span>{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording in progress' : 'Start recording'}</span>}
               </button>
             </TooltipTrigger>
@@ -314,7 +303,7 @@ export default function Sidebar() {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <button type="button" onClick={() => router.push('/settings')} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5', pathname === '/settings' ? 'bg-[hsl(var(--sidebar-strong))] text-[hsl(var(--sidebar-foreground))]' : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]')}>
+              <button type="button" onClick={() => router.push('/settings')} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5', pathname === '/settings' ? 'bg-[hsl(var(--sidebar-selection))] text-accent-foreground' : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]')}>
                 <Settings className="size-[1.1rem]" aria-hidden="true" />
                 {!isCollapsed && <span>Settings</span>}
               </button>

@@ -110,11 +110,12 @@
     --input: 230 7% 77%;
     --ring: 19 87% 55%;
     --radius: 0.625rem;
-    --sidebar: 240 4% 10%;
-    --sidebar-hover: 240 5% 15%;
-    --sidebar-strong: 240 5% 20%;
-    --sidebar-foreground: 240 9% 96%;
-    --sidebar-muted: 235 5% 67%;
+    --sidebar: 225 12% 91%;
+    --sidebar-hover: 225 12% 87%;
+    --sidebar-selection: 19 87% 55%;
+    --sidebar-foreground: 240 6% 10%;
+    --sidebar-muted: 233 4% 40%;
+    --sidebar-border: 230 7% 82%;
     --shadow-color: 240 6% 10%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -147,11 +148,12 @@
     --border: 240 5% 21%;
     --input: 240 5% 28%;
     --ring: 19 92% 62%;
-    --sidebar: 240 5% 6%;
-    --sidebar-hover: 240 5% 12%;
-    --sidebar-strong: 240 5% 18%;
+    --sidebar: 240 5% 10%;
+    --sidebar-hover: 240 5% 15%;
+    --sidebar-selection: 19 92% 62%;
     --sidebar-foreground: 240 9% 96%;
     --sidebar-muted: 235 5% 67%;
+    --sidebar-border: 240 5% 21%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -291,11 +293,11 @@
   }
 
   .app-rail-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--sidebar-strong));
+    background: hsl(var(--sidebar-hover));
   }
 
   .app-rail-scrollbar {
-    scrollbar-color: hsl(var(--sidebar-strong)) transparent;
+    scrollbar-color: hsl(var(--sidebar-hover)) transparent;
   }
 
   .skip-link {
