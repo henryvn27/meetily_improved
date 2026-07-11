@@ -19,6 +19,16 @@ use crate::{
 // Hardcoded server URL
 const APP_SERVER_URL: &str = "http://localhost:5167";
 
+fn is_loopback_ollama_endpoint(endpoint: Option<&str>) -> bool {
+    let Some(endpoint) = endpoint.map(str::trim).filter(|value| !value.is_empty()) else {
+        return true;
+    };
+    let Ok(url) = reqwest::Url::parse(endpoint) else {
+        return false;
+    };
+    matches!(url.host_str(), Some("localhost") | Some("127.0.0.1") | Some("::1") | Some("[::1]"))
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiResponse<T> {
     pub success: bool,
@@ -424,6 +434,9 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     if config.provider != "ollama" {
         return Err("Ask Meetings only uses a local Ollama model. Choose Ollama in Settings to continue.".to_string());
     }
+    if !is_loopback_ollama_endpoint(config.ollama_endpoint.as_deref()) {
+        return Err("Ask Meetings only permits an Ollama server on this device. Use localhost in Settings to continue.".to_string());
+    }
     if config.model.trim().is_empty() {
         return Err("Choose a local Ollama model before asking meetings.".to_string());
     }
@@ -469,6 +482,22 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     ).await.map_err(|error| format!("Local Ollama could not answer from your saved meetings: {error}"))?;
 
     Ok(LocalRecallResponse { answer, sources })
+}
+
+#[cfg(test)]
+mod local_recall_tests {
+    use super::is_loopback_ollama_endpoint;
+
+    #[test]
+    fn recall_allows_only_loopback_ollama_endpoints() {
+        assert!(is_loopback_ollama_endpoint(None));
+        assert!(is_loopback_ollama_endpoint(Some("http://localhost:11434")));
+        assert!(is_loopback_ollama_endpoint(Some("http://127.0.0.1:11434")));
+        assert!(is_loopback_ollama_endpoint(Some("http://[::1]:11434")));
+        assert!(!is_loopback_ollama_endpoint(Some("https://ollama.example.com")));
+        assert!(!is_loopback_ollama_endpoint(Some("http://localhost.example.com:11434")));
+        assert!(!is_loopback_ollama_endpoint(Some("not a url")));
+    }
 }
 
 #[tauri::command]
