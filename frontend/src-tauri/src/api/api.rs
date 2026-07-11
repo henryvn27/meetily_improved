@@ -29,6 +29,13 @@ fn is_loopback_ollama_endpoint(endpoint: Option<&str>) -> bool {
     matches!(url.host_str(), Some("localhost") | Some("127.0.0.1") | Some("::1") | Some("[::1]"))
 }
 
+fn is_unsupported_recall_question(question: &str) -> bool {
+    let question = question.to_lowercase();
+    ["calendar", "email", "inbox", "internet", "web search", "browser", "account", "drive", "file system", "filesystem"]
+        .iter()
+        .any(|term| question.contains(term))
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiResponse<T> {
     pub success: bool,
@@ -425,6 +432,9 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     if question.chars().count() > 1_000 {
         return Err("Questions must be 1,000 characters or fewer.".to_string());
     }
+    if is_unsupported_recall_question(question) {
+        return Err("Ask Meetings can answer only from saved local Meetily transcripts. It cannot access calendars, email, accounts, internet search, or files outside Meetily.".to_string());
+    }
 
     let pool = state.db_manager.pool();
     let config = SettingsRepository::get_model_config(pool)
@@ -497,6 +507,13 @@ mod local_recall_tests {
         assert!(!is_loopback_ollama_endpoint(Some("https://ollama.example.com")));
         assert!(!is_loopback_ollama_endpoint(Some("http://localhost.example.com:11434")));
         assert!(!is_loopback_ollama_endpoint(Some("not a url")));
+    }
+
+    #[test]
+    fn recall_refuses_product_scope_outside_saved_meetings() {
+        assert!(super::is_unsupported_recall_question("Search the internet for this"));
+        assert!(super::is_unsupported_recall_question("What is on my calendar?"));
+        assert!(!super::is_unsupported_recall_question("What decision did we make?"));
     }
 }
 
