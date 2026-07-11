@@ -34,11 +34,11 @@ The screenshot above is the current native desktop shell using real local applic
 | Area | Status | What that means |
 | --- | --- | --- |
 | Repository and behavior audit | Complete | Routes, native command boundaries, storage, privacy, and upstream attribution are mapped. |
-| Desktop shell and design system | In progress | The replacement graphite/cool-canvas shell and shared primitives are implemented; remaining routes are being migrated out of inherited Meetily styling. |
-| Capture and meeting lifecycle | In progress | Pre-recording, active recording, processing, import, recovery, and failure presentation are being redesigned without replacing native capture behavior. |
-| Meeting history and detail | Planned for v1 | Search, transcript/summary hierarchy, copy/export, and partial-data states will be rebuilt next. |
-| Local global chat | Planned for v1 | Answers must use a local model and cite saved meetings. No persistent embeddings or cloud fallback are claimed. |
-| Packaging and release QA | Not started | A public release waits on clean-checkout, packaging, and end-to-end verification. |
+| Desktop shell and design system | Complete | The graphite/cool-canvas shell, original icon, persistent Light/Dark/System themes, and shared primitives are implemented across the active Phase 1 routes. |
+| Capture and meeting lifecycle | Complete | Pre-recording, active recording, processing, import, recovery, and failure presentation use the shared visual system without replacing native capture behavior. |
+| Meeting history and detail | Complete | Saved meetings open into a reading-first workspace with transcript, summary, playback/export controls, partial-data handling, and a persistent local inspector. |
+| Ask Meetings / local recall | Workspace shipped; generation not implemented | The route provides truthful local recall entry points. It does not generate answers, claim citations, or use embeddings until a local model and source-backed behavior are implemented and tested. |
+| Packaging and release QA | In progress | Native QA bundles and codesign checks pass; clean-checkout launch/package proof and final human E2E verification still gate a public release. |
 
 The execution plan is tracked in Linear and repository history as the project develops. A feature is only moved to complete after implementation, verification, and evidence.
 
@@ -119,7 +119,7 @@ The redesign preserves native recording and transcription command contracts inst
 - Desktop-only interface redesign
 - Reliable recording and import lifecycle presentation
 - Searchable saved meetings and improved meeting detail workspace
-- Local-model meeting chat with meeting citations
+- Ask Meetings recall workspace; generated local answers and citations remain unshipped
 - Settings, privacy guidance, packaging, and release QA
 
 ### Later
