@@ -322,8 +322,8 @@ export function BuiltInModelManager({
                     <span className="min-w-0 break-words text-base font-bold leading-snug">{model.display_name || model.name}</span>
                     {isAvailable && (
                       <>
-                        <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-green-600">
-                          <span className="h-2 w-2 rounded-full bg-green-600"></span>
+                        <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-success">
+                          <span className="h-2 w-2 rounded-full bg-success"></span>
                           Ready
                         </span>
                         {selectedModel === model.name && (
@@ -334,13 +334,13 @@ export function BuiltInModelManager({
                       </>
                     )}
                     {isCorrupted && (
-                      <span className="flex shrink-0 items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                      <span className="flex shrink-0 items-center gap-1 rounded-[2px] bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
                         <BadgeAlert className="h-3 w-3" />
                         Corrupted
                       </span>
                     )}
                     {isError && (
-                      <span className="shrink-0 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                      <span className="shrink-0 rounded-[2px] bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
                         Error
                       </span>
                     )}
@@ -421,7 +421,7 @@ export function BuiltInModelManager({
                   {/* Available - Show small trash icon (only if not currently selected) */}
                   {isAvailable && !modelIsDownloading && selectedModel !== model.name && (
                     <button
-                      className="p-2 rounded hover:bg-gray-100 transition-colors text-gray-500 hover:text-red-600"
+                      className="rounded-[3px] p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteModel(model.name);
@@ -438,7 +438,7 @@ export function BuiltInModelManager({
                   <p className="mb-1">{model.description}</p>
                 )}
                 {(isError || isCorrupted) && (
-                  <p className="mb-1 text-xs text-red-600">
+                  <p className="mb-1 text-xs text-destructive">
                     {isError && typeof model.status === 'object' && 'Error' in model.status
                       ? (model.status as any).Error
                       : isCorrupted
@@ -466,7 +466,7 @@ export function BuiltInModelManager({
                       <>
                         {progressInfo.downloadedMb.toFixed(1)} MiB / {progressInfo.totalMb.toFixed(1)} MiB
                         {progressInfo.speedMbps > 0 && (
-                          <span className="ml-2 text-gray-500">
+                          <span className="ml-2 text-muted-foreground">
                             ({progressInfo.speedMbps.toFixed(1)} MiB/s)
                           </span>
                         )}
