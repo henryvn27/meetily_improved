@@ -76,7 +76,7 @@ export function ChunkProgressDisplay({
   const getChunkStatusColor = (status: ChunkStatus['status']) => {
     switch (status) {
       case 'completed':
-        return 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+        return 'border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.10)] text-[hsl(var(--success))]';
       case 'processing':
         return 'border-accent/25 bg-accent/10 text-accent';
       case 'failed':
@@ -96,7 +96,7 @@ export function ChunkProgressDisplay({
             Processing Progress
           </h3>
           {isPaused && (
-            <span className="border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-800 dark:text-amber-300">
+            <span className="border border-[hsl(var(--warning)/0.30)] bg-[hsl(var(--warning)/0.10)] px-2 py-1 text-xs font-medium text-[hsl(var(--warning))]">
               Paused
             </span>
           )}
@@ -114,7 +114,7 @@ export function ChunkProgressDisplay({
           ) : (
             <button
               onClick={onResume}
-              className="bg-emerald-600 px-3 py-1 text-sm text-white transition-colors hover:bg-emerald-700"
+              className="bg-accent px-3 py-1 text-sm text-accent-foreground transition-colors hover:bg-accent/90"
             >
               Resume
             </button>
@@ -151,7 +151,7 @@ export function ChunkProgressDisplay({
       {/* Processing Stats */}
       <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
         <div className="text-center">
-          <div className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">
+          <div className="text-lg font-semibold text-[hsl(var(--success))]">
             {progress.completed_chunks}
           </div>
           <div className="text-muted-foreground">Completed</div>
@@ -244,9 +244,9 @@ export function ChunkProgressDisplay({
 
       {/* Processing Complete */}
       {progress.completed_chunks === progress.total_chunks && progress.total_chunks > 0 && (
-        <div className="mt-4 border border-emerald-500/25 bg-emerald-500/10 p-3">
+        <div className="mt-4 border border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.10)] p-3">
           <div className="flex items-center space-x-2">
-            <span className="text-emerald-700 dark:text-emerald-400">🎉</span>
+            <span className="text-[hsl(var(--success))]">🎉</span>
             <span className="text-sm font-medium text-foreground">
               Processing completed! All {progress.total_chunks} chunks have been transcribed.
             </span>

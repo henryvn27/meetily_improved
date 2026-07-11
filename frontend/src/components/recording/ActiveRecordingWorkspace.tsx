@@ -124,9 +124,9 @@ export function ActiveRecordingWorkspace({
                   className={cn(
                     'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium',
                     isPaused
-                      ? 'border-amber-200 bg-amber-50 text-amber-800'
+                      ? 'border-[hsl(var(--warning)/0.30)] bg-[hsl(var(--warning)/0.10)] text-[hsl(var(--warning))]'
                       : speechDetected
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                        ? 'border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.10)] text-[hsl(var(--success))]'
                         : 'border-border bg-secondary text-muted-foreground',
                   )}
                 >
