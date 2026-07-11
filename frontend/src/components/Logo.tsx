@@ -22,8 +22,8 @@ const Logo = React.forwardRef<HTMLButtonElement, LogoProps>(({ isCollapsed }, re
           <button ref={ref} className="flex min-h-11 items-center gap-2.5 rounded-[3px] px-2 text-left transition-colors hover:bg-[hsl(var(--sidebar-hover))]">
             <Image src="/logo-collapsed.png" alt="" width={28} height={28} priority />
             <span className="leading-none">
-              <span className="block text-[0.95rem] font-semibold tracking-[-0.045em] text-[hsl(var(--sidebar-foreground))]">meetily</span>
-              <span className="mt-1 block font-mono text-[0.625rem] uppercase tracking-[0.1em] text-[hsl(var(--sidebar-muted))]">local desk</span>
+              <span className="block text-[0.95rem] font-semibold tracking-[-0.045em] text-[hsl(var(--sidebar-foreground))]">Meetily Improved</span>
+              <span className="mt-1 block font-mono text-[0.625rem] uppercase tracking-[0.1em] text-[hsl(var(--sidebar-muted))]">local meeting desk</span>
             </span>
           </button>
         </DialogTrigger>
