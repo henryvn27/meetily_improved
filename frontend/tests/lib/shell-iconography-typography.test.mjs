@@ -5,11 +5,12 @@ import test from 'node:test';
 const root = new URL('../../', import.meta.url);
 
 test('persistent workspace shell uses the Meetily glyph and native type systems', async () => {
-  const [css, tailwind, sidebar, themeControl, glyphs] = await Promise.all([
+  const [css, tailwind, sidebar, themeControl, settings, glyphs] = await Promise.all([
     readFile(new URL('src/app/globals.css', root), 'utf8'),
     readFile(new URL('tailwind.config.js', root), 'utf8'),
     readFile(new URL('src/components/Sidebar/index.tsx', root), 'utf8'),
     readFile(new URL('src/components/app-shell/ThemeControl.tsx', root), 'utf8'),
+    readFile(new URL('src/app/settings/page.tsx', root), 'utf8'),
     readFile(new URL('src/components/app-shell/MeetilyGlyph.tsx', root), 'utf8'),
   ]);
 
@@ -24,8 +25,10 @@ test('persistent workspace shell uses the Meetily glyph and native type systems'
   assert.match(themeControl, /MeetilyGlyph/);
   assert.doesNotMatch(themeControl, /from 'lucide-react'/);
   assert.match(themeControl, /bg-secondary text-foreground/);
+  assert.match(settings, /MeetilyGlyph/);
+  assert.doesNotMatch(settings, /from 'lucide-react'/);
 
-  for (const glyph of ['home', 'capture', 'library', 'recall', 'search', 'settings', 'theme-system', 'theme-light', 'theme-dark']) {
+  for (const glyph of ['home', 'capture', 'library', 'recall', 'search', 'settings', 'beta', 'theme-system', 'theme-light', 'theme-dark']) {
     assert.match(glyphs, new RegExp(`'${glyph}'`));
   }
   assert.match(glyphs, /strokeWidth: 1\.45/);

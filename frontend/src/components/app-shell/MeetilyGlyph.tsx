@@ -1,6 +1,7 @@
 import type { SVGProps } from 'react';
 
 export type MeetilyGlyphName =
+  | 'beta'
   | 'capture'
   | 'chevron-left'
   | 'chevron-right'
@@ -38,6 +39,7 @@ export function MeetilyGlyph({ name, ...props }: MeetilyGlyphProps) {
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false" {...props}>
       {name === 'home' && <><path {...shared} d="M3.5 9.1 10 3.8l6.5 5.3v6.2a1.2 1.2 0 0 1-1.2 1.2H4.7a1.2 1.2 0 0 1-1.2-1.2V9.1Z" /><path {...shared} d="M7.6 16.5v-4.3h4.8v4.3" /></>}
       {name === 'capture' && <><rect {...shared} x="5.2" y="3.2" width="9.6" height="13.6" rx="3.7" /><path {...shared} d="M3.4 10a6.6 6.6 0 0 0 13.2 0M10 16.6v2.1M7.4 18.7h5.2" /></>}
+      {name === 'beta' && <><path {...shared} d="M7.3 3.6h5.4M8.2 3.6v4.6l-3.5 5.7a2 2 0 0 0 1.7 3h7.2a2 2 0 0 0 1.7-3l-3.5-5.7V3.6" /><path {...shared} d="M6.5 13.1h7" /></>}
       {name === 'library' && <><path {...shared} d="M4.1 3.7h8.7a2.7 2.7 0 0 1 2.7 2.7v9.9H6.8a2.7 2.7 0 0 0-2.7 0V3.7Z" /><path {...shared} d="M6.8 16.3a2.7 2.7 0 0 1 2.7-2.7h6M7.2 7.3h5.1M7.2 10.2h4" /></>}
       {name === 'recall' && <><path {...shared} d="M4.2 15.8V8.7a3.1 3.1 0 0 1 3.1-3.1h5.4a3.1 3.1 0 0 1 3.1 3.1v3.5a3.1 3.1 0 0 1-3.1 3.1H8.4l-4.2 2.2v-1.7Z" /><path {...shared} d="M7.2 10.4h5.6M10 7.8v5.2" /></>}
       {name === 'search' && <><circle {...shared} cx="8.5" cy="8.5" r="4.5" /><path {...shared} d="m12 12 4.1 4.1" /></>}
