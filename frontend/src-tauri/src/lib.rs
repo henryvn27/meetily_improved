@@ -632,6 +632,7 @@ pub fn run() {
             groq::groq::get_groq_models,
             api::api_get_meetings,
             api::api_search_transcripts,
+            api::api_answer_meetings_locally,
             api::api_get_profile,
             api::api_save_profile,
             api::api_update_profile,

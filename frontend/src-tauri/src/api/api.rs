@@ -13,7 +13,7 @@ use crate::{
         },
     },
     state::AppState,
-    summary::CustomOpenAIConfig,
+    summary::{llm_client::{generate_summary, LLMProvider}, CustomOpenAIConfig},
 };
 
 // Hardcoded server URL
@@ -44,6 +44,24 @@ pub struct TranscriptSearchResult {
     #[serde(rename = "matchContext")]
     pub match_context: String,
     pub timestamp: String,
+}
+
+/// A source the local recall command actually supplied to the local model.
+/// The UI must render this independently from the answer text; the model is
+/// never trusted to invent citations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalRecallSource {
+    pub meeting_id: String,
+    pub title: String,
+    #[serde(rename = "matchContext")]
+    pub match_context: String,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LocalRecallResponse {
+    pub answer: String,
+    pub sources: Vec<LocalRecallSource>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -380,6 +398,77 @@ pub async fn api_search_transcripts<R: Runtime>(
             Err(format!("Failed to search transcripts: {}", e))
         }
     }
+}
+
+/// Answer a question only from matching local transcript snippets via a
+/// configured local Ollama model. This intentionally has no cloud fallback.
+#[tauri::command]
+pub async fn api_answer_meetings_locally<R: Runtime>(
+    _app: AppHandle<R>,
+    state: tauri::State<'_, AppState>,
+    question: String,
+) -> Result<LocalRecallResponse, String> {
+    let question = question.trim();
+    if question.is_empty() {
+        return Err("Enter a question about your saved meetings.".to_string());
+    }
+    if question.chars().count() > 1_000 {
+        return Err("Questions must be 1,000 characters or fewer.".to_string());
+    }
+
+    let pool = state.db_manager.pool();
+    let config = SettingsRepository::get_model_config(pool)
+        .await
+        .map_err(|error| format!("Could not read the local model configuration: {error}"))?
+        .ok_or_else(|| "Configure a local Ollama model before asking meetings.".to_string())?;
+    if config.provider != "ollama" {
+        return Err("Ask Meetings only uses a local Ollama model. Choose Ollama in Settings to continue.".to_string());
+    }
+    if config.model.trim().is_empty() {
+        return Err("Choose a local Ollama model before asking meetings.".to_string());
+    }
+
+    let matches = TranscriptsRepository::search_transcripts(pool, question)
+        .await
+        .map_err(|error| format!("Could not search local meeting transcripts: {error}"))?;
+    if matches.is_empty() {
+        return Err("No saved local transcript matched that question.".to_string());
+    }
+
+    // Bound context and sources so a broad query cannot turn into an
+    // unbounded local-model request. All text comes from the local database.
+    let sources = matches.into_iter().take(8).map(|item| LocalRecallSource {
+        meeting_id: item.id,
+        title: item.title,
+        match_context: item.match_context,
+        timestamp: item.timestamp,
+    }).collect::<Vec<_>>();
+    let context = sources.iter().enumerate().map(|(index, source)| {
+        format!("[Source {} | {} | {}]\n{}", index + 1, source.title, source.timestamp, source.match_context)
+    }).collect::<Vec<_>>().join("\n\n");
+    let system_prompt = "You answer only from the supplied local meeting excerpts. If the excerpts do not answer the question, say so plainly. Do not claim access to any other meeting data, do not invent facts, and do not invent citations.";
+    let user_prompt = format!("Question: {question}\n\nLocal meeting excerpts:\n{context}");
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .map_err(|error| format!("Could not start the local Ollama request: {error}"))?;
+    let answer = generate_summary(
+        &client,
+        &LLMProvider::Ollama,
+        &config.model,
+        "",
+        system_prompt,
+        &user_prompt,
+        config.ollama_endpoint.as_deref(),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    ).await.map_err(|error| format!("Local Ollama could not answer from your saved meetings: {error}"))?;
+
+    Ok(LocalRecallResponse { answer, sources })
 }
 
 #[tauri::command]
