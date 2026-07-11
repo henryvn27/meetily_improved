@@ -407,18 +407,18 @@ export function DownloadProgressStep() {
         </div>
         <div>
           {state.status === 'waiting' && (
-            <span className="text-sm text-gray-500">Waiting...</span>
+            <span className="text-sm text-muted-foreground">Waiting...</span>
           )}
           {state.status === 'downloading' && (
-            <Loader2 className="w-5 h-5 text-gray-700 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin text-foreground" />
           )}
           {state.status === 'completed' && (
             <div className="flex size-6 items-center justify-center rounded-[3px] bg-[hsl(var(--success)/0.1)]">
-              <Check className="w-4 h-4 text-green-600" />
+              <Check className="h-4 w-4 text-success" />
             </div>
           )}
           {state.status === 'error' && (
-            <span className="text-sm text-red-500">Failed</span>
+            <span className="text-sm text-destructive">Failed</span>
           )}
         </div>
       </div>
@@ -438,7 +438,7 @@ export function DownloadProgressStep() {
             </span>
             <div className="flex items-center gap-2">
               {state.speedMbps > 0 && (
-                <span className="text-gray-500">
+                <span className="text-muted-foreground">
                   {state.speedMbps.toFixed(1)} {sizeUnit}/s
                 </span>
               )}
@@ -452,12 +452,12 @@ export function DownloadProgressStep() {
 
       {state.status === 'error' && state.error && (
         <div className="mt-2 rounded-[3px] border border-destructive/25 bg-destructive/5 p-3">
-          <p className="text-sm text-red-600 font-medium">Download Error</p>
-          <p className="text-xs text-red-500 mt-1">{state.error}</p>
+          <p className="text-sm font-medium text-destructive">Download Error</p>
+          <p className="mt-1 text-xs text-destructive">{state.error}</p>
           {(title === 'Transcription Engine' || title === 'Summary Engine') && (
             <button
               onClick={title === 'Transcription Engine' ? handleRetryDownload : handleRetrySummaryDownload}
-              className="mt-3 w-full h-9 px-4 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2"
+              className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-[3px] bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -483,14 +483,14 @@ export function DownloadProgressStep() {
         <div className="w-full max-w-lg space-y-4">
           {renderDownloadCard(
             'Transcription Engine',
-            <Mic className="w-5 h-5 text-gray-600" />,
+            <Mic className="h-5 w-5 text-muted-foreground" />,
             parakeetState,
             '~670 MB'
           )}
 
           {renderDownloadCard(
             'Summary Engine',
-            <Sparkles className="w-5 h-5 text-gray-600" />,
+            <Sparkles className="h-5 w-5 text-muted-foreground" />,
             summaryState,
             getSummaryModelSizeLabel(selectedSummaryModel || recommendedSummaryModel),
             'MiB'
@@ -505,13 +505,13 @@ export function DownloadProgressStep() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="w-full max-w-lg bg-gray-100 rounded-lg p-4 text-sm text-gray-800"
+              className="w-full max-w-lg rounded-[3px] border border-border bg-muted p-4 text-sm text-foreground"
             >
               <div className="flex items-start gap-3">
-                <Download className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
+                <Download className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                 <div>
                   <p className="font-medium">You can continue while this finishes</p>
-                  <p className="text-gray-700 mt-1">
+                  <p className="mt-1 text-muted-foreground">
                     Download will continue in the background.
                   </p>
                 </div>
@@ -525,7 +525,7 @@ export function DownloadProgressStep() {
           <Button
             onClick={handleContinue}
             disabled={!parakeetDownloaded || isCompleting}
-            className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {(isCompleting || !parakeetDownloaded) ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
