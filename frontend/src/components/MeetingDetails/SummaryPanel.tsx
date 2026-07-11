@@ -360,10 +360,10 @@ export function SummaryPanel({
       ) : transcripts?.length > 0 && (
         <div className="flex-1 overflow-y-auto min-h-0">
           {summaryResponse && (
-            <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4 max-h-1/3 overflow-y-auto">
+            <div className="fixed bottom-0 left-0 right-0 max-h-1/3 overflow-y-auto border-t border-border bg-card p-4 shadow-[0_-12px_32px_hsl(var(--foreground)/0.08)]">
               <h3 className="text-lg font-semibold mb-2">Meeting Summary</h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div className="rounded-[3px] border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Key Points</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.key_points.blocks.map((block, i) => (
@@ -371,7 +371,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm mt-4">
+                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Action Items</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.action_items.blocks.map((block, i) => (
@@ -379,7 +379,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm mt-4">
+                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Decisions</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.decisions.blocks.map((block, i) => (
@@ -387,7 +387,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm mt-4">
+                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Main Topics</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.main_topics.blocks.map((block, i) => (
