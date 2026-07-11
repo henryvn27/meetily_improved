@@ -1,0 +1,16 @@
+{
+  "productName": "Meetily Improved QA Onboarding",
+  "identifier": "com.meetily.improved.qa.onboarding",
+  "app": {
+    "windows": [
+      {
+        "title": "Meetily Improved QA Onboarding",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 1100,
+        "minHeight": 720,
+        "resizable": true
+      }
+    ]
+  }
+}

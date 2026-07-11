@@ -25,6 +25,7 @@ import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import { bypassOnboardingForNativeQa } from '@/lib/native-qa-mode'
 
 
 // Module-level component — stable reference across RootLayout re-renders.
@@ -75,8 +76,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(!bypassOnboardingForNativeQa)
+  const [onboardingCompleted, setOnboardingCompleted] = useState(bypassOnboardingForNativeQa)
 
   // Import audio state
   const [showDropOverlay, setShowDropOverlay] = useState(false)
@@ -84,6 +85,11 @@ export default function RootLayout({
   const [importFilePath, setImportFilePath] = useState<string | null>(null)
 
   useEffect(() => {
+    if (bypassOnboardingForNativeQa) {
+      console.info('[Layout] Native QA routes mode: opening the real empty workspace')
+      return
+    }
+
     // Check onboarding status first
     invoke<{ completed: boolean } | null>('get_onboarding_status')
       .then((status) => {

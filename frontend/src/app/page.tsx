@@ -73,7 +73,7 @@ export default function DashboardPage() {
 
       <section aria-labelledby="workspace-heading" className="mt-10">
         <Surface className="overflow-hidden rounded-[4px] p-0">
-          <div className="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="grid xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="p-7 sm:p-10">
               <div className="flex items-start gap-5">
                 <span className="mt-0.5 grid size-11 shrink-0 place-items-center rounded-[3px] bg-[hsl(var(--accent-soft))] text-accent">
@@ -93,7 +93,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <aside aria-label="Local model status" className="border-t border-border bg-secondary/55 p-6 lg:border-l lg:border-t-0">
+            <aside aria-label="Local model status" className="border-t border-border bg-secondary/55 p-6 xl:border-l xl:border-t-0">
               <div className="flex items-center justify-between gap-3">
                 <div className="app-eyebrow flex items-center gap-2">
                   <Bot className="size-3.5" aria-hidden="true" />

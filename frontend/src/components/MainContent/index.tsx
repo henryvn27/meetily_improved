@@ -15,8 +15,10 @@ const MainContent: React.FC<MainContentProps> = ({ children }) => {
     <main
       id="main-content"
       tabIndex={-1}
-      className={`h-dvh min-w-[calc(1100px-4.5rem)] flex-1 overflow-hidden bg-background transition-[margin] duration-200 ease-out ${
-        isCollapsed ? 'ml-[4.5rem]' : 'ml-[17.5rem]'
+      className={`h-dvh min-w-0 overflow-hidden bg-background transition-[margin,width] duration-200 ease-out ${
+        isCollapsed
+          ? 'ml-[4.5rem] w-[calc(100%-4.5rem)]'
+          : 'ml-[17.5rem] w-[calc(100%-17.5rem)]'
       }`}
     >
       <div className="flex h-full min-w-0 flex-col">

@@ -269,7 +269,7 @@
 
 @layer components {
   .app-page {
-    @apply mx-auto w-full max-w-[96rem] px-7 pb-16 pt-8 sm:px-10 lg:px-14;
+    @apply mx-auto w-full max-w-[96rem] px-7 pb-16 pt-8 sm:px-10 xl:px-14;
   }
 
   .app-surface {

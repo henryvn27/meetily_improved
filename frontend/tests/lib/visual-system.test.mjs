@@ -5,10 +5,12 @@ import test from 'node:test';
 const root = new URL('../../', import.meta.url);
 
 test('global shell uses the documented signal-orange visual system', async () => {
-  const [css, sidebar, mainContent, themeContext, themeControl, meetingTranscript, meetingSummary, preRecording, postRecording, product, designMarkdown, designJson] = await Promise.all([
+  const [css, sidebar, mainContent, pageHeader, homePage, themeContext, themeControl, meetingTranscript, meetingSummary, preRecording, postRecording, product, designMarkdown, designJson] = await Promise.all([
     readFile(new URL('src/app/globals.css', root), 'utf8'),
     readFile(new URL('src/components/Sidebar/index.tsx', root), 'utf8'),
     readFile(new URL('src/components/MainContent/index.tsx', root), 'utf8'),
+    readFile(new URL('src/components/app-shell/PageHeader.tsx', root), 'utf8'),
+    readFile(new URL('src/app/page.tsx', root), 'utf8'),
     readFile(new URL('src/contexts/ThemeContext.tsx', root), 'utf8'),
     readFile(new URL('src/components/app-shell/ThemeControl.tsx', root), 'utf8'),
     readFile(new URL('src/components/MeetingDetails/TranscriptPanel.tsx', root), 'utf8'),
@@ -34,7 +36,11 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(css, /animation-duration: 0\.01ms !important/);
   assert.match(css, /transition-duration: 0\.01ms !important/);
   assert.match(mainContent, /h-12 shrink-0/);
-  assert.match(mainContent, /min-w-\[calc\(1100px-4\.5rem\)\]/);
+  assert.match(mainContent, /h-dvh min-w-0 overflow-hidden/);
+  assert.match(mainContent, /w-\[calc\(100%-4\.5rem\)\]/);
+  assert.match(mainContent, /w-\[calc\(100%-17\.5rem\)\]/);
+  assert.match(pageHeader, /xl:flex-row/);
+  assert.match(homePage, /xl:grid-cols-\[minmax\(0,1fr\)_20rem\]/);
   assert.match(themeContext, /meetily-theme-preference/);
   assert.match(themeContext, /prefers-color-scheme: dark/);
   assert.match(themeContext, /dataset\.theme/);
