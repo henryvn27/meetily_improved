@@ -7,6 +7,7 @@ import { useRecordingState, RecordingStatus } from '@/contexts/RecordingStateCon
 import { recordingService } from '@/services/recordingService';
 import Analytics from '@/lib/analytics';
 import { showRecordingNotification } from '@/lib/recordingNotification';
+import { withTimeout } from '@/lib/with-timeout';
 import { toast } from 'sonner';
 
 interface UseRecordingStartReturn {
@@ -104,6 +105,24 @@ export function useRecordingStart(
     }
   }, []);
 
+  const ensureAudioDeviceReady = useCallback(async (): Promise<boolean> => {
+    try {
+      const devices = await withTimeout(
+        invoke<Array<{ device_type: 'Input' | 'Output' }>>('get_audio_devices'),
+        'Audio-device check timed out.',
+      );
+      if (devices.some(device => device.device_type === 'Input')) return true;
+    } catch (error) {
+      console.error('Failed to check audio devices before recording:', error);
+    }
+
+    toast.error('Audio input is not ready', {
+      description: 'Check macOS audio permissions and your microphone, then try again.',
+      duration: 7000,
+    });
+    return false;
+  }, []);
+
   // Handle manual recording start (from button click)
   const handleRecordingStart = useCallback(async () => {
     if (isPostProcessing) return;
@@ -112,6 +131,10 @@ export function useRecordingStart(
       console.log('handleRecordingStart called - checking Parakeet model status');
 
       if (!await ensureMicrophonePermission()) {
+        setStatus(RecordingStatus.IDLE);
+        return;
+      }
+      if (!await ensureAudioDeviceReady()) {
         setStatus(RecordingStatus.IDLE);
         return;
       }
@@ -173,7 +196,7 @@ export function useRecordingStart(
       // Re-throw so RecordingControls can handle device-specific errors
       throw error;
     }
-  }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, ensureMicrophonePermission, selectedDevices, showModal, setStatus, isPostProcessing]);
+  }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, ensureMicrophonePermission, ensureAudioDeviceReady, selectedDevices, showModal, setStatus, isPostProcessing]);
 
   // Check for autoStartRecording flag and start recording automatically
   useEffect(() => {
@@ -190,6 +213,11 @@ export function useRecordingStart(
           sessionStorage.removeItem('autoStartRecording'); // Clear the flag
 
           if (!await ensureMicrophonePermission()) {
+            setStatus(RecordingStatus.IDLE);
+            setIsAutoStarting(false);
+            return;
+          }
+          if (!await ensureAudioDeviceReady()) {
             setStatus(RecordingStatus.IDLE);
             setIsAutoStarting(false);
             return;
@@ -269,6 +297,7 @@ export function useRecordingStart(
     checkParakeetReady,
     checkIfModelDownloading,
     ensureMicrophonePermission,
+    ensureAudioDeviceReady,
     showModal,
     setStatus,
     isPostProcessing,
@@ -286,6 +315,11 @@ export function useRecordingStart(
       setIsAutoStarting(true);
 
       if (!await ensureMicrophonePermission()) {
+        setStatus(RecordingStatus.IDLE);
+        setIsAutoStarting(false);
+        return;
+      }
+      if (!await ensureAudioDeviceReady()) {
         setStatus(RecordingStatus.IDLE);
         setIsAutoStarting(false);
         return;
@@ -366,6 +400,7 @@ export function useRecordingStart(
     checkParakeetReady,
     checkIfModelDownloading,
     ensureMicrophonePermission,
+    ensureAudioDeviceReady,
     showModal,
     setStatus,
     isPostProcessing,
