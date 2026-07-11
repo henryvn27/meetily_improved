@@ -5,9 +5,10 @@ import test from 'node:test';
 const root = new URL('../../', import.meta.url);
 
 test('global shell uses the documented signal-orange visual system', async () => {
-  const [css, sidebar, product, designMarkdown, designJson] = await Promise.all([
+  const [css, sidebar, meetingTranscript, product, designMarkdown, designJson] = await Promise.all([
     readFile(new URL('src/app/globals.css', root), 'utf8'),
     readFile(new URL('src/components/Sidebar/index.tsx', root), 'utf8'),
+    readFile(new URL('src/components/MeetingDetails/TranscriptPanel.tsx', root), 'utf8'),
     readFile(new URL('../PRODUCT.md', root), 'utf8'),
     readFile(new URL('../DESIGN.md', root), 'utf8'),
     readFile(new URL('../DESIGN.json', root), 'utf8'),
@@ -22,6 +23,8 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /animation-duration: 0\.01ms !important/);
   assert.match(css, /transition-duration: 0\.01ms !important/);
+  assert.match(meetingTranscript, /<VirtualizedTranscriptView/);
+  assert.doesNotMatch(meetingTranscript, /from ['"]@\/components\/TranscriptView['"]/);
 
   const combinedDocs = `${product}\n${designMarkdown}\n${designJson}`;
   assert.match(combinedDocs, /Signal Orange/);
