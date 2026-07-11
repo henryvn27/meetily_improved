@@ -1,18 +1,18 @@
 import type { ReactNode } from 'react';
-import { AlertCircle, Bot, CircleOff, Inbox, LoaderCircle, LockKeyhole, MicOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MeetilyGlyph, type MeetilyGlyphName } from './MeetilyGlyph';
 
 type AppStateKind = 'loading' | 'empty' | 'error' | 'permission' | 'model' | 'recording' | 'disabled';
 
 const stateIcons = {
-  loading: LoaderCircle,
-  empty: Inbox,
-  error: AlertCircle,
-  permission: LockKeyhole,
-  model: Bot,
-  recording: MicOff,
-  disabled: CircleOff,
-};
+  loading: 'theme-system',
+  empty: 'library',
+  error: 'alert',
+  permission: 'lock',
+  model: 'model',
+  recording: 'mic-off',
+  disabled: 'unavailable',
+} as const satisfies Record<AppStateKind, MeetilyGlyphName>;
 
 interface AppStateProps {
   kind: AppStateKind;
@@ -24,7 +24,7 @@ interface AppStateProps {
 }
 
 export function AppState({ kind, title, description, action, compact = false, className }: AppStateProps) {
-  const Icon = stateIcons[kind];
+  const icon = stateIcons[kind];
 
   return (
     <div
@@ -37,7 +37,7 @@ export function AppState({ kind, title, description, action, compact = false, cl
       )}
     >
       <span className={cn('grid shrink-0 place-items-center rounded-md bg-secondary text-muted-foreground', compact ? 'size-9' : 'mb-4 size-10')}>
-        <Icon className={cn('size-5', kind === 'loading' && 'animate-spin')} aria-hidden="true" />
+        <MeetilyGlyph name={icon} className={cn('size-5', kind === 'loading' && 'animate-spin')} />
       </span>
       <div className={cn(compact && 'min-w-0 flex-1')}>
         <h2 className={cn('font-semibold tracking-[-0.01em]', compact ? 'text-sm' : 'text-base')}>{title}</h2>
