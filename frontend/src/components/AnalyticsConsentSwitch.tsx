@@ -147,7 +147,7 @@ export default function AnalyticsConsentSwitch() {
 
   const handlePrivacyPolicyClick = async () => {
     try {
-      await invoke('open_external_url', { url: 'https://github.com/Zackriya-Solutions/meeting-minutes/blob/main/PRIVACY_POLICY.md' });
+      await invoke('open_external_url', { url: 'https://github.com/henryvn27/meetily_improved#privacy-and-data-boundary' });
     } catch (error) {
       console.error('Failed to open privacy policy link:', error);
     }
@@ -224,13 +224,13 @@ export default function AnalyticsConsentSwitch() {
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
           <div className="text-xs text-foreground">
             <p className="mb-1">
-              Your meetings, transcripts, and recordings remain completely private and local.
+              Meetings, transcripts, recordings, and local models stay on this device. Remote summary providers only receive data when you explicitly configure and use one.
             </p>
             <button
               onClick={handlePrivacyPolicyClick}
               className="text-accent underline hover:text-foreground hover:no-underline"
             >
-              View Privacy Policy
+              Read privacy and data boundary
             </button>
           </div>
         </div>
