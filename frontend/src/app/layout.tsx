@@ -24,6 +24,7 @@ import { RecordingPostProcessingProvider } from '@/contexts/RecordingPostProcess
 import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 
 
 // Module-level component — stable reference across RootLayout re-renders.
@@ -240,6 +241,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <a href="#main-content" className="skip-link">Skip to main content</a>
+        <ThemeProvider>
         <AnalyticsProvider>
           <RecordingStateProvider>
             <TranscriptProvider>
@@ -282,6 +284,7 @@ export default function RootLayout({
             </TranscriptProvider>
           </RecordingStateProvider>
         </AnalyticsProvider>
+        </ThemeProvider>
 
         <Toaster position="bottom-center" richColors closeButton />
       </body>

@@ -5,9 +5,12 @@ import test from 'node:test';
 const root = new URL('../../', import.meta.url);
 
 test('global shell uses the documented signal-orange visual system', async () => {
-  const [css, sidebar, meetingTranscript, meetingSummary, preRecording, postRecording, product, designMarkdown, designJson] = await Promise.all([
+  const [css, sidebar, mainContent, themeContext, themeControl, meetingTranscript, meetingSummary, preRecording, postRecording, product, designMarkdown, designJson] = await Promise.all([
     readFile(new URL('src/app/globals.css', root), 'utf8'),
     readFile(new URL('src/components/Sidebar/index.tsx', root), 'utf8'),
+    readFile(new URL('src/components/MainContent/index.tsx', root), 'utf8'),
+    readFile(new URL('src/contexts/ThemeContext.tsx', root), 'utf8'),
+    readFile(new URL('src/components/app-shell/ThemeControl.tsx', root), 'utf8'),
     readFile(new URL('src/components/MeetingDetails/TranscriptPanel.tsx', root), 'utf8'),
     readFile(new URL('src/components/MeetingDetails/SummaryPanel.tsx', root), 'utf8'),
     readFile(new URL('src/components/recording/PreRecordingWorkspace.tsx', root), 'utf8'),
@@ -18,6 +21,8 @@ test('global shell uses the documented signal-orange visual system', async () =>
   ]);
 
   assert.match(css, /--accent: 19 87% 55%/);
+  assert.match(css, /\.dark \{/);
+  assert.match(css, /min-width: 1100px/);
   assert.match(css, /--sidebar: 240 4% 10%/);
   assert.doesNotMatch(css, /--background: 42 26% 96%/);
   assert.match(sidebar, /bg-\[hsl\(var\(--sidebar\)\)\]/);
@@ -26,6 +31,14 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /animation-duration: 0\.01ms !important/);
   assert.match(css, /transition-duration: 0\.01ms !important/);
+  assert.match(mainContent, /h-11 shrink-0/);
+  assert.match(mainContent, /min-w-\[calc\(1100px-4\.5rem\)\]/);
+  assert.match(themeContext, /meetily-theme-preference/);
+  assert.match(themeContext, /prefers-color-scheme: dark/);
+  assert.match(themeContext, /dataset\.theme/);
+  assert.match(themeControl, /System theme/);
+  assert.match(themeControl, /Light theme/);
+  assert.match(themeControl, /Dark theme/);
   assert.match(meetingTranscript, /<VirtualizedTranscriptView/);
   assert.doesNotMatch(meetingTranscript, /from ['"]@\/components\/TranscriptView['"]/);
   assert.match(meetingSummary, /summaryResponse &&/);
