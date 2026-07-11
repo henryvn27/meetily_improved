@@ -145,20 +145,10 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   // Function to handle recording toggle from sidebar
   const handleRecordingToggle = () => {
     if (!isRecording && !isStopping && !isProcessing && !isSaving) {
-      // Check if already on the capture page
-      if (pathname === '/new-meeting') {
-        console.log('Triggering recording from sidebar (already on capture page)');
-        window.dispatchEvent(new CustomEvent('start-recording-from-sidebar'));
-      } else {
-        console.log('Navigating to capture page with auto-start flag');
-        sessionStorage.setItem('autoStartRecording', 'true');
-        router.push('/new-meeting');
-      }
+      if (pathname !== '/new-meeting') router.push('/new-meeting');
 
-      // Track recording initiation from sidebar
-      Analytics.trackButtonClick('start_recording', 'sidebar');
+      Analytics.trackButtonClick('open_recording_setup', 'sidebar');
     }
-    // The actual recording start/stop is handled in the Home component
   };
 
   // Function to search through meeting transcripts

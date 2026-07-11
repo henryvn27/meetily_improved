@@ -198,6 +198,11 @@ export function useRecordingStart(
     }
   }, [generateMeetingTitle, setMeetingTitle, setIsRecording, clearTranscripts, setIsMeetingActive, checkParakeetReady, checkIfModelDownloading, ensureMicrophonePermission, ensureAudioDeviceReady, selectedDevices, showModal, setStatus, isPostProcessing]);
 
+  // Legacy sidebar auto-start flags must never initiate capture without the New Meeting confirmation surface.
+  useEffect(() => {
+    sessionStorage.removeItem('autoStartRecording');
+  }, []);
+
   // Check for autoStartRecording flag and start recording automatically
   useEffect(() => {
     const checkAutoStartRecording = async () => {
