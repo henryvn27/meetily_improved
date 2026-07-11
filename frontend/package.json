@@ -15,6 +15,7 @@
         "tauri:dev:cuda": "tauri dev -- --features cuda",
         "tauri:dev:vulkan": "tauri dev -- --features vulkan",
         "tauri:dev:metal": "tauri dev -- --features metal",
+        "tauri:dev:qa": "tauri dev --config src-tauri/tauri.qa.conf.json -- --features metal",
         "tauri:dev:coreml": "tauri dev -- --features coreml",
         "tauri:dev:openblas": "tauri dev -- --features openblas",
         "tauri:dev:hipblas": "tauri dev -- --features hipblas",

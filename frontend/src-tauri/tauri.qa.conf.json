@@ -1,0 +1,11 @@
+{
+  "productName": "Meetily Improved QA",
+  "identifier": "com.meetily.improved.qa",
+  "app": {
+    "windows": [
+      {
+        "title": "Meetily Improved QA"
+      }
+    ]
+  }
+}
