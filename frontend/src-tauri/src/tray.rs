@@ -21,17 +21,45 @@ pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     // Pass can_record=true initially, will be updated by update_tray_menu immediately
     let menu = build_menu(app, RecordingState::Stopped, true)?;
 
-    TrayIconBuilder::with_id("main-tray")
+    #[cfg(target_os = "macos")]
+    let tray_icon = tauri::image::Image::new(
+        include_bytes!("../icons/tray-icon-template.rgba"),
+        44,
+        44,
+    );
+    #[cfg(not(target_os = "macos"))]
+    let tray_icon = app.default_window_icon().unwrap().clone();
+
+    let tray_builder = TrayIconBuilder::with_id("main-tray")
         .menu(&menu)
         .tooltip("Meetily")
-        .icon(app.default_window_icon().unwrap().clone())
-        .on_menu_event(|app, event| handle_menu_event(app, event.id.as_ref()))
+        .icon(tray_icon)
+        .on_menu_event(|app, event| handle_menu_event(app, event.id.as_ref()));
+
+    #[cfg(target_os = "macos")]
+    let tray_builder = tray_builder.icon_as_template(true);
+
+    tray_builder
         .build(app)?;
 
     // Update tray menu with actual recording state after creation
     update_tray_menu(app);
 
     Ok(())
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    const TRAY_ICON: &[u8] = include_bytes!("../icons/tray-icon-template.rgba");
+
+    #[test]
+    fn tray_template_has_native_dimensions_and_transparency() {
+        assert_eq!(TRAY_ICON.len(), 44 * 44 * 4);
+
+        let mut alpha = TRAY_ICON.chunks_exact(4).map(|pixel| pixel[3]);
+        assert!(alpha.clone().any(|value| value == 0));
+        assert!(alpha.any(|value| value > 0));
+    }
 }
 
 fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, item_id: &str) {
