@@ -89,7 +89,7 @@ export default function RootLayout({
     const openSettingsFromKeyboard = (event: KeyboardEvent) => {
       if (event.metaKey && event.key === ',') {
         event.preventDefault()
-        if (window.location.pathname !== '/settings') window.location.assign('/settings')
+        window.openSettings?.()
       }
     }
 

@@ -51,9 +51,8 @@ export default function Sidebar() {
   const [editingTitle, setEditingTitle] = useState('');
 
   const openSettings = useCallback(() => {
-    if (window.location.pathname === '/settings') return;
-    window.location.assign('/settings');
-  }, []);
+    router.push('/settings');
+  }, [router]);
 
   useEffect(() => {
     window.openSettings = openSettings;

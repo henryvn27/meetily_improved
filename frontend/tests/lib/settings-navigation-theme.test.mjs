@@ -14,7 +14,9 @@ test('settings has reliable native navigation and appearance controls', async ()
 
   assert.match(layout, /event\.metaKey && event\.key === ','/);
   assert.match(layout, /event\.preventDefault\(\)/);
-  assert.match(sidebar, /window\.location\.assign\('\/settings'\)/);
+  assert.match(layout, /window\.openSettings\?\.\(\)/);
+  assert.match(sidebar, /router\.push\('\/settings'\)/);
+  assert.doesNotMatch(sidebar, /window\.location\.assign\('\/settings'\)/);
   assert.match(sidebar, /onClick=\{openSettings\}/);
   assert.match(settings, /<AppearanceSettings \/>/);
   for (const preference of ['system', 'light', 'dark']) {
