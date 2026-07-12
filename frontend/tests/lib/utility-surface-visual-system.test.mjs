@@ -41,13 +41,17 @@ test('active utility surfaces use the native visual and icon system', async () =
 });
 
 test('native QA can open the real analytics privacy dialog without changing analytics state', async () => {
-  const [qaMode, analyticsSwitch] = await Promise.all([
+  const [qaMode, analyticsSwitch, layout] = await Promise.all([
     readFile(new URL('src/lib/native-qa-mode.ts', root), 'utf8'),
     readFile(new URL('src/components/AnalyticsConsentSwitch.tsx', root), 'utf8'),
+    readFile(new URL('src/app/layout.tsx', root), 'utf8'),
   ]);
 
   assert.match(qaMode, /NEXT_PUBLIC_MEETILY_NATIVE_QA_OVERLAY/);
   assert.match(qaMode, /configuredOverlay === 'analytics-details'/);
-  assert.match(analyticsSwitch, /useState\(openAnalyticsDetailsForNativeQa\)/);
-  assert.doesNotMatch(analyticsSwitch, /performToggle\(false\).*openAnalyticsDetailsForNativeQa/s);
+  assert.match(analyticsSwitch, /const \[showModal, setShowModal\] = useState\(false\)/);
+  assert.match(layout, /className=\{nativeQaTheme === 'dark' \? 'dark' : undefined\}/);
+  assert.match(layout, /<AnalyticsDataModal/);
+  assert.match(layout, /isOpen\s+onClose=\{\(\) => \{\}\}/);
+  assert.doesNotMatch(layout, /performToggle/);
 });

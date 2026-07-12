@@ -25,7 +25,8 @@ import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
 import { ThemeProvider } from '@/contexts/ThemeContext'
-import { bypassOnboardingForNativeQa, nativeQaRoute, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
+import AnalyticsDataModal from '@/components/AnalyticsDataModal'
+import { bypassOnboardingForNativeQa, nativeQaRoute, nativeQaTheme, openAnalyticsDetailsForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
 
 
 // Module-level component — stable reference across RootLayout re-renders.
@@ -266,7 +267,7 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="en" className={nativeQaTheme === 'dark' ? 'dark' : undefined} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <a href="#main-content" className="skip-link">Skip to main content</a>
         <ThemeProvider>
@@ -315,6 +316,13 @@ export default function RootLayout({
         </ThemeProvider>
 
         <Toaster position="bottom-center" richColors closeButton />
+        {openAnalyticsDetailsForNativeQa && (
+          <AnalyticsDataModal
+            isOpen
+            onClose={() => {}}
+            onConfirmDisable={() => {}}
+          />
+        )}
       </body>
     </html>
   )

@@ -11,7 +11,6 @@ import { AnalyticsContext } from './AnalyticsProvider';
 import { load } from '@tauri-apps/plugin-store';
 import { invoke } from '@tauri-apps/api/core';
 import { Analytics } from '@/lib/analytics';
-import { openAnalyticsDetailsForNativeQa } from '@/lib/native-qa-mode';
 import AnalyticsDataModal from './AnalyticsDataModal';
 
 const ANALYTICS_DEFAULT_OFF_MIGRATION_KEY = 'analyticsDefaultOffMigrationV1';
@@ -19,7 +18,7 @@ const ANALYTICS_DEFAULT_OFF_MIGRATION_KEY = 'analyticsDefaultOffMigrationV1';
 export default function AnalyticsConsentSwitch() {
   const { setIsAnalyticsOptedIn, isAnalyticsOptedIn } = useContext(AnalyticsContext);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showModal, setShowModal] = useState(openAnalyticsDetailsForNativeQa);
+  const [showModal, setShowModal] = useState(false);
   const [userId, setUserId] = useState<string>('');
   const [isCopied, setIsCopied] = useState(false);
 
