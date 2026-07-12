@@ -30,6 +30,9 @@ test('native QA can start deterministically in either theme without changing rel
   assert.match(themeContext, /useLayoutEffect\(\(\) => \{/);
   assert.match(themeContext, /meetily-theme-preference/);
   assert.match(qaMode, /NEXT_PUBLIC_MEETILY_NATIVE_QA_ROUTE/);
-  assert.match(qaMode, /configuredRoute === 'settings' \? '\/settings' : null/);
+  assert.match(qaMode, /configuredRoute === 'settings'/);
+  assert.match(qaMode, /configuredRoute === 'meeting' && configuredMeetingId/);
+  assert.match(qaMode, /encodeURIComponent\(configuredMeetingId\)/);
+  assert.doesNotMatch(qaMode, /meeting-[0-9a-f-]{8,}/);
   assert.match(layout, /window\.location\.assign\(nativeQaRoute\)/);
 });

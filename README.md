@@ -1,42 +1,59 @@
-# Meetily Improved
+<div align="center">
+  <img src="frontend/src-tauri/icons/icon.png" width="112" alt="Meetily Improved app icon" />
+  <h1>Meetily Improved</h1>
+  <p><strong>A calm, local-first meeting workspace for your Mac.</strong></p>
+  <p>Record, transcribe, summarize, and revisit meetings without a bot in the call or an account in the cloud.</p>
 
-### A calmer, local-first desktop meeting workspace for solo founders.
+  <p>
+    <a href="#build-from-source"><strong>Build for macOS</strong></a>
+    ·
+    <a href="https://github.com/henryvn27/meetily_improved/releases">Releases</a>
+    ·
+    <a href="#privacy-boundary">Privacy</a>
+    ·
+    <a href="CONTRIBUTING.md">Contribute</a>
+  </p>
 
-[![MIT License](https://img.shields.io/badge/license-MIT-19191b.svg)](LICENSE)
-[![Desktop](https://img.shields.io/badge/platform-desktop-19191b.svg)](#build-from-source)
-[![Status](https://img.shields.io/badge/status-active_development-f06a2a.svg)](#project-status)
+  <p>
+    <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-1b1b1f.svg" /></a>
+    <img alt="macOS, Windows, and Linux" src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-1b1b1f.svg" />
+    <img alt="Local-first" src="https://img.shields.io/badge/privacy-local--first-f36b2b.svg" />
+    <img alt="Built with Tauri" src="https://img.shields.io/badge/built%20with-Tauri-1b1b1f.svg" />
+  </p>
+</div>
 
-**Meetily Improved** is an independent public fork of [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily). It keeps Meetily's local capture, transcription, summaries, imports, recovery, and saved-meeting foundation while rebuilding the experience as a focused desktop workspace.
+![Meetily Improved desktop workspace](docs/meetily-improved-icon-native-window.png)
 
-This fork is for people who want meeting software that feels considered without requiring a meeting bot, an account, or cloud storage. Core meeting data stays on your machine. Local AI is supported; optional remote summary providers remain explicit choices.
+> **Release status:** Meetily Improved is preparing its first public release. The repository is usable from source today; the macOS download will appear on [GitHub Releases](https://github.com/henryvn27/meetily_improved/releases) after signing, notarization, and clean-install verification pass.
 
-> The project is under active development. There is no supported Meetily Improved release yet. Build from source to try the current work.
+## Why Meetily Improved
 
-## What this fork improves
+| | Meetily Improved |
+| --- | --- |
+| **No meeting bot** | Captures microphone and system audio directly on your desktop. |
+| **Local by default** | Recordings, transcripts, summaries, recovery data, and the meeting library stay on your device. |
+| **Real desktop workflow** | Capture and recall share one focused workspace with Light, Dark, and System themes. |
+| **Choice of models** | Use local Whisper, Parakeet, built-in models, or Ollama; remote summary providers are explicit opt-in choices. |
+| **No invented results** | Empty, loading, recovery, model, and error states reflect real application data. |
 
-The upstream project is capable, but its interface feels like a collection of utility screens. Meetily Improved is turning that foundation into one coherent workflow:
+Meetily Improved is an independent MIT-licensed fork of [Zackriya Solutions' Meetily](https://github.com/Zackriya-Solutions/meetily). It preserves Meetily's recording, transcription, storage, summaries, imports, and recovery foundation while rebuilding the product as a cohesive desktop workspace.
 
-- **Desktop workspace instead of scattered screens.** A persistent sidebar, stable route frame, and reusable surfaces keep recording, meetings, recall, and settings in one place.
-- **A useful home command center.** The dashboard reflects real local meetings, recovery state, and model configuration—never sample metrics or invented activity.
-- **Clearer recording readiness.** Capture dependencies, permissions, local transcription readiness, and optional system audio are explained before recording begins.
-- **Truthful local-first states.** Loading, empty, error, permission, recovery, and model states say what the app knows and what the user can do next.
-- **Better information density.** A graphite tool rail, cool document canvas, compact controls, restrained signal orange, and keyboard-visible states keep attention on the meeting.
-- **Local meeting recall, built honestly.** Ask Meetings uses a loopback-only local Ollama bridge, bounded excerpts from saved local transcripts, and app-generated source links. It never falls back to cloud providers; real-model QA remains a release gate.
+## Highlights
 
-## Current workspace
-
-![Meetily Improved signal-orange desktop workspace](docs/meetily-improved-icon-native-window.png)
-
-The screenshot above is the current native desktop shell using real local application state. It contains no sample meetings, fake metrics, or generated results.
+- **Capture without inviting software into the call.** Check devices and model readiness, then record microphone and system audio locally.
+- **Return to the conversation.** Search saved meetings, read transcripts and summaries, play the recording, edit notes, and export from one workspace.
+- **Ask your meetings locally.** Ask Meetings uses bounded excerpts from saved transcripts and a loopback-only Ollama connection; it does not silently fall back to a cloud model.
+- **Recover interrupted work.** Meetily keeps local checkpoints and exposes explicit recovery states instead of hiding partial data.
+- **Use the appearance that fits your Mac.** System, Light, and Dark preferences live in Settings and persist locally.
 
 ## Project status
 
 | Area | Status | What that means |
 | --- | --- | --- |
 | Repository and behavior audit | Complete | Routes, native command boundaries, storage, privacy, and upstream attribution are mapped. |
-| Desktop shell and design system | Complete | The graphite/cool-canvas shell, original icon, persistent Light/Dark/System themes, and shared primitives are implemented across the active Phase 1 routes. |
-| Capture and meeting lifecycle | Complete | Pre-recording, active recording, processing, import, recovery, and failure presentation use the shared visual system without replacing native capture behavior. |
-| Meeting history and detail | Complete | Saved meetings open into a reading-first workspace with transcript, summary, playback/export controls, partial-data handling, and a persistent local inspector. |
+| Desktop shell and design system | Implemented; final audit pending | The desktop shell, original icon, persistent Light/Dark/System themes, and shared primitives cover the active Phase 1 routes; final native visual evidence remains in progress. |
+| Capture and meeting lifecycle | Implemented; final audit pending | Pre-recording, active recording, processing, import, recovery, and failure presentation preserve the native capture behavior; complete native-state evidence remains a release gate. |
+| Meeting history and detail | Implemented; native QA blocker open | The reading-first workspace includes transcript, summary, playback/export controls, partial-data handling, and a persistent local inspector; persisted-meeting native loading is still under investigation. |
 | Ask Meetings / local recall | Implemented; real-model QA pending | The route answers only through a loopback Ollama model from bounded local transcript excerpts, returns app-generated source links, and refuses cloud, calendar, internet, account, and filesystem scope. |
 | Packaging and release QA | In progress | Native QA bundles and codesign checks pass; clean-checkout launch/package proof and final human E2E verification still gate a public release. |
 
