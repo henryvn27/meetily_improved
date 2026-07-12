@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Create a report to help us improve
+about: Report a reproducible problem in Meetily Improved
 title: '[BUG] '
 labels: bug
 assignees: ''
@@ -21,11 +21,12 @@ assignees: ''
 3. [And so on...]
 
 ## Environment
-- OS: [e.g., macOS, Windows, Linux]
-- Browser: [e.g., Chrome, Firefox, Safari]
-- Version: [e.g., 1.0.0]
-- Node Version: [e.g., 18.0.0]
-- npm/pnpm Version: [e.g., 8.0.0]
+- Meetily Improved version or commit:
+- OS and version:
+- Mac/PC architecture:
+- Installation: release download or source build
+- Transcription provider/model (if relevant):
+- Summary provider/model (if relevant):
 
 ## Screenshots/Videos
 [If applicable, add screenshots or videos to help explain your problem]
@@ -41,6 +42,5 @@ assignees: ''
 
 ## Checklist
 - [ ] I have searched for similar issues
-- [ ] I have provided all required information
-- [ ] I have included screenshots/videos if applicable
-- [ ] I have included error messages if applicable 
+- [ ] I removed meeting content, file paths, API keys, and other private data from logs and screenshots
+- [ ] I can reproduce this on the current release or `main`
