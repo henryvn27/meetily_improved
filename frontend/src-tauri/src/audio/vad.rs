@@ -86,11 +86,15 @@ impl ContinuousVadProcessor {
     /// Handles resampling from input sample rate to 16kHz for VAD processing
     pub fn process_audio(&mut self, samples: &[f32]) -> Result<Vec<SpeechSegment>> {
         // Resample to 16kHz if needed
-        let resampled_audio = if self.sample_rate == 16000 {
+        let mut resampled_audio = if self.sample_rate == 16000 {
             samples.to_vec()
         } else {
             self.resample_to_16k(samples)?
         };
+
+        for sample in &mut resampled_audio {
+            *sample = sample.clamp(-1.0, 1.0);
+        }
 
         self.buffer.extend_from_slice(&resampled_audio);
         let mut completed_segments = Vec::new();
@@ -591,5 +595,18 @@ mod tests {
             assert!(duration_ms >= 200.0, "Segment {} too short: {:.0}ms", i, duration_ms);
         }
     }
-}
 
+    #[test]
+    fn vad_clamps_samples_to_silero_input_range() {
+        let mut processor = ContinuousVadProcessor::new(16000, 400)
+            .expect("VAD processor should initialize");
+        let mut samples = vec![0.0; 1600];
+        samples[200] = 1.080_328_2;
+        samples[400] = -1.080_328_2;
+
+        processor
+            .process_audio(&samples)
+            .expect("out-of-range samples should be clamped before Silero VAD");
+    }
+
+}
