@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -286,7 +285,7 @@ export default function Sidebar() {
                       : 'bg-primary text-primary-foreground hover:bg-primary/88',
                 )}
               >
-                {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <MeetilyGlyph name="capture" className="size-4" />}
+                {isPostProcessing ? <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" aria-hidden="true" /> : <MeetilyGlyph name="capture" className="size-4" />}
                 {!isCollapsed && <span>{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording active' : 'Start recording'}</span>}
               </button>
             </TooltipTrigger>

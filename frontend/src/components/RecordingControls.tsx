@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { appDataDir } from '@tauri-apps/api/path';
 import { listen } from '@tauri-apps/api/event';
 import { useCallback, useEffect, useState } from 'react';
-import { LoaderCircle, Pause, Play, Square } from 'lucide-react';
+import { ArrowPathIcon, PauseIcon, PlayIcon, StopIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Analytics from '@/lib/analytics';
@@ -122,11 +122,11 @@ export const RecordingControls: React.FC<RecordingControlsProps> = ({
               disabled={controlsDisabled || pauseBusy}
             >
               {pauseBusy ? (
-                <LoaderCircle className="animate-spin" aria-hidden="true" />
+                <ArrowPathIcon className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
               ) : isPaused ? (
-                <Play aria-hidden="true" />
+                <PlayIcon aria-hidden="true" />
               ) : (
-                <Pause aria-hidden="true" />
+                <PauseIcon aria-hidden="true" />
               )}
               {isPaused ? 'Resume' : 'Pause'}
             </Button>
@@ -141,7 +141,7 @@ export const RecordingControls: React.FC<RecordingControlsProps> = ({
               onClick={() => void handleStopRecording()}
               disabled={controlsDisabled || pauseBusy || !isRecording}
             >
-              {isStopping ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Square aria-hidden="true" />}
+              {isStopping ? <ArrowPathIcon className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <StopIcon aria-hidden="true" />}
               {isStopping ? 'Ending...' : 'End recording'}
             </Button>
           </TooltipTrigger>

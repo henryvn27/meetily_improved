@@ -1,6 +1,6 @@
 import React from 'react';
 import { ModelStatus } from '../lib/whisper';
-import { Button } from './ui/button';
+import { ArchiveBoxIcon, CheckCircleIcon, CircleStackIcon } from '@heroicons/react/24/outline';
 
 interface ModelDownloadProgressProps {
   status: ModelStatus;
@@ -20,7 +20,7 @@ export function ModelDownloadProgress({ status, modelName, onCancel }: ModelDown
     <div className="border border-border bg-secondary/45 p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
-          <div className="size-4 animate-spin border-2 border-accent border-t-transparent"></div>
+          <div className="size-4 animate-spin rounded-full border-2 border-accent border-t-transparent motion-reduce:animate-none"></div>
           <span className="text-sm font-medium text-foreground">
             {isCompleted ? 'Finalizing...' : `Downloading ${modelName}`}
           </span>
@@ -43,8 +43,9 @@ export function ModelDownloadProgress({ status, modelName, onCancel }: ModelDown
       </div>
       
       {isCompleted && (
-        <div className="mt-2 text-xs text-[hsl(var(--success))]">
-          ✓ Download completed, loading model...
+        <div className="mt-2 flex items-center gap-1.5 text-xs text-[hsl(var(--success))]">
+          <CheckCircleIcon className="size-4" aria-hidden="true" />
+          <span>Download completed, loading model...</span>
         </div>
       )}
     </div>
@@ -113,16 +114,19 @@ export function DownloadSummary({ totalModels, downloadedModels, totalSizeMb }: 
   return (
     <div className="bg-secondary/45 p-3 text-sm">
       <div className="flex items-center justify-between">
-        <span className="text-foreground">
-          📦 {downloadedModels} of {totalModels} models available
+        <span className="flex items-center gap-1.5 text-foreground">
+          <ArchiveBoxIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+          {downloadedModels} of {totalModels} models available
         </span>
-        <span className="text-muted-foreground">
-          💾 {formatSize(totalSizeMb)} total
+        <span className="flex items-center gap-1.5 text-muted-foreground">
+          <CircleStackIcon className="size-4" aria-hidden="true" />
+          {formatSize(totalSizeMb)} total
         </span>
       </div>
       {downloadedModels > 0 && (
-        <div className="mt-1 text-xs text-[hsl(var(--success))]">
-          ✓ Models run locally - no internet required for transcription
+        <div className="mt-1 flex items-center gap-1.5 text-xs text-[hsl(var(--success))]">
+          <CheckCircleIcon className="size-4" aria-hidden="true" />
+          <span>Models run locally - no internet required for transcription</span>
         </div>
       )}
     </div>

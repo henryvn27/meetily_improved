@@ -16,7 +16,8 @@ assert.match(source, /I’ve notified participants/, 'preserves the participant-
 assert.match(source, /bg-accent/, 'uses the approved recording-state accent token');
 assert.match(source, /text-muted-foreground/, 'uses semantic muted text for both themes');
 assert.match(source, /focus-visible:ring-ring/, 'uses the shared keyboard focus token');
-assert.match(source, /from 'lucide-react'/, 'uses the approved icon library instead of an emoji status marker');
+assert.doesNotMatch(source, /from ['"]lucide-react['"]/, 'does not reintroduce the legacy icon library');
+assert.match(source, /rounded-full bg-current/, 'uses a theme-controlled status dot instead of an emoji marker');
 assert.doesNotMatch(source, /🔴|Recording Started/, 'removes the legacy emoji and headline treatment');
 assert.doesNotMatch(source, /(?:text|bg|border|ring)-(?:gray|blue)-/, 'removes legacy blue and gray utility colors');
 

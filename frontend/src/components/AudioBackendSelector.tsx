@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Info } from 'lucide-react';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 export interface BackendInfo {
   id: string;
@@ -101,7 +101,7 @@ export function AudioBackendSelector({
             onMouseLeave={() => setShowTooltip(false)}
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
-            <Info className="h-4 w-4" />
+            <InformationCircleIcon className="h-4 w-4" />
           </button>
           {showTooltip && (
             <div className="absolute left-6 top-0 z-10 w-64 border border-border bg-popover p-3 text-xs text-popover-foreground shadow-[0_12px_30px_hsl(var(--shadow-color)/0.14)]">

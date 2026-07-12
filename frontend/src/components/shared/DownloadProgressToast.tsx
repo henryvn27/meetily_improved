@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { toast } from 'sonner';
-import { X, Download, Check, Loader2, ArrowBigDownDash } from 'lucide-react';
+import { ArrowDownTrayIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { getDownloadTotalMb } from '@/lib/onboarding-summary-model';
 
 interface DownloadProgress {
@@ -67,13 +67,13 @@ function DownloadToastContent({
       <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isComplete ? 'bg-success/10' : hasError ? 'bg-destructive/10' : 'bg-muted'
         }`}>
         {isComplete ? (
-          <Check className="h-4 w-4 text-success" />
+          <CheckIcon className="h-4 w-4 text-success" />
         ) : hasError ? (
-          <X className="h-4 w-4 text-destructive" />
+          <XMarkIcon className="h-4 w-4 text-destructive" />
         ) : isCancelled ? (
-          <X className="h-4 w-4 text-muted-foreground" />
+          <XMarkIcon className="h-4 w-4 text-muted-foreground" />
         ) : (
-          <ArrowBigDownDash className="size-5 text-accent" />
+          <ArrowDownTrayIcon className="size-5 text-accent" />
         )}
       </div>
 

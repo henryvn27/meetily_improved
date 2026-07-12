@@ -18,7 +18,7 @@ import { useCopyOperations } from '@/hooks/meeting-details/useCopyOperations';
 import { useMeetingOperations } from '@/hooks/meeting-details/useMeetingOperations';
 import { useConfig } from '@/contexts/ConfigContext';
 import { Button } from '@/components/ui/button';
-import { PanelRightOpen } from 'lucide-react';
+import { ViewColumnsIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 
 export default function PageContent({
@@ -217,7 +217,7 @@ export default function PageContent({
               className="shrink-0 xl:hidden"
               onClick={() => setIsInspectorOpen(true)}
             >
-              <PanelRightOpen className="size-4" aria-hidden="true" />
+              <ViewColumnsIcon className="size-4" aria-hidden="true" />
               Transcript
             </Button>
           }

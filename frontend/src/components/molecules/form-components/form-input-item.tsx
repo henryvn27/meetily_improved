@@ -6,7 +6,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff } from 'lucide-react';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { Control } from 'react-hook-form'; // Import Control type
 import { Textarea } from '@/components/ui/textarea';
 
@@ -93,12 +93,12 @@ export const FormInputItem = ({
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 cursor-pointer">
                       {showPassword ? (
-                        <EyeOff
+                        <EyeSlashIcon
                           className="h-6 w-6"
                           onClick={togglePasswordVisibility}
                         />
                       ) : (
-                        <Eye
+                        <EyeIcon
                           className="h-6 w-6"
                           onClick={togglePasswordVisibility}
                         />

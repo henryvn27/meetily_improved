@@ -6,7 +6,7 @@ import AnalyticsConsentSwitch from "./AnalyticsConsentSwitch";
 import { UpdateDialog } from "./UpdateDialog";
 import { updateService, UpdateInfo } from '@/services/updateService';
 import { Button } from './ui/button';
-import { ArrowUpRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowPathIcon, ArrowTopRightOnSquareIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 
 
@@ -75,12 +75,12 @@ export function About() {
                     >
                         {isChecking ? (
                             <>
-                                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                                <ArrowPathIcon className="mr-2 h-3 w-3 animate-spin motion-reduce:animate-none" />
                                 Checking...
                             </>
                         ) : (
                             <>
-                                <CheckCircle2 className="h-3 w-3 mr-2" />
+                                <CheckCircleIcon className="mr-2 h-3 w-3" />
                                 Check for Updates
                             </>
                         )}
@@ -126,7 +126,7 @@ export function About() {
                     onClick={handleUpstreamClick}
                     className="inline-flex items-center gap-2 bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
-                    View upstream Meetily <ArrowUpRight className="size-3.5" />
+                    View upstream Meetily <ArrowTopRightOnSquareIcon className="size-3.5" />
                 </button>
             </div>
             <AnalyticsConsentSwitch />

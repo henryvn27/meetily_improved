@@ -1,5 +1,5 @@
 import React from "react";
-import { Info as InfoIcon } from "lucide-react";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { VisuallyHidden } from "./ui/visually-hidden";
 import { About } from "./About";
@@ -21,7 +21,7 @@ const Info = React.forwardRef<HTMLButtonElement, InfoProps>(({ isCollapsed }, re
           }`}
           title="About Meetily Improved"
         >
-          <InfoIcon className={isCollapsed ? "size-[1.1rem]" : "size-3.5"} />
+          <InformationCircleIcon className={isCollapsed ? "size-[1.1rem]" : "size-3.5"} />
           {!isCollapsed && (
             <span className="ml-1.5">About</span>
           )}
