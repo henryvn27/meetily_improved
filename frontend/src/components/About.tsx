@@ -8,10 +8,11 @@ import { updateService, UpdateInfo } from '@/services/updateService';
 import { Button } from './ui/button';
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
+import { APP_VERSION } from '@/lib/app-version';
 
 
 export function About() {
-    const [currentVersion, setCurrentVersion] = useState<string>('0.4.0');
+    const [currentVersion, setCurrentVersion] = useState<string>(APP_VERSION);
     const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
     const [isChecking, setIsChecking] = useState(false);
     const [showUpdateDialog, setShowUpdateDialog] = useState(false);

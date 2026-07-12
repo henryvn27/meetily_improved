@@ -15,6 +15,7 @@ import { useImportDialog } from '@/contexts/ImportDialogContext';
 import { useRecordingState } from '@/contexts/RecordingStateContext';
 import { cn } from '@/lib/utils';
 import Analytics from '@/lib/analytics';
+import { APP_VERSION_LABEL } from '@/lib/app-version';
 import { MeetilyGlyph } from '@/components/app-shell/MeetilyGlyph';
 import { useSidebar } from './SidebarProvider';
 
@@ -316,7 +317,7 @@ export default function Sidebar() {
 
           <div className={cn('flex items-center text-[hsl(var(--sidebar-muted))]', isCollapsed ? 'justify-center' : 'justify-between px-1')}>
             <Info isCollapsed={isCollapsed} />
-            {!isCollapsed && <span className="text-xs tabular-nums">v0.4.0</span>}
+            {!isCollapsed && <span className="text-xs tabular-nums">{APP_VERSION_LABEL}</span>}
           </div>
         </div>
       </div>

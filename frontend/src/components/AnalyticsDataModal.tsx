@@ -3,6 +3,7 @@
 import React from 'react';
 import { CheckIcon, InformationCircleIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
+import { APP_VERSION } from '@/lib/app-version';
 import {
   Dialog,
   DialogContent,
@@ -123,7 +124,7 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
             <pre className="overflow-x-auto text-xs text-foreground">
               {`{
   "event": "meeting_ended",
-  "app_version": "0.4.0",
+  "app_version": "${APP_VERSION}",
   "transcription_provider": "parakeet",
   "transcription_model": "parakeet-tdt-0.6b-v3-int8",
   "summary_provider": "ollama",
