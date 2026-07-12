@@ -125,6 +125,7 @@ export default function RootLayout({
           setShowOnboarding(true)
         } else {
           console.log('[Layout] Onboarding completed, showing main app')
+          setShowOnboarding(false)
         }
       })
       .catch((error) => {

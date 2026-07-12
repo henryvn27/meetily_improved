@@ -48,6 +48,10 @@ test('permissions completion exits onboarding without an unbounded reload wait',
   assert.doesNotMatch(permissions, /window\.location\.reload\(\)/);
   assert.match(layout, /setShowOnboarding\(false\)/);
   assert.match(layout, /setOnboardingCompleted\(true\)/);
+  assert.ok(
+    layout.indexOf('Onboarding completed, showing main app') < layout.indexOf('setShowOnboarding(false)', layout.indexOf('Onboarding completed, showing main app')),
+    'completed onboarding status hides setup on relaunch',
+  );
   const completionHandler = layout.slice(
     layout.indexOf('const handleOnboardingComplete'),
     layout.indexOf('\n  }', layout.indexOf('const handleOnboardingComplete')) + 4,
