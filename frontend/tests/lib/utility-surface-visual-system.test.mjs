@@ -9,6 +9,7 @@ const utilityPaths = [
   'src/components/AnalyticsDataModal.tsx',
   'src/components/BuiltInModelManager.tsx',
   'src/components/ChunkProgressDisplay.tsx',
+  'src/components/ImportAudio/ImportAudioDialog.tsx',
   'src/components/ImportAudio/ImportDropOverlay.tsx',
   'src/components/LanguageSelection.tsx',
   'src/components/ModelSettingsModal.tsx',
@@ -54,4 +55,17 @@ test('native QA can open the real analytics privacy dialog without changing anal
   assert.match(layout, /<AnalyticsDataModal/);
   assert.match(layout, /isOpen\s+onClose=\{\(\) => \{\}\}/);
   assert.doesNotMatch(layout, /performToggle/);
+});
+
+test('native QA can open the real empty import dialog without selecting a file', async () => {
+  const [qaMode, layout] = await Promise.all([
+    readFile(new URL('src/lib/native-qa-mode.ts', root), 'utf8'),
+    readFile(new URL('src/app/layout.tsx', root), 'utf8'),
+  ]);
+
+  assert.match(qaMode, /configuredOverlay === 'import-audio'/);
+  assert.match(layout, /useState\(openImportDialogForNativeQa\)/);
+  assert.match(layout, /\(!betaFeatures\.importAndRetranscribe \|\| isPostProcessing\) && !openImportDialogForNativeQa/);
+  assert.match(layout, /isPostProcessing && showImportDialog && !openImportDialogForNativeQa/);
+  assert.doesNotMatch(qaMode, /preselectedFile|validateFile|startImport/);
 });

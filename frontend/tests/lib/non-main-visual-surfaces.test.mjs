@@ -12,7 +12,8 @@ const files = [
 const sources = await Promise.all(files.map((file) => readFile(fileURLToPath(new URL(file, import.meta.url)), 'utf8')));
 const source = sources.join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
-assert.match(source, /from 'lucide-react'/, 'uses the shared icon library on utility surfaces');
+assert.match(source, /@heroicons\/react/, 'uses the approved icon library on utility surfaces');
+assert.doesNotMatch(source, /from 'lucide-react'/, 'does not mix the legacy icon family into utility surfaces');
 assert.match(source, /ClipboardDocumentCheckIcon/, 'uses semantic copy iconography in the summary context menu');
 assert.match(source, /TrashIcon/, 'uses semantic delete iconography in the summary context menu');
 assert.match(source, /focus-visible:ring-ring/, 'keeps keyboard focus visible in the summary context menu');

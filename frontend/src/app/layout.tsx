@@ -26,7 +26,7 @@ import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import AnalyticsDataModal from '@/components/AnalyticsDataModal'
-import { bypassOnboardingForNativeQa, nativeQaRoute, nativeQaTheme, openAnalyticsDetailsForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
+import { bypassOnboardingForNativeQa, nativeQaRoute, nativeQaTheme, openAnalyticsDetailsForNativeQa, openImportDialogForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
 
 
 // Module-level component — stable reference across RootLayout re-renders.
@@ -46,13 +46,13 @@ function ConditionalImportDialog({
   const isPostProcessing = isStopping || isProcessing || isSaving;
 
   useEffect(() => {
-    if (isPostProcessing && showImportDialog) {
+    if (isPostProcessing && showImportDialog && !openImportDialogForNativeQa) {
       handleImportDialogClose(false);
     }
   }, [handleImportDialogClose, isPostProcessing, showImportDialog]);
 
   // Only mount ImportAudioDialog (and its hooks/listeners) when feature is enabled
-  if (!betaFeatures.importAndRetranscribe || isPostProcessing) {
+  if ((!betaFeatures.importAndRetranscribe || isPostProcessing) && !openImportDialogForNativeQa) {
     return null;
   }
 
@@ -82,7 +82,7 @@ export default function RootLayout({
 
   // Import audio state
   const [showDropOverlay, setShowDropOverlay] = useState(false)
-  const [showImportDialog, setShowImportDialog] = useState(false)
+  const [showImportDialog, setShowImportDialog] = useState(openImportDialogForNativeQa)
   const [importFilePath, setImportFilePath] = useState<string | null>(null)
 
   useEffect(() => {

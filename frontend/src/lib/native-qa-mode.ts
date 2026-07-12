@@ -25,3 +25,4 @@ export const nativeQaRoute = isNativeQaMode && configuredRoute === 'settings' ? 
 
 const configuredOverlay = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_OVERLAY;
 export const openAnalyticsDetailsForNativeQa = isNativeQaMode && configuredOverlay === 'analytics-details';
+export const openImportDialogForNativeQa = isNativeQaMode && configuredOverlay === 'import-audio';
