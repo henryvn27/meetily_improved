@@ -36,7 +36,7 @@ export default function ChatPage() {
 
   return (
     <div className="app-page">
-      <PageHeader eyebrow="Local meeting recall" title="Ask meetings" description="Questions and excerpts stay on this device and use only your configured local Ollama model." />
+      <PageHeader eyebrow="Local meeting recall" title="Ask meetings" description="Questions and excerpts stay on this device and use only your configured local model." />
       <form className="mt-8 pb-6" onSubmit={ask}>
         <label className="app-eyebrow" htmlFor="meeting-question">Question</label>
         <div className="mt-2 flex border-b border-border pb-4">
@@ -44,7 +44,7 @@ export default function ChatPage() {
           <Button type="submit" disabled={!question.trim() || isAsking}>{isAsking ? 'Asking locally…' : 'Ask locally'}</Button>
         </div>
       </form>
-      {isAsking && <AppState className="mt-6" kind="loading" title="Searching local meeting excerpts" description="Meetily is sending matching local excerpts to your configured Ollama model." />}
+      {isAsking && <AppState className="mt-6" kind="loading" title="Searching local meeting excerpts" description="Meetily is sending matching local excerpts to your configured local model." />}
       {error && <AppState className="mt-6" kind="model" title="Local recall is unavailable" description={error} action={<Button variant="outline" onClick={() => router.push('/settings')}><MeetilyGlyph name="settings" className="size-4" />Review local model settings</Button>} />}
       {result && <section className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <article aria-label="Local meeting answer" className="min-w-0 text-[0.975rem] leading-7 whitespace-pre-wrap">{result.answer}</article>

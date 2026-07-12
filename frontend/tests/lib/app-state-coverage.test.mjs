@@ -34,7 +34,7 @@ test('major Phase 1 routes declare truthful reusable non-happy-path states', asy
   assert.match(detail, /Back to saved meetings/);
 
   assert.match(chat, /kind="model"/);
-  assert.match(chat, /configured local Ollama model/);
+  assert.match(chat, /configured local model/);
   assert.match(chat, /api_answer_meetings_locally/);
   assert.match(chat, /Local sources/);
   assert.match(chat, /Review local model settings/);

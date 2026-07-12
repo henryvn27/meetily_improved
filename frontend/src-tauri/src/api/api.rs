@@ -1,7 +1,7 @@
 use log::{debug as log_debug, error as log_error, info as log_info, warn as log_warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tauri::{AppHandle, Runtime};
+use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::StoreExt;
 
@@ -424,10 +424,10 @@ pub async fn api_search_transcripts<R: Runtime>(
 }
 
 /// Answer a question only from matching local transcript snippets via a
-/// configured local Ollama model. This intentionally has no cloud fallback.
+/// configured local model. This intentionally has no cloud fallback.
 #[tauri::command]
 pub async fn api_answer_meetings_locally<R: Runtime>(
-    _app: AppHandle<R>,
+    app: AppHandle<R>,
     state: tauri::State<'_, AppState>,
     question: String,
 ) -> Result<LocalRecallResponse, String> {
@@ -446,11 +446,15 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     let config = SettingsRepository::get_model_config(pool)
         .await
         .map_err(|error| format!("Could not read the local model configuration: {error}"))?
-        .ok_or_else(|| "Configure a local Ollama model before asking meetings.".to_string())?;
-    if config.provider != "ollama" {
-        return Err("Ask Meetings only uses a local Ollama model. Choose Ollama in Settings to continue.".to_string());
+        .ok_or_else(|| "Configure Built-in AI or Ollama before asking meetings.".to_string())?;
+    let provider = LLMProvider::from_str(&config.provider)
+        .map_err(|_| "Ask Meetings requires Built-in AI or Ollama in Settings.".to_string())?;
+    if provider != LLMProvider::Ollama && provider != LLMProvider::BuiltInAI {
+        return Err("Ask Meetings requires Built-in AI or Ollama in Settings.".to_string());
     }
-    if !is_loopback_ollama_endpoint(config.ollama_endpoint.as_deref()) {
+    if provider == LLMProvider::Ollama
+        && !is_loopback_ollama_endpoint(config.ollama_endpoint.as_deref())
+    {
         return Err("Ask Meetings only permits an Ollama server on this device. Use localhost in Settings to continue.".to_string());
     }
     if config.model.trim().is_empty() {
@@ -480,10 +484,11 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(60))
         .build()
-        .map_err(|error| format!("Could not start the local Ollama request: {error}"))?;
+        .map_err(|error| format!("Could not start the local model request: {error}"))?;
+    let app_data_dir = app.path().app_data_dir().ok();
     let answer = generate_summary(
         &client,
-        &LLMProvider::Ollama,
+        &provider,
         &config.model,
         "",
         system_prompt,
@@ -493,9 +498,13 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
         None,
         None,
         None,
+        app_data_dir.as_ref(),
         None,
-        None,
-    ).await.map_err(|error| format!("Local Ollama could not answer from your saved meetings: {error}"))?;
+    )
+    .await
+    .map_err(|error| {
+        format!("The local model could not answer from your saved meetings: {error}")
+    })?;
 
     Ok(LocalRecallResponse { answer, sources })
 }

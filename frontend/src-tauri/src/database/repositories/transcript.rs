@@ -1,6 +1,6 @@
 use crate::api::{TranscriptSearchResult, TranscriptSegment};
 use chrono::Utc;
-use sqlx::{Connection, Error as SqlxError, SqlitePool};
+use sqlx::{Connection, Error as SqlxError, QueryBuilder, Sqlite, SqlitePool};
 use tracing::{error, info};
 use uuid::Uuid;
 
@@ -88,59 +88,140 @@ impl TranscriptsRepository {
         pool: &SqlitePool,
         query: &str,
     ) -> Result<Vec<TranscriptSearchResult>, SqlxError> {
-        if query.trim().is_empty() {
+        let terms = Self::search_terms(query);
+        if terms.is_empty() {
             return Ok(Vec::new());
         }
 
-        let search_query = format!("%{}%", query.to_lowercase());
+        let mut builder = QueryBuilder::<Sqlite>::new(
+            "SELECT m.id, m.title, t.transcript, t.timestamp FROM meetings m \
+             JOIN transcripts t ON m.id = t.meeting_id WHERE ",
+        );
+        for (index, term) in terms.iter().enumerate() {
+            if index > 0 {
+                builder.push(" OR ");
+            }
+            builder
+                .push("(LOWER(t.transcript) LIKE ")
+                .push_bind(format!("%{term}%"))
+                .push(" OR LOWER(m.title) LIKE ")
+                .push_bind(format!("%{term}%"))
+                .push(")");
+        }
+        builder.push(" ORDER BY m.created_at DESC LIMIT 64");
 
-        let rows = sqlx::query_as::<_, (String, String, String, String)>(
-            "SELECT m.id, m.title, t.transcript, t.timestamp
-             FROM meetings m
-             JOIN transcripts t ON m.id = t.meeting_id
-             WHERE LOWER(t.transcript) LIKE ?",
-        )
-        .bind(&search_query)
-        .fetch_all(pool)
-        .await?;
+        let rows = builder
+            .build_query_as::<(String, String, String, String)>()
+            .fetch_all(pool)
+            .await?;
 
-        let results = rows
+        let mut results = rows
             .into_iter()
             .map(|(id, title, transcript, timestamp)| {
-                let match_context = Self::get_match_context(&transcript, query);
-                TranscriptSearchResult {
-                    id,
-                    title,
-                    match_context,
-                    timestamp,
-                }
+                let haystack = format!("{} {}", title.to_lowercase(), transcript.to_lowercase());
+                let score = terms
+                    .iter()
+                    .filter(|term| haystack.contains(term.as_str()))
+                    .count();
+                let match_context = Self::get_match_context(&transcript, &terms);
+                (
+                    score,
+                    TranscriptSearchResult {
+                        id,
+                        title,
+                        match_context,
+                        timestamp,
+                    },
+                )
             })
-            .collect();
+            .collect::<Vec<_>>();
+        results.sort_by(|left, right| right.0.cmp(&left.0));
 
-        Ok(results)
+        Ok(results.into_iter().map(|(_, result)| result).collect())
+    }
+
+    fn search_terms(query: &str) -> Vec<String> {
+        const STOP_WORDS: &[&str] = &[
+            "about", "from", "have", "meetings", "meeting", "that", "the", "this", "what",
+            "when", "where", "which", "with", "would", "were", "did", "does", "our", "was",
+        ];
+        let mut terms = query
+            .split(|character: char| !character.is_alphanumeric())
+            .map(str::to_lowercase)
+            .filter(|term| term.chars().count() >= 3 && !STOP_WORDS.contains(&term.as_str()))
+            .collect::<Vec<_>>();
+        terms.sort();
+        terms.dedup();
+        terms.truncate(12);
+        terms
     }
 
     /// Helper function to extract a snippet of text around the first match of a query.
-    fn get_match_context(transcript: &str, query: &str) -> String {
+    fn get_match_context(transcript: &str, terms: &[String]) -> String {
         let transcript_lower = transcript.to_lowercase();
-        let query_lower = query.to_lowercase();
-
-        match transcript_lower.find(&query_lower) {
-            Some(match_index) => {
-                let start_index = match_index.saturating_sub(100);
-                let end_index = (match_index + query.len() + 100).min(transcript.len());
-
-                let mut context = String::new();
-                if start_index > 0 {
-                    context.push_str("...");
-                }
-                context.push_str(&transcript[start_index..end_index]);
-                if end_index < transcript.len() {
-                    context.push_str("...");
-                }
-                context
-            }
-            None => transcript.chars().take(200).collect(), // Fallback to the start of the transcript
+        let match_character = terms
+            .iter()
+            .filter_map(|term| transcript_lower.find(term))
+            .min()
+            .map(|byte_index| transcript[..byte_index].chars().count())
+            .unwrap_or(0);
+        let characters = transcript.chars().collect::<Vec<_>>();
+        let start = match_character.saturating_sub(100);
+        let end = (match_character + 200).min(characters.len());
+        let mut context = characters[start..end].iter().collect::<String>();
+        if start > 0 {
+            context.insert_str(0, "...");
         }
+        if end < characters.len() {
+            context.push_str("...");
+        }
+        context
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::TranscriptsRepository;
+    use sqlx::sqlite::SqlitePoolOptions;
+
+    #[test]
+    fn recall_search_extracts_meaningful_terms_from_a_question() {
+        assert_eq!(
+            TranscriptsRepository::search_terms("What did we decide about microphone audio?"),
+            vec!["audio", "decide", "microphone"]
+        );
+    }
+
+    #[tokio::test]
+    async fn recall_search_matches_question_keywords_without_an_exact_sentence() {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE meetings (id TEXT PRIMARY KEY, title TEXT, created_at TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE transcripts (meeting_id TEXT, transcript TEXT, timestamp TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO meetings VALUES ('meeting-1', 'Audio test', '2026-07-12')")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO transcripts VALUES ('meeting-1', 'The microphone picked up the sentence clearly.', '00:40')")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let results =
+            TranscriptsRepository::search_transcripts(&pool, "What did the microphone pick up?")
+                .await
+                .unwrap();
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "meeting-1");
+        assert!(results[0].match_context.contains("microphone picked up"));
     }
 }
