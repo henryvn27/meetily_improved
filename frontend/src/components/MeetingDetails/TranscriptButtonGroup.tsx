@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { Copy, Download, FolderOpen, RefreshCw } from 'lucide-react';
+import { ArrowDownTrayIcon, ArrowPathIcon, DocumentDuplicateIcon, FolderOpenIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 import { RetranscribeDialog } from './RetranscribeDialog';
 import { useConfig } from '@/contexts/ConfigContext';
@@ -52,12 +52,12 @@ export function TranscriptButtonGroup({
           disabled={transcriptCount === 0}
           title={transcriptCount === 0 ? 'No transcript available' : 'Copy Transcript'}
         >
-          <Copy />
+          <DocumentDuplicateIcon className="size-4" aria-hidden="true" />
           <span className="hidden lg:inline">Copy</span>
         </Button>
 
         <Button size="sm" variant="outline" onClick={onExportMeeting} title="Export local meeting as Markdown">
-          <Download className="xl:mr-2" size={18} />
+          <ArrowDownTrayIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
           <span className="hidden lg:inline">Export</span>
         </Button>
 
@@ -71,7 +71,7 @@ export function TranscriptButtonGroup({
           }}
           title="Open Recording Folder"
         >
-          <FolderOpen className="xl:mr-2" size={18} />
+          <FolderOpenIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
           <span className="hidden lg:inline">Recording</span>
         </Button>
 
@@ -86,7 +86,7 @@ export function TranscriptButtonGroup({
             }}
             title="Retranscribe to enhance your recorded audio"
           >
-            <RefreshCw className="xl:mr-2" size={18} />
+            <ArrowPathIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
             <span className="hidden lg:inline">Enhance</span>
           </Button>
         )}

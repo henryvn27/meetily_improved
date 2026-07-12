@@ -9,7 +9,7 @@ import { SummaryUpdaterButtonGroup } from './SummaryUpdaterButtonGroup';
 import Analytics from '@/lib/analytics';
 import { useEffect, useRef, useState, RefObject, ReactNode } from 'react';
 import { toast } from 'sonner';
-import { Languages, ChevronDown } from 'lucide-react';
+import { ChevronDownIcon, LanguageIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { LanguagePickerPopover } from '@/components/LanguagePickerPopover';
@@ -234,9 +234,9 @@ export function SummaryPanel({
           title={`Summary language: ${effectiveLangLabel}${isLocalFallbackLanguage ? ' (saved on this device)' : ''}`}
           aria-label="Set summary language"
         >
-          <Languages size={18} />
+          <LanguageIcon className="size-[18px]" aria-hidden="true" />
           <span className="hidden lg:inline">{effectiveLangLabel}</span>
-          <ChevronDown size={14} className="text-muted-foreground" />
+          <ChevronDownIcon className="size-3.5 text-muted-foreground" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -368,7 +368,7 @@ export function SummaryPanel({
             <div className="fixed bottom-0 left-0 right-0 max-h-1/3 overflow-y-auto border-t border-border bg-card p-4 shadow-[0_-12px_32px_hsl(var(--foreground)/0.08)]">
               <h3 className="text-lg font-semibold mb-2">Meeting Summary</h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-[3px] border border-border bg-secondary p-4">
+                <div className="rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Key Points</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.key_points.blocks.map((block, i) => (
@@ -376,7 +376,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
+                <div className="mt-4 rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Action Items</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.action_items.blocks.map((block, i) => (
@@ -384,7 +384,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
+                <div className="mt-4 rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Decisions</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.decisions.blocks.map((block, i) => (
@@ -392,7 +392,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
+                <div className="mt-4 rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Main Topics</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.main_topics.blocks.map((block, i) => (
@@ -430,7 +430,7 @@ export function SummaryPanel({
             />
           </div>
           {summaryStatus !== 'idle' && (
-            <div className={`mx-6 mb-6 rounded-[3px] border p-4 text-sm sm:mx-8 ${summaryStatus === 'error' ? 'border-destructive/25 bg-destructive/5 text-destructive' :
+            <div className={`mx-6 mb-6 rounded-md border p-4 text-sm sm:mx-8 ${summaryStatus === 'error' ? 'border-destructive/25 bg-destructive/5 text-destructive' :
               summaryStatus === 'completed' ? 'border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))]' :
                 'border-accent/25 bg-[hsl(var(--accent-soft))] text-foreground'
               }`}>

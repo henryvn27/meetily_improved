@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { RefreshCw, Globe, Loader2, AlertCircle, CheckCircle2, X, Cpu } from 'lucide-react';
+import { ArrowPathIcon, CpuChipIcon, ExclamationCircleIcon, GlobeAltIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import {
   Dialog,
   DialogContent,
@@ -275,17 +275,17 @@ export function RetranscribeDialog({
           <DialogTitle className="flex items-center gap-2">
             {isProcessing ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin text-accent" />
+                <ArrowPathIcon className="size-5 animate-spin text-accent" aria-hidden="true" />
                 Retranscribing...
               </>
             ) : error ? (
               <>
-                <AlertCircle className="h-5 w-5 text-destructive" />
+                <ExclamationCircleIcon className="size-5 text-destructive" aria-hidden="true" />
                 Retranscription Failed
               </>
             ) : (
               <>
-                <RefreshCw className="h-5 w-5 text-accent" />
+                <ArrowPathIcon className="size-5 text-accent" aria-hidden="true" />
                 Retranscribe Meeting
               </>
             )}
@@ -304,7 +304,7 @@ export function RetranscribeDialog({
             !isParakeetModel ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <GlobeAltIcon className="size-4 text-muted-foreground" aria-hidden="true" />
                   <span className="text-sm font-medium">Language</span>
                 </div>
                 <Select value={selectedLang} onValueChange={setSelectedLang}>
@@ -326,7 +326,7 @@ export function RetranscribeDialog({
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <GlobeAltIcon className="size-4 text-muted-foreground" aria-hidden="true" />
                   <span className="text-sm font-medium">Language</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -339,7 +339,7 @@ export function RetranscribeDialog({
           {!isProcessing && !error && availableModels.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Cpu className="h-4 w-4 text-muted-foreground" />
+                <CpuChipIcon className="size-4 text-muted-foreground" aria-hidden="true" />
                 <span className="text-sm font-medium">Model</span>
               </div>
               <Select value={selectedModelKey} onValueChange={setSelectedModelKey} disabled={loadingModels}>
@@ -363,9 +363,9 @@ export function RetranscribeDialog({
           {isProcessing && progress && (
             <div className="space-y-2">
               <div className="relative">
-                <div className="h-3 w-full rounded-[3px] bg-secondary">
+                <div className="h-3 w-full rounded-md bg-secondary">
                   <div
-                    className="h-3 rounded-[3px] bg-accent transition-all duration-300 ease-out"
+                    className="h-3 rounded-md bg-accent transition-all duration-300 ease-out"
                     style={{ width: `${Math.min(progress.progress_percentage, 100)}%` }}
                   />
                 </div>
@@ -381,7 +381,7 @@ export function RetranscribeDialog({
           )}
 
           {error && (
-            <div className="rounded-[3px] border border-destructive/25 bg-destructive/5 p-3">
+            <div className="rounded-md border border-destructive/25 bg-destructive/5 p-3">
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
@@ -398,14 +398,14 @@ export function RetranscribeDialog({
                 variant="recording"
                 disabled={!meetingFolderPath}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <ArrowPathIcon className="mr-2 size-4" aria-hidden="true" />
                 Start Retranscription
               </Button>
             </>
           )}
           {isProcessing && (
             <Button variant="outline" onClick={handleCancel}>
-              <X className="h-4 w-4 mr-2" />
+              <XMarkIcon className="mr-2 size-4" aria-hidden="true" />
               Cancel
             </Button>
           )}

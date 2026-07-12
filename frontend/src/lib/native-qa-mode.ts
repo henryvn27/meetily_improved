@@ -21,7 +21,12 @@ export const nativeQaTheme = isNativeQaMode && (configuredTheme === 'light' || c
   : null;
 
 const configuredRoute = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_ROUTE;
-export const nativeQaRoute = isNativeQaMode && configuredRoute === 'settings' ? '/settings' : null;
+const configuredMeetingId = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_MEETING_ID;
+export const nativeQaRoute = isNativeQaMode && configuredRoute === 'settings'
+  ? '/settings'
+  : isNativeQaMode && configuredRoute === 'meeting' && configuredMeetingId
+    ? `/meeting-details?id=${encodeURIComponent(configuredMeetingId)}`
+    : null;
 
 const configuredOverlay = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_OVERLAY;
 export const openAnalyticsDetailsForNativeQa = isNativeQaMode && configuredOverlay === 'analytics-details';

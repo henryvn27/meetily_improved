@@ -98,7 +98,8 @@ export default function RootLayout({
   }, [])
 
   useEffect(() => {
-    if (nativeQaRoute && window.location.pathname !== nativeQaRoute) {
+    const currentRoute = `${window.location.pathname}${window.location.search}`;
+    if (nativeQaRoute && currentRoute !== nativeQaRoute) {
       window.location.assign(nativeQaRoute)
       return
     }

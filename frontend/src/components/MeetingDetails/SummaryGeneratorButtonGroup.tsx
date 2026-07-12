@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sparkles, Settings, Loader2, FileText, Check, Square } from 'lucide-react';
+import { ArrowPathIcon, CheckIcon, Cog6ToothIcon, DocumentTextIcon, SparklesIcon, StopIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -256,7 +256,7 @@ export function SummaryGeneratorButtonGroup({
           }}
           title="Stop summary generation"
         >
-          <Square className="xl:mr-2" size={18} fill="currentColor" />
+          <StopIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
           <span className="hidden lg:inline xl:inline">Stop</span>
         </Button>
       ) : (
@@ -279,12 +279,12 @@ export function SummaryGeneratorButtonGroup({
         >
           {isCheckingModels || isModelConfigLoading ? (
             <>
-              <Loader2 className="animate-spin xl:mr-2" size={18} />
+              <ArrowPathIcon className="size-[18px] animate-spin xl:mr-2" aria-hidden="true" />
               <span className="hidden xl:inline">Processing...</span>
             </>
           ) : (
             <>
-              <Sparkles className="xl:mr-2" size={18} />
+              <SparklesIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
               <span className="hidden lg:inline xl:inline">{hasSummary ? 'Regenerate Summary' : 'Generate Summary'}</span>
             </>
           )}
@@ -301,7 +301,7 @@ export function SummaryGeneratorButtonGroup({
             size="sm"
             title="Summary Settings"
           >
-            <Settings />
+            <Cog6ToothIcon className="size-4" aria-hidden="true" />
             <span className="hidden lg:inline">AI Model</span>
           </Button>
         </DialogTrigger>
@@ -333,7 +333,7 @@ export function SummaryGeneratorButtonGroup({
               size="sm"
               title="Select summary template"
             >
-              <FileText />
+              <DocumentTextIcon className="size-4" aria-hidden="true" />
               <span className="hidden lg:inline">Template</span>
             </Button>
           </DropdownMenuTrigger>
@@ -347,7 +347,7 @@ export function SummaryGeneratorButtonGroup({
               >
                 <span>{template.name}</span>
                 {selectedTemplate === template.id && (
-                  <Check className="h-4 w-4 text-success" />
+                  <CheckIcon className="size-4 text-success" aria-hidden="true" />
                 )}
               </DropdownMenuItem>
             ))}

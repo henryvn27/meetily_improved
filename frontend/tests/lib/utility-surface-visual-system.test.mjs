@@ -69,3 +69,16 @@ test('native QA can open the real empty import dialog without selecting a file',
   assert.match(layout, /isPostProcessing && showImportDialog && !openImportDialogForNativeQa/);
   assert.doesNotMatch(qaMode, /preselectedFile|validateFile|startImport/);
 });
+
+test('native QA can open an explicitly supplied real persisted meeting id', async () => {
+  const [qaMode, layout] = await Promise.all([
+    readFile(new URL('src/lib/native-qa-mode.ts', root), 'utf8'),
+    readFile(new URL('src/app/layout.tsx', root), 'utf8'),
+  ]);
+
+  assert.match(qaMode, /NEXT_PUBLIC_MEETILY_NATIVE_QA_MEETING_ID/);
+  assert.match(qaMode, /configuredRoute === 'meeting'/);
+  assert.match(qaMode, /encodeURIComponent\(configuredMeetingId\)/);
+  assert.match(layout, /window\.location\.pathname\}\$\{window\.location\.search/);
+  assert.doesNotMatch(qaMode, /meeting-[0-9a-f-]{8,}/);
+});

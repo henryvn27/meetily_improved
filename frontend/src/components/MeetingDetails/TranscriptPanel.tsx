@@ -4,7 +4,7 @@ import { Transcript, TranscriptSegmentData } from '@/types';
 import { VirtualizedTranscriptView } from '@/components/VirtualizedTranscriptView';
 import { TranscriptButtonGroup } from './TranscriptButtonGroup';
 import { useMemo } from 'react';
-import { PanelRightClose } from 'lucide-react';
+import { RectangleGroupIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -101,7 +101,7 @@ export function TranscriptPanel({
                 onClick={onCloseInspector}
                 aria-label="Close transcript inspector"
               >
-                <PanelRightClose className="size-4" aria-hidden="true" />
+                <RectangleGroupIcon className="size-4" aria-hidden="true" />
               </Button>
             )}
           </div>
@@ -153,7 +153,7 @@ export function TranscriptPanel({
           <textarea
             id="summary-context"
             placeholder="Add context for AI summary. For example people involved, meeting overview, objective etc..."
-            className="min-h-[6rem] w-full resize-y rounded-[3px] border border-input bg-card px-3 py-2.5 text-sm leading-5 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/25"
+            className="min-h-[6rem] w-full resize-y rounded-md border border-input bg-card px-3 py-2.5 text-sm leading-5 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/25"
             value={customPrompt}
             onChange={(e) => onPromptChange(e.target.value)}
           />

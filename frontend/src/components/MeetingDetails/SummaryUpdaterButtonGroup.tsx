@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { Copy, Save, Loader2, Search, FolderOpen } from 'lucide-react';
+import { ArrowPathIcon, CheckIcon, DocumentDuplicateIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 
 interface SummaryUpdaterButtonGroupProps {
@@ -40,12 +40,12 @@ export function SummaryUpdaterButtonGroup({
       >
         {isSaving ? (
           <>
-            <Loader2 className="animate-spin" />
+            <ArrowPathIcon className="size-4 animate-spin" aria-hidden="true" />
             <span className="hidden lg:inline">Saving...</span>
           </>
         ) : (
           <>
-            <Save />
+            <CheckIcon className="size-4" aria-hidden="true" />
             <span className="hidden lg:inline">Save</span>
           </>
         )}
@@ -63,7 +63,7 @@ export function SummaryUpdaterButtonGroup({
         disabled={!hasSummary}
         className="cursor-pointer"
       >
-        <Copy />
+        <DocumentDuplicateIcon className="size-4" aria-hidden="true" />
         <span className="hidden lg:inline">Copy</span>
       </Button>
 
@@ -80,7 +80,7 @@ export function SummaryUpdaterButtonGroup({
           disabled={!hasSummary}
           className="cursor-pointer"
         >
-          <Search />
+          <MagnifyingGlassIcon className="size-4" aria-hidden="true" />
           <span className="hidden lg:inline">Find</span>
         </Button>
       )} */}
