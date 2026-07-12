@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ArrowPathIcon, CheckIcon, Cog6ToothIcon, DocumentTextIcon, SparklesIcon, StopIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, CheckIcon, Cog6ToothIcon, DocumentTextIcon, PencilSquareIcon, SparklesIcon, StopIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -32,6 +32,7 @@ interface SummaryGeneratorButtonGroupProps {
   onGenerateSummary: (customPrompt: string) => Promise<void>;
   onStopGeneration: () => void;
   customPrompt: string;
+  onPromptChange: (value: string) => void;
   summaryStatus: 'idle' | 'processing' | 'summarizing' | 'regenerating' | 'completed' | 'error';
   availableTemplates: Array<{ id: string, name: string, description: string }>;
   selectedTemplate: string;
@@ -49,6 +50,7 @@ export function SummaryGeneratorButtonGroup({
   onGenerateSummary,
   onStopGeneration,
   customPrompt,
+  onPromptChange,
   summaryStatus,
   availableTemplates,
   selectedTemplate,
@@ -292,6 +294,29 @@ export function SummaryGeneratorButtonGroup({
       )}
 
       {languageSlot}
+
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" title="Optional summary instructions">
+            <PencilSquareIcon className="size-4" aria-hidden="true" />
+            <span className="hidden lg:inline">Instructions</span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent aria-describedby="summary-instructions-description">
+          <DialogTitle>Summary instructions</DialogTitle>
+          <p id="summary-instructions-description" className="text-sm leading-6 text-muted-foreground">
+            Add optional context or priorities for the next summary. These instructions stay on this device.
+          </p>
+          <label htmlFor="summary-instructions" className="app-eyebrow">Instructions</label>
+          <textarea
+            id="summary-instructions"
+            value={customPrompt}
+            onChange={(event) => onPromptChange(event.target.value)}
+            placeholder="For example: emphasize decisions, open questions, and owners."
+            className="min-h-28 w-full resize-y rounded-md border border-input bg-card px-3 py-2.5 text-sm leading-6 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Settings button */}
       <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>

@@ -47,6 +47,7 @@ interface SummaryPanelProps {
   onGenerateSummary: (customPrompt: string) => Promise<void>;
   onStopGeneration: () => void;
   customPrompt: string;
+  onPromptChange: (value: string) => void;
   summaryResponse: SummaryResponse | null;
   onSaveSummary: (summary: Summary | { markdown?: string; summary_json?: any[] }) => Promise<void>;
   onSummaryChange: (summary: Summary) => void;
@@ -84,6 +85,7 @@ export function SummaryPanel({
   onGenerateSummary,
   onStopGeneration,
   customPrompt,
+  onPromptChange,
   summaryResponse,
   onSaveSummary,
   onSummaryChange,
@@ -274,6 +276,7 @@ export function SummaryPanel({
                 onGenerateSummary={onGenerateSummary}
                 onStopGeneration={onStopGeneration}
                 customPrompt={customPrompt}
+                onPromptChange={onPromptChange}
                 summaryStatus={summaryStatus}
                 availableTemplates={availableTemplates}
                 selectedTemplate={selectedTemplate}
@@ -316,6 +319,7 @@ export function SummaryPanel({
               onGenerateSummary={onGenerateSummary}
               onStopGeneration={onStopGeneration}
               customPrompt={customPrompt}
+              onPromptChange={onPromptChange}
               summaryStatus={summaryStatus}
               availableTemplates={availableTemplates}
               selectedTemplate={selectedTemplate}
@@ -344,6 +348,7 @@ export function SummaryPanel({
               onGenerateSummary={onGenerateSummary}
               onStopGeneration={onStopGeneration}
               customPrompt={customPrompt}
+              onPromptChange={onPromptChange}
               summaryStatus={summaryStatus}
               availableTemplates={availableTemplates}
               selectedTemplate={selectedTemplate}

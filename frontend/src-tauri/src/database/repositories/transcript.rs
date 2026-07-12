@@ -88,6 +88,22 @@ impl TranscriptsRepository {
         pool: &SqlitePool,
         query: &str,
     ) -> Result<Vec<TranscriptSearchResult>, SqlxError> {
+        Self::search_transcripts_scoped(pool, query, None).await
+    }
+
+    pub async fn search_meeting_transcripts(
+        pool: &SqlitePool,
+        query: &str,
+        meeting_id: &str,
+    ) -> Result<Vec<TranscriptSearchResult>, SqlxError> {
+        Self::search_transcripts_scoped(pool, query, Some(meeting_id)).await
+    }
+
+    async fn search_transcripts_scoped(
+        pool: &SqlitePool,
+        query: &str,
+        meeting_id: Option<&str>,
+    ) -> Result<Vec<TranscriptSearchResult>, SqlxError> {
         let terms = Self::search_terms(query);
         if terms.is_empty() {
             return Ok(Vec::new());
@@ -97,6 +113,9 @@ impl TranscriptsRepository {
             "SELECT m.id, m.title, t.transcript, t.timestamp FROM meetings m \
              JOIN transcripts t ON m.id = t.meeting_id WHERE ",
         );
+        if let Some(meeting_id) = meeting_id {
+            builder.push("m.id = ").push_bind(meeting_id).push(" AND (");
+        }
         for (index, term) in terms.iter().enumerate() {
             if index > 0 {
                 builder.push(" OR ");
@@ -107,6 +126,9 @@ impl TranscriptsRepository {
                 .push(" OR LOWER(m.title) LIKE ")
                 .push_bind(format!("%{term}%"))
                 .push(")");
+        }
+        if meeting_id.is_some() {
+            builder.push(")");
         }
         builder.push(" ORDER BY m.created_at DESC LIMIT 64");
 
@@ -223,5 +245,30 @@ mod tests {
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].id, "meeting-1");
         assert!(results[0].match_context.contains("microphone picked up"));
+    }
+
+    #[tokio::test]
+    async fn meeting_recall_never_leaks_matches_from_another_meeting() {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE meetings (id TEXT PRIMARY KEY, title TEXT, created_at TEXT)")
+            .execute(&pool).await.unwrap();
+        sqlx::query("CREATE TABLE transcripts (meeting_id TEXT, transcript TEXT, timestamp TEXT)")
+            .execute(&pool).await.unwrap();
+        sqlx::query("INSERT INTO meetings VALUES ('open', 'Open meeting', '2026-07-12'), ('other', 'Other meeting', '2026-07-11')")
+            .execute(&pool).await.unwrap();
+        sqlx::query("INSERT INTO transcripts VALUES ('open', 'We discussed safety.', '00:10'), ('other', 'We discussed safety and robotics.', '00:20')")
+            .execute(&pool).await.unwrap();
+
+        let results = TranscriptsRepository::search_meeting_transcripts(
+            &pool,
+            "What did we discuss about safety?",
+            "open",
+        ).await.unwrap();
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "open");
     }
 }

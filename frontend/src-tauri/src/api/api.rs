@@ -430,6 +430,7 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     app: AppHandle<R>,
     state: tauri::State<'_, AppState>,
     question: String,
+    meeting_id: Option<String>,
 ) -> Result<LocalRecallResponse, String> {
     let question = question.trim();
     if question.is_empty() {
@@ -461,9 +462,13 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
         return Err("Choose a local Ollama model before asking meetings.".to_string());
     }
 
-    let matches = TranscriptsRepository::search_transcripts(pool, question)
-        .await
-        .map_err(|error| format!("Could not search local meeting transcripts: {error}"))?;
+    let matches = match meeting_id.as_deref() {
+        Some(meeting_id) => {
+            TranscriptsRepository::search_meeting_transcripts(pool, question, meeting_id).await
+        }
+        None => TranscriptsRepository::search_transcripts(pool, question).await,
+    }
+    .map_err(|error| format!("Could not search local meeting transcripts: {error}"))?;
     if matches.is_empty() {
         return Err("No saved local transcript matched that question.".to_string());
     }

@@ -31,7 +31,12 @@ test('meeting detail remains a summary-first reading workspace with a persistent
   assert.match(summary, /aria-label="Meeting summary"/);
   assert.match(summary, /EmptyStateSummary/);
   assert.match(emptySummary, /No Summary Generated Yet/);
-  assert.match(transcript, /aria-label="Meeting transcript inspector"/);
+  assert.match(transcript, /aria-label="Meeting assistant inspector"/);
+  assert.match(transcript, /Ask this meeting/);
+  assert.match(transcript, /meetingId,/);
+  assert.doesNotMatch(transcript, /Summary context/);
+  assert.match(summary, /onPromptChange/);
+  assert.match(summary, /SummaryGeneratorButtonGroup/);
   assert.match(transcript, /VirtualizedTranscriptView/);
   assert.match(transcript, /Recording folder linked/);
   assert.match(transcript, /Local transcription:/);

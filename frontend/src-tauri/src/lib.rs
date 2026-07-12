@@ -55,7 +55,11 @@ pub mod tray;
 pub mod utils;
 pub mod whisper_engine;
 
-use audio::{list_audio_devices, AudioDevice, trigger_audio_permission};
+use audio::{list_audio_devices, AudioDevice};
+#[cfg(target_os = "macos")]
+use audio::request_audio_permission_on_main;
+#[cfg(not(target_os = "macos"))]
+use audio::trigger_audio_permission;
 use log::{error as log_error, info as log_info};
 use notifications::commands::NotificationManagerState;
 use std::sync::Arc;
@@ -289,9 +293,26 @@ async fn get_audio_devices() -> Result<Vec<AudioDevice>, String> {
 }
 
 #[tauri::command]
-async fn trigger_microphone_permission() -> Result<bool, String> {
-    trigger_audio_permission()
-        .map_err(|e| format!("Failed to trigger microphone permission: {}", e))
+async fn trigger_microphone_permission(app: AppHandle) -> Result<bool, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        app.run_on_main_thread(move || request_audio_permission_on_main(sender))
+            .map_err(|error| format!("Failed to schedule microphone permission request: {error}"))?;
+        return tokio::time::timeout(std::time::Duration::from_secs(60), receiver)
+            .await
+            .map_err(|_| "Timed out waiting for microphone authorization.".to_string())?
+            .map_err(|_| "Microphone permission request was cancelled.".to_string())?;
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+        tokio::task::spawn_blocking(trigger_audio_permission)
+            .await
+            .map_err(|e| format!("Microphone permission task failed: {}", e))?
+            .map_err(|e| format!("Failed to trigger microphone permission: {}", e))
+    }
 }
 
 #[tauri::command]
