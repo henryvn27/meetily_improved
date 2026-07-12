@@ -260,11 +260,9 @@ export default function RootLayout({
   }, []);
 
   const handleOnboardingComplete = () => {
-    console.log('[Layout] Onboarding completed, reloading app')
+    console.log('[Layout] Onboarding completed')
     setShowOnboarding(false)
     setOnboardingCompleted(true)
-    // Optionally reload the window to ensure all state is fresh
-    window.location.reload()
   }
 
   return (

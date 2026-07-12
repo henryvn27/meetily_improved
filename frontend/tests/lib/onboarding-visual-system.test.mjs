@@ -48,6 +48,11 @@ test('permissions completion exits onboarding without an unbounded reload wait',
   assert.doesNotMatch(permissions, /window\.location\.reload\(\)/);
   assert.match(layout, /setShowOnboarding\(false\)/);
   assert.match(layout, /setOnboardingCompleted\(true\)/);
+  const completionHandler = layout.slice(
+    layout.indexOf('const handleOnboardingComplete'),
+    layout.indexOf('\n  }', layout.indexOf('const handleOnboardingComplete')) + 4,
+  );
+  assert.doesNotMatch(completionHandler, /window\.location\.reload\(\)/);
   assert.match(context, /Model readiness check deferred/);
   assert.match(context, /Local model check timed out\./);
   assert.match(context, /Meetily could not save setup\. Please try again\./);
