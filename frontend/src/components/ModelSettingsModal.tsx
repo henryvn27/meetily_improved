@@ -17,7 +17,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
-import { Lock, Unlock, Eye, EyeOff, RefreshCw, CheckCircle2, XCircle, ChevronDown, ChevronUp, Download, ExternalLink, Check, ChevronsUpDown } from 'lucide-react';
+import { ArrowDownTrayIcon, ArrowPathIcon, ArrowTopRightOnSquareIcon, CheckCircleIcon, CheckIcon, ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon, EyeIcon, EyeSlashIcon, LockClosedIcon, LockOpenIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
@@ -879,7 +879,7 @@ export function ModelSettingsModal({
                     <span className="truncate">
                       {modelConfig.model || "Select model..."}
                     </span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <ChevronUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[250px] p-0" align="start">
@@ -891,7 +891,7 @@ export function ModelSettingsModal({
                        (modelConfig.provider === 'claude' && isLoadingClaude) ||
                        (modelConfig.provider === 'groq' && isLoadingGroq) ? (
                         <div className="py-6 text-center text-sm text-muted-foreground">
-                          <RefreshCw className="mx-auto h-4 w-4 animate-spin mb-2" />
+                          <ArrowPathIcon className="mx-auto h-4 w-4 animate-spin mb-2" />
                           Loading models...
                         </div>
                       ) : (
@@ -907,7 +907,7 @@ export function ModelSettingsModal({
                                   setModelComboboxOpen(false);
                                 }}
                               >
-                                <Check
+                                <CheckIcon
                                   className={cn(
                                     "mr-2 h-4 w-4",
                                     modelConfig.model === model ? "opacity-100" : "opacity-0"
@@ -978,9 +978,9 @@ export function ModelSettingsModal({
               >
                 <Label className="cursor-pointer">Advanced Options</Label>
                 {isCustomOpenAIAdvancedOpen ? (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  <ChevronUpIcon className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  <ChevronDownIcon className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
 
@@ -1040,12 +1040,12 @@ export function ModelSettingsModal({
             >
               {isTestingConnection ? (
                 <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
                   Testing Connection...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  <CheckCircleIcon className="mr-2 h-4 w-4" />
                   Test Connection
                 </>
               )}
@@ -1081,7 +1081,7 @@ export function ModelSettingsModal({
                     className={isLockButtonVibrating ? 'animate-vibrate text-destructive' : ''}
                     title={isApiKeyLocked ? 'Unlock to edit' : 'Lock to prevent editing'}
                   >
-                    {isApiKeyLocked ? <Lock /> : <Unlock />}
+                    {isApiKeyLocked ? <LockClosedIcon /> : <LockOpenIcon />}
                   </Button>
                 )}
                 <Button
@@ -1090,7 +1090,7 @@ export function ModelSettingsModal({
                   size="icon"
                   onClick={() => setShowApiKey(!showApiKey)}
                 >
-                  {showApiKey ? <EyeOff /> : <Eye />}
+                  {showApiKey ? <EyeSlashIcon /> : <EyeIcon />}
                 </Button>
               </div>
             </div>
@@ -1105,9 +1105,9 @@ export function ModelSettingsModal({
             >
               <Label className="cursor-pointer">Custom Endpoint (optional)</Label>
               {isEndpointSectionCollapsed ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                <ChevronDownIcon className="h-4 w-4 text-muted-foreground" />
               ) : (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                <ChevronUpIcon className="h-4 w-4 text-muted-foreground" />
               )}
             </div>
 
@@ -1136,10 +1136,10 @@ export function ModelSettingsModal({
                       )}
                     />
                     {endpointValidationState === 'valid' && (
-                      <CheckCircle2 className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-success" />
+                      <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-success" />
                     )}
                     {endpointValidationState === 'invalid' && (
-                      <XCircle className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-destructive" />
+                      <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-destructive" />
                     )}
                   </div>
                   <Button
@@ -1152,12 +1152,12 @@ export function ModelSettingsModal({
                   >
                     {isLoadingOllama ? (
                       <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
                         Fetching...
                       </>
                     ) : (
                       <>
-                        <RefreshCw className="mr-2 h-4 w-4" />
+                        <ArrowPathIcon className="mr-2 h-4 w-4" />
                         Fetch Models
                       </>
                     )}
@@ -1200,7 +1200,7 @@ export function ModelSettingsModal({
             )}
             {isLoadingOllama ? (
               <div className="text-center py-8 text-muted-foreground">
-                <RefreshCw className="mx-auto h-8 w-8 animate-spin mb-2" />
+                <ArrowPathIcon className="mx-auto h-8 w-8 animate-spin mb-2" />
                 Loading models...
               </div>
             ) : models.length === 0 ? (
@@ -1219,7 +1219,7 @@ export function ModelSettingsModal({
                       onClick={() => invoke('open_external_url', { url: 'https://ollama.com/download' })}
                       className="w-full bg-primary hover:bg-primary/90"
                     >
-                      <ExternalLink className="mr-2 h-4 w-4" />
+                      <ArrowTopRightOnSquareIcon className="mr-2 h-4 w-4" />
                       Download Ollama
                     </Button>
                     <div className="text-sm text-muted-foreground text-center">
@@ -1247,12 +1247,12 @@ export function ModelSettingsModal({
                         >
                           {isDownloading('gemma3:1b') ? (
                             <>
-                              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                              <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
                               Downloading gemma3:1b...
                             </>
                           ) : (
                             <>
-                              <Download className="mr-2 h-4 w-4" />
+                              <ArrowDownTrayIcon className="mr-2 h-4 w-4" />
                               Download gemma3:1b (Recommended, ~800MB)
                             </>
                           )}
@@ -1356,7 +1356,7 @@ export function ModelSettingsModal({
       </div>
 
       {/* Auto-generate summaries toggle */}
-      {/* <div className="mt-6 pt-6 border-t border-gray-200">
+      {/* <div className="mt-6 border-t border-border pt-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <Label htmlFor="auto-generate" className="text-base font-medium">
@@ -1377,8 +1377,8 @@ export function ModelSettingsModal({
       <div className="mt-6 flex justify-end">
         <Button
           className={cn(
-            'rounded-[3px] px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring',
-            isDoneDisabled ? 'cursor-not-allowed bg-muted text-muted-foreground' : 'bg-accent text-accent-foreground hover:bg-accent/90'
+            'rounded-md px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring',
+            isDoneDisabled ? 'cursor-not-allowed bg-muted text-muted-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/88'
           )}
           onClick={handleSave}
           disabled={isDoneDisabled}

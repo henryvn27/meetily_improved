@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Globe, Info, Languages } from 'lucide-react';
+import { ExclamationTriangleIcon, GlobeAltIcon, InformationCircleIcon, LanguageIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 import { toast } from 'sonner';
 import { useConfig } from '@/contexts/ConfigContext';
@@ -177,8 +177,8 @@ export function LanguageSelection({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-muted-foreground" />
-          <h4 className="text-sm font-medium text-foreground">Transcription Language</h4>
+          <GlobeAltIcon className="size-4 text-muted-foreground" />
+          <h4 className="text-sm font-medium text-foreground">Transcription language</h4>
         </div>
       </div>
 
@@ -187,7 +187,7 @@ export function LanguageSelection({
           value={selectedLanguage}
           onChange={(e) => handleLanguageChange(e.target.value)}
           disabled={disabled || saving}
-          className="w-full rounded-[3px] border border-input bg-card px-3 py-2 text-sm shadow-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:bg-muted disabled:text-muted-foreground"
+          className="h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
         >
           {availableLanguages.map((language) => (
             <option key={language.code} value={language.code}>
@@ -200,7 +200,7 @@ export function LanguageSelection({
         {/* Parakeet language limitation warning */}
         {isParakeet && (
           <div className="border border-warning/30 bg-warning/10 p-2 text-warning">
-            <p className="flex items-center gap-2 font-medium"><Info className="size-4" aria-hidden="true" />Parakeet language support</p>
+            <p className="flex items-center gap-2 font-medium"><InformationCircleIcon className="size-4" aria-hidden="true" />Parakeet language support</p>
             <p className="mt-1 text-xs">Parakeet currently only supports automatic language detection. Manual language selection is not available. Use Whisper if you need to specify a particular language.</p>
           </div>
         )}
@@ -212,13 +212,13 @@ export function LanguageSelection({
           </p>
           {selectedLanguage === 'auto' && (
             <div className="border border-warning/30 bg-warning/10 p-2 text-warning">
-              <p className="flex items-center gap-2 font-medium"><AlertTriangle className="size-4" aria-hidden="true" />Auto Detect may produce incorrect results</p>
+              <p className="flex items-center gap-2 font-medium"><ExclamationTriangleIcon className="size-4" aria-hidden="true" />Automatic detection may be less accurate</p>
               <p className="mt-1">For best accuracy, select your specific language (e.g., English, Spanish, etc.)</p>
             </div>
           )}
           {selectedLanguage === 'auto-translate' && (
             <div className="border border-accent/30 bg-accent-soft p-2 text-foreground">
-              <p className="flex items-center gap-2 font-medium"><Languages className="size-4" aria-hidden="true" />Translation mode active</p>
+              <p className="flex items-center gap-2 font-medium"><LanguageIcon className="size-4" aria-hidden="true" />Translation mode active</p>
               <p className="mt-1">All audio will be automatically translated to English. Best for multilingual meetings where you need English output.</p>
             </div>
           )}

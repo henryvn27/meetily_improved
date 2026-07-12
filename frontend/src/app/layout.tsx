@@ -85,6 +85,18 @@ export default function RootLayout({
   const [importFilePath, setImportFilePath] = useState<string | null>(null)
 
   useEffect(() => {
+    const openSettingsFromKeyboard = (event: KeyboardEvent) => {
+      if (event.metaKey && event.key === ',') {
+        event.preventDefault()
+        if (window.location.pathname !== '/settings') window.location.assign('/settings')
+      }
+    }
+
+    window.addEventListener('keydown', openSettingsFromKeyboard)
+    return () => window.removeEventListener('keydown', openSettingsFromKeyboard)
+  }, [])
+
+  useEffect(() => {
     if (openMeetingErrorForNativeQa) {
       window.location.replace('/meeting-details')
       return

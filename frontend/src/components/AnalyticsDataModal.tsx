@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { X, Info, Shield } from 'lucide-react';
+import React, { useEffect, useId } from 'react';
+import { CheckIcon, InformationCircleIcon, LockClosedIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface AnalyticsDataModalProps {
   isOpen: boolean;
@@ -10,22 +10,34 @@ interface AnalyticsDataModalProps {
 }
 
 export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }: AnalyticsDataModalProps) {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
-      <div className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[10px] border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border p-6">
           <div className="flex items-center gap-3">
-            <Shield className="h-6 w-6 text-accent" />
-            <h2 className="app-display text-xl">What Analytics Collects</h2>
+            <LockClosedIcon className="size-5 text-muted-foreground" />
+            <h2 id={titleId} className="app-display text-xl">What analytics collects</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Close analytics details"
+            className="grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
-            <X className="w-5 h-5" />
+            <XMarkIcon className="size-5" />
           </button>
         </div>
 
@@ -34,9 +46,9 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
           {/* Privacy Notice */}
           <div className="border border-success/30 bg-success/10 p-4">
             <div className="flex items-start gap-3">
-              <Info className="mt-0.5 h-5 w-5 shrink-0 text-success" />
+              <InformationCircleIcon className="mt-0.5 size-5 shrink-0 text-success" />
               <div className="text-sm text-foreground">
-                <p className="font-semibold mb-1">Your Privacy is Protected</p>
+                <p className="mb-1 font-semibold">Your privacy is protected</p>
                 <p>Analytics is off by default. If you enable it, we collect <strong>anonymous usage data only</strong>. No meeting content, names, file paths, or personal information is ever collected.</p>
               </div>
             </div>
@@ -44,7 +56,7 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
 
           {/* Data Categories */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Data We Collect When Enabled:</h3>
+            <h3 className="text-lg font-semibold text-foreground">Data collected when enabled</h3>
 
             {/* Model Preferences */}
             <div className="border border-border bg-muted/30 p-4">
@@ -105,15 +117,11 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
 
           {/* What We DON'T Collect */}
           <div className="border border-destructive/30 bg-destructive/10 p-4">
-            <h4 className="mb-2 font-semibold text-destructive">What We DON&apos;T Collect:</h4>
+            <h4 className="mb-2 font-semibold text-destructive">Never collected</h4>
             <ul className="ml-4 space-y-1 text-sm text-destructive">
-              <li>• ❌ Meeting names or titles</li>
-              <li>• ❌ File names, file paths, or meeting folders</li>
-              <li>• ❌ Meeting transcripts or content</li>
-              <li>• ❌ Audio recordings</li>
-              <li>• ❌ Device names (only types: Bluetooth/Wired)</li>
-              <li>• ❌ Personal information</li>
-              <li>• ❌ Any identifiable data</li>
+              {['Meeting names or titles', 'File names, file paths, or meeting folders', 'Meeting transcripts or content', 'Audio recordings', 'Device names (only types: Bluetooth/Wired)', 'Personal information', 'Any identifiable data'].map((item) => (
+                <li key={item} className="flex items-start gap-2"><CheckIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />{item}</li>
+              ))}
             </ul>
           </div>
 
@@ -142,13 +150,13 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
         <div className="flex items-center justify-between gap-4 border-t border-border bg-muted/50 p-6">
           <button
             onClick={onClose}
-            className="border border-input bg-card px-4 py-2 text-foreground transition-colors hover:bg-muted"
+            className="h-9 rounded-md border border-input bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
             Keep Analytics Enabled
           </button>
           <button
             onClick={onConfirmDisable}
-            className="bg-destructive px-4 py-2 text-destructive-foreground transition-colors hover:bg-destructive/90"
+            className="h-9 rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
           >
             Confirm: Disable Analytics
           </button>

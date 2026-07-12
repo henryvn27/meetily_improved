@@ -50,12 +50,17 @@ export default function Sidebar() {
   const [editingMeeting, setEditingMeeting] = useState<{ id: string; title: string } | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
 
+  const openSettings = useCallback(() => {
+    if (window.location.pathname === '/settings') return;
+    window.location.assign('/settings');
+  }, []);
+
   useEffect(() => {
-    window.openSettings = () => router.push('/settings');
+    window.openSettings = openSettings;
     return () => {
       delete window.openSettings;
     };
-  }, [router]);
+  }, [openSettings]);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -297,7 +302,7 @@ export default function Sidebar() {
 
           <Tooltip>
             <TooltipTrigger asChild>
-                <button type="button" onClick={() => router.push('/settings')} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5', pathname === '/settings' ? 'bg-[hsl(var(--accent-soft))] text-[hsl(var(--sidebar-foreground))]' : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]')}>
+                <button type="button" onClick={openSettings} disabled={isPostProcessing} aria-current={pathname === '/settings' ? 'page' : undefined} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5', pathname === '/settings' ? 'bg-[hsl(var(--accent-soft))] text-[hsl(var(--sidebar-foreground))]' : 'text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]')}>
                 <MeetilyGlyph name="settings" className={cn('size-[1.1rem]', pathname === '/settings' && 'text-accent')} />
                 {!isCollapsed && <span>Settings</span>}
               </button>

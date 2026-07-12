@@ -6,7 +6,7 @@ import { listen } from '@tauri-apps/api/event';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { Download, RefreshCw, BadgeAlert, Trash2 } from 'lucide-react';
+import { ArrowDownTrayIcon, ArrowPathIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { formatSummaryModelSizeLabelFromMb } from '@/lib/onboarding-summary-model';
 
@@ -258,7 +258,7 @@ export function BuiltInModelManager({
   if (isLoading && downloadingModels.size === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        <RefreshCw className="mx-auto h-8 w-8 animate-spin mb-2" />
+        <ArrowPathIcon className="mx-auto mb-2 h-8 w-8 animate-spin" />
         Loading models...
       </div>
     );
@@ -300,7 +300,7 @@ export function BuiltInModelManager({
             <div
               key={model.name}
               className={cn(
-                'rounded-[3px] border p-4 transition-colors',
+                'rounded-md border p-4 transition-colors',
                 modelIsDownloading
                   ? 'border-border bg-card'
                   : 'bg-card',
@@ -327,20 +327,20 @@ export function BuiltInModelManager({
                           Ready
                         </span>
                         {selectedModel === model.name && (
-                          <span className="shrink-0 rounded-[3px] bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
+                          <span className="shrink-0 rounded-md bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
                             Selected
                           </span>
                         )}
                       </>
                     )}
                     {isCorrupted && (
-                      <span className="flex shrink-0 items-center gap-1 rounded-[2px] bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
-                        <BadgeAlert className="h-3 w-3" />
+                      <span className="flex shrink-0 items-center gap-1 rounded-sm bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                        <ExclamationTriangleIcon className="size-3" />
                         Corrupted
                       </span>
                     )}
                     {isError && (
-                      <span className="shrink-0 rounded-[2px] bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                      <span className="shrink-0 rounded-sm bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
                         Error
                       </span>
                     )}
@@ -358,7 +358,7 @@ export function BuiltInModelManager({
                         downloadModel(model.name);
                       }}
                     >
-                      <Download className="mr-2 h-4 w-4" />
+                      <ArrowDownTrayIcon className="size-4" />
                       Download
                     </Button>
                   )}
@@ -387,7 +387,7 @@ export function BuiltInModelManager({
                         downloadModel(model.name);
                       }}
                     >
-                      <RefreshCw className="mr-2 h-4 w-4" />
+                      <ArrowPathIcon className="size-4" />
                       Retry
                     </Button>
                   )}
@@ -402,7 +402,7 @@ export function BuiltInModelManager({
                           downloadModel(model.name);
                         }}
                       >
-                        <RefreshCw className="mr-2 h-4 w-4" />
+                        <ArrowPathIcon className="size-4" />
                         Retry
                       </Button>
                       <Button
@@ -413,7 +413,7 @@ export function BuiltInModelManager({
                           deleteModel(model.name);
                         }}
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
+                        <TrashIcon className="size-4" />
                         Delete
                       </Button>
                     </>
@@ -421,14 +421,14 @@ export function BuiltInModelManager({
                   {/* Available - Show small trash icon (only if not currently selected) */}
                   {isAvailable && !modelIsDownloading && selectedModel !== model.name && (
                     <button
-                      className="rounded-[3px] p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+                      className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteModel(model.name);
                       }}
                       title="Delete model"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <TrashIcon className="size-4" />
                     </button>
                   )}
                 </div>
@@ -475,7 +475,7 @@ export function BuiltInModelManager({
                       <span>{formatSummaryModelSizeLabelFromMb(model.size_mb)}</span>
                     )}
                   </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-[3px] bg-secondary">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)}>
                     <div
                       className="h-full bg-accent transition-all duration-300"
                       style={{ width: `${progress}%` }}

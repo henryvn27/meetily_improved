@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
-import { Eye, EyeOff, Lock, Unlock } from 'lucide-react';
+import { EyeIcon, EyeSlashIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { ModelManager } from './WhisperModelManager';
 import { ParakeetModelManager } from './ParakeetModelManager';
 
@@ -99,12 +99,12 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
         <div>
             <div>
                 {/* <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Transcript Settings</h3>
+                    <h3 className="text-lg font-semibold text-foreground">Transcript Settings</h3>
                 </div> */}
                 <div className="space-y-4 pb-6">
                     <div>
                         <Label className="mb-1 block text-sm font-medium text-foreground">
-                            Transcript Model
+                            Transcript model
                         </Label>
                         <div className="flex space-x-2 mx-1">
                             <Select
@@ -205,7 +205,7 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                                             }`}
                                         title={isApiKeyLocked ? "Unlock to edit" : "Lock to prevent editing"}
                                     >
-                                        {isApiKeyLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                                        {isApiKeyLocked ? <LockClosedIcon className="size-4" /> : <LockOpenIcon className="size-4" />}
                                     </Button>
                                     <Button
                                         type="button"
@@ -213,7 +213,7 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                                         size="icon"
                                         onClick={() => setShowApiKey(!showApiKey)}
                                     >
-                                        {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        {showApiKey ? <EyeSlashIcon className="size-4" /> : <EyeIcon className="size-4" />}
                                     </Button>
                                 </div>
                             </div>
@@ -224,8 +224,6 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
         </div >
     )
 }
-
-
 
 
 

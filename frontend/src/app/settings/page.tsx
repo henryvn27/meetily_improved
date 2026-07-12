@@ -8,6 +8,7 @@ import { RecordingSettings } from '@/components/RecordingSettings';
 import { PreferenceSettings } from '@/components/PreferenceSettings';
 import { SummaryModelSettings } from '@/components/SummaryModelSettings';
 import { BetaSettings } from '@/components/BetaSettings';
+import { AppearanceSettings } from '@/components/AppearanceSettings';
 import { useConfig } from '@/contexts/ConfigContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/app-shell/PageHeader';
@@ -109,6 +110,7 @@ export default function SettingsPage() {
 
             <TabsContent value="general">
               <h2 className="sr-only">General settings</h2>
+              <AppearanceSettings />
               <PreferenceSettings />
             </TabsContent>
             <TabsContent value="recording">
