@@ -25,7 +25,7 @@ import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
 import { ThemeProvider } from '@/contexts/ThemeContext'
-import { bypassOnboardingForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
+import { bypassOnboardingForNativeQa, nativeQaRoute, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
 
 
 // Module-level component — stable reference across RootLayout re-renders.
@@ -97,6 +97,11 @@ export default function RootLayout({
   }, [])
 
   useEffect(() => {
+    if (nativeQaRoute && window.location.pathname !== nativeQaRoute) {
+      window.location.assign(nativeQaRoute)
+      return
+    }
+
     if (openMeetingErrorForNativeQa) {
       window.location.replace('/meeting-details')
       return

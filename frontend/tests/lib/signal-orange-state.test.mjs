@@ -16,9 +16,10 @@ test('sidebar reserves signal orange for active recording state', async () => {
 });
 
 test('native QA can start deterministically in either theme without changing release persistence', async () => {
-  const [qaMode, themeContext] = await Promise.all([
+  const [qaMode, themeContext, layout] = await Promise.all([
     readFile(new URL('src/lib/native-qa-mode.ts', root), 'utf8'),
     readFile(new URL('src/contexts/ThemeContext.tsx', root), 'utf8'),
+    readFile(new URL('src/app/layout.tsx', root), 'utf8'),
   ]);
 
   assert.match(qaMode, /NEXT_PUBLIC_MEETILY_NATIVE_QA_THEME/);
@@ -28,4 +29,7 @@ test('native QA can start deterministically in either theme without changing rel
   assert.match(themeContext, /if \(nativeQaTheme\) return/);
   assert.match(themeContext, /useLayoutEffect\(\(\) => \{/);
   assert.match(themeContext, /meetily-theme-preference/);
+  assert.match(qaMode, /NEXT_PUBLIC_MEETILY_NATIVE_QA_ROUTE/);
+  assert.match(qaMode, /configuredRoute === 'settings' \? '\/settings' : null/);
+  assert.match(layout, /window\.location\.assign\(nativeQaRoute\)/);
 });

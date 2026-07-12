@@ -19,3 +19,6 @@ const configuredTheme = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_THEME;
 export const nativeQaTheme = isNativeQaMode && (configuredTheme === 'light' || configuredTheme === 'dark')
   ? configuredTheme
   : null;
+
+const configuredRoute = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_ROUTE;
+export const nativeQaRoute = isNativeQaMode && configuredRoute === 'settings' ? '/settings' : null;
