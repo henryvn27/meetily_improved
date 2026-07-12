@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
+import { nativeQaTheme } from '@/lib/native-qa-mode';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -19,16 +20,17 @@ function resolveTheme(preference: ThemePreference) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPreference] = useState<ThemePreference>('system');
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const [preference, setPreference] = useState<ThemePreference>(nativeQaTheme ?? 'system');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(nativeQaTheme ?? 'light');
 
   useEffect(() => {
+    if (nativeQaTheme) return;
     const stored = window.localStorage.getItem(storageKey);
     const nextPreference: ThemePreference = stored === 'light' || stored === 'dark' ? stored : 'system';
     setPreference(nextPreference);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const apply = () => {
       const theme = resolveTheme(preference);

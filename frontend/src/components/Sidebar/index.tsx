@@ -276,16 +276,22 @@ export default function Sidebar() {
                 type="button"
                 onClick={handleRecordingToggle}
                 disabled={isRecording || isPostProcessing}
+                aria-label={isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording active' : 'Open recorder'}
                 className={cn(
-                  'flex min-h-10 items-center justify-center rounded-[3px] bg-accent text-[13px] font-semibold tracking-[-0.01em] text-accent-foreground transition-[background,transform] hover:bg-accent/90 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45',
+                  'flex min-h-10 items-center justify-center rounded-md text-[13px] font-semibold tracking-[-0.01em] transition-[background,color,transform] active:translate-y-px disabled:cursor-default',
                   isCollapsed ? 'w-10' : 'w-full gap-2.5 px-3',
+                  isRecording
+                    ? 'bg-accent text-accent-foreground'
+                    : isPostProcessing
+                      ? 'bg-[hsl(var(--sidebar-hover))] text-[hsl(var(--sidebar-muted))]'
+                      : 'bg-primary text-primary-foreground hover:bg-primary/88',
                 )}
               >
-                {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : isRecording ? <MeetilyGlyph name="stop" className="size-4" /> : <MeetilyGlyph name="capture" className="size-4" />}
-                {!isCollapsed && <span>{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording in progress' : 'Start recording'}</span>}
+                {isPostProcessing ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <MeetilyGlyph name="capture" className="size-4" />}
+                {!isCollapsed && <span>{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording active' : 'Start recording'}</span>}
               </button>
             </TooltipTrigger>
-            {isCollapsed && <TooltipContent side="right">{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording in progress' : 'Start recording'}</TooltipContent>}
+            {isCollapsed && <TooltipContent side="right">{isPostProcessing ? 'Finishing meeting' : isRecording ? 'Recording active' : 'Start recording'}</TooltipContent>}
           </Tooltip>
 
           {betaFeatures.importAndRetranscribe && (

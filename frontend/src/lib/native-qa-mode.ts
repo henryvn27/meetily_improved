@@ -14,3 +14,8 @@ export const nativeQaMode: NativeQaMode =
 export const isNativeQaMode = nativeQaMode !== null;
 export const bypassOnboardingForNativeQa = nativeQaMode === 'routes' || nativeQaMode === 'meeting-error';
 export const openMeetingErrorForNativeQa = nativeQaMode === 'meeting-error';
+
+const configuredTheme = process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_THEME;
+export const nativeQaTheme = isNativeQaMode && (configuredTheme === 'light' || configuredTheme === 'dark')
+  ? configuredTheme
+  : null;
