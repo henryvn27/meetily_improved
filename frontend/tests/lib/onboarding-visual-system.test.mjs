@@ -30,3 +30,29 @@ test('onboarding uses the native setup assistant visual language', async () => {
   assert.doesNotMatch(combined, /<svg/);
   assert.doesNotMatch(combined, /bg-(?:blue|gray|slate|white)-/);
 });
+
+test('permissions completion exits onboarding without an unbounded reload wait', async () => {
+  const [flow, permissions, layout, context] = await Promise.all([
+    readFile(new URL('src/components/onboarding/OnboardingFlow.tsx', root), 'utf8'),
+    readFile(new URL('src/components/onboarding/steps/PermissionsStep.tsx', root), 'utf8'),
+    readFile(new URL('src/app/layout.tsx', root), 'utf8'),
+    readFile(new URL('src/contexts/OnboardingContext.tsx', root), 'utf8'),
+  ]);
+
+  assert.match(flow, /<PermissionsStep onComplete=\{onComplete\}/);
+  assert.match(permissions, /withTimeout\(/);
+  assert.match(permissions, /15_000/);
+  assert.match(permissions, /onComplete\(\)/);
+  assert.match(permissions, /Finishing setup…/);
+  assert.match(permissions, /Could not finish setup/);
+  assert.doesNotMatch(permissions, /window\.location\.reload\(\)/);
+  assert.match(layout, /setShowOnboarding\(false\)/);
+  assert.match(layout, /setOnboardingCompleted\(true\)/);
+  assert.match(context, /Model readiness check deferred/);
+  assert.match(context, /Local model check timed out\./);
+  assert.match(context, /Meetily could not save setup\. Please try again\./);
+  assert.ok(
+    context.indexOf("invoke('complete_onboarding'") < context.indexOf("invoke<boolean>('builtin_ai_is_model_ready'", context.indexOf('const completeOnboarding')),
+    'onboarding is saved before the non-blocking model readiness probe',
+  );
+});

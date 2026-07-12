@@ -42,7 +42,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       {currentStep === 1 && <WelcomeStep />}
       {currentStep === 2 && <SetupOverviewStep />}
       {currentStep === 3 && <DownloadProgressStep />}
-      {currentStep === 4 && isMac && <PermissionsStep />}
+      {currentStep === 4 && isMac && <PermissionsStep onComplete={onComplete} />}
     </div>
   );
 }

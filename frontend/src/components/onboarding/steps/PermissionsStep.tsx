@@ -1,12 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { MicrophoneIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, MicrophoneIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { OnboardingContainer } from '../OnboardingContainer';
 import { PermissionRow } from '../shared';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { withTimeout } from '@/lib/with-timeout';
 
-export function PermissionsStep() {
+interface PermissionsStepProps {
+  onComplete: () => void;
+}
+
+export function PermissionsStep({ onComplete }: PermissionsStepProps) {
   const { setPermissionStatus, setPermissionsSkipped, permissions, completeOnboarding } = useOnboarding();
   const [isPending, setIsPending] = useState(false);
 
@@ -94,17 +100,29 @@ export function PermissionsStep() {
   };
 
   const handleFinish = async () => {
+    if (isPending) return;
+
+    setIsPending(true);
     try {
-      await completeOnboarding();
-      window.location.reload();
+      await withTimeout(
+        completeOnboarding(),
+        'Setup is taking longer than expected. Please try again.',
+        15_000,
+      );
+      onComplete();
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
+      toast.error('Could not finish setup', {
+        description: error instanceof Error ? error.message : 'Please try again.',
+      });
+    } finally {
+      setIsPending(false);
     }
   };
 
   const handleSkip = async () => {
-    setPermissionsSkipped(true);
     await handleFinish();
+    setPermissionsSkipped(true);
   };
 
   const allPermissionsGranted =
@@ -146,12 +164,14 @@ export function PermissionsStep() {
 
         {/* Action Buttons */}
         <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
-          <Button onClick={handleFinish} disabled={!allPermissionsGranted} className="h-9">
-            Finish Setup
+          <Button onClick={handleFinish} disabled={!allPermissionsGranted || isPending} className="h-9">
+            {isPending && <ArrowPathIcon className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+            {isPending ? 'Finishing setup…' : 'Finish Setup'}
           </Button>
 
           <button
             onClick={handleSkip}
+            disabled={isPending}
             className="text-[12px] text-muted-foreground transition-colors hover:text-foreground"
           >
             I&apos;ll do this later
