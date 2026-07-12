@@ -1,10 +1,12 @@
-## Description
-[Provide a detailed description of your changes]
+## What changed
 
-## Related Issue
-[Link to the issue this PR addresses (e.g., "Fixes #123")]
+<!-- Describe the user-visible outcome and why this is the smallest complete change. -->
 
-## Type of Change
+## Related issue
+
+<!-- Example: Fixes #123 -->
+
+## Type of change
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Documentation update
@@ -12,25 +14,24 @@
 - [ ] Code refactoring
 - [ ] Other (please describe)
 
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Manual testing performed
-- [ ] All tests pass
+## Verification
 
-## Documentation
-- [ ] Documentation updated
-- [ ] No documentation needed
+<!-- List exact commands, results, and native QA performed. -->
 
-## Checklist
-- [ ] Code follows project style
-- [ ] Self-reviewed the code
-- [ ] Added comments for complex code
-- [ ] Updated README if needed
-- [ ] Branch is up to date with devtest
-- [ ] No merge conflicts
+- [ ] Focused tests pass
+- [ ] `npm run lint` passes
+- [ ] `npm run build` passes when frontend behavior changed
+- [ ] `/usr/bin/git diff --check` passes
+- [ ] Native behavior was exercised, or the evidence gap is explained
 
-## Screenshots (if applicable)
-[Add screenshots here if your changes affect the UI]
+## Visual evidence
 
-## Additional Notes
-[Add any additional information that might be helpful for reviewers] 
+<!-- Add before/after native screenshots for visual changes and a short video for interactions when practical. Remove this section when not applicable. -->
+
+## Privacy and compatibility
+
+- [ ] Local-first behavior is preserved
+- [ ] No fake meetings, AI output, citations, progress, metrics, or screenshots were added
+- [ ] No recordings, databases, models, credentials, or personal meeting content are included
+- [ ] Existing Tauri commands, storage shapes, imports, recovery, and keyboard flows remain compatible, or the intentional change is documented
+- [ ] Upstream attribution and MIT licensing remain intact

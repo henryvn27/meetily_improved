@@ -25,4 +25,4 @@ assignees: ''
 - [ ] I have searched for similar documentation issues
 - [ ] I have provided links to the current documentation
 - [ ] I have clearly described the proposed changes
-- [ ] I have explained the reason for the change] 
+- [ ] I have explained the reason for the change

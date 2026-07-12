@@ -28,6 +28,9 @@ So that [benefit]
 ## Technical Considerations
 [Any technical details or considerations that should be taken into account]
 
+## Privacy and local-first impact
+[Explain whether this needs cloud services, accounts, calendars, telemetry, remote models, or broader filesystem access. "None" is a valid answer.]
+
 ## Alternatives Considered
 [Describe any alternative solutions or features you've considered]
 
@@ -38,4 +41,5 @@ So that [benefit]
 - [ ] I have searched for similar feature requests
 - [ ] I have provided all required information
 - [ ] I have included any relevant screenshots/mockups
-- [ ] I have described the problem and proposed solution clearly 
+- [ ] I have described the problem and proposed solution clearly
+- [ ] I have described the privacy and local-first impact
