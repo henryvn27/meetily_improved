@@ -441,7 +441,8 @@ pub fn run() {
         .setup(|_app| {
             log::info!("Application setup complete");
 
-            // Initialize system tray
+            // macOS keeps the app in the Dock without adding a persistent menu-bar icon.
+            #[cfg(not(target_os = "macos"))]
             if let Err(e) = tray::create_tray(_app.handle()) {
                 log::error!("Failed to create system tray: {}", e);
             }
@@ -534,6 +535,10 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                #[cfg(target_os = "macos")]
+                let _ = (window, api);
+
+                #[cfg(not(target_os = "macos"))]
                 if window.label() == "main" {
                     api.prevent_close();
                     if let Err(e) = window.hide() {

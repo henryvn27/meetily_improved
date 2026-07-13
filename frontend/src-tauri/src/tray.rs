@@ -237,6 +237,10 @@ fn check_updates_handler<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
+#[cfg(target_os = "macos")]
+pub fn update_tray_menu<R: Runtime>(_app: &AppHandle<R>) {}
+
+#[cfg(not(target_os = "macos"))]
 pub fn update_tray_menu<R: Runtime>(app: &AppHandle<R>) {
     // For sync update, spawn async task to get current state
     let app_clone = app.clone();
@@ -247,6 +251,10 @@ pub fn update_tray_menu<R: Runtime>(app: &AppHandle<R>) {
     });
 }
 
+#[cfg(target_os = "macos")]
+pub fn set_tray_state<R: Runtime>(_app: &AppHandle<R>, _state: RecordingState) {}
+
+#[cfg(not(target_os = "macos"))]
 pub fn set_tray_state<R: Runtime>(app: &AppHandle<R>, state: RecordingState) {
     log::info!("Tray: Setting intermediate state: {:?}", state);
     // During recording state transitions, we assume recording is allowed (we're already recording)
