@@ -1,0 +1,15 @@
+{
+  "build": {
+    "beforeBuildCommand": "node scripts/compile-macos-icon.mjs && pnpm build"
+  },
+  "bundle": {
+    "icon": [
+      "icons/.generated-adaptive-icon/MeetilyImproved.icns"
+    ],
+    "macOS": {
+      "files": {
+        "Resources/Assets.car": "icons/.generated-adaptive-icon/Assets.car"
+      }
+    }
+  }
+}
