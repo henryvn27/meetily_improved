@@ -28,7 +28,7 @@ export default function ChatPage() {
     setError(null);
     setResult(null);
     try {
-      setResult(await invoke<RecallResponse>('api_answer_meetings_locally', { question: trimmed }));
+      setResult(await invoke<RecallResponse>('api_answer_meetings_locally', { question: trimmed, history: [] }));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
     } finally {

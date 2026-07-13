@@ -46,7 +46,12 @@ test('meeting detail remains a summary-first reading workspace with a persistent
   assert.match(transcript, /bg-card xl:bg-secondary\/35/);
   assert.match(transcript, /Ask this meeting/);
   assert.match(transcript, /meetingId,/);
-  assert.doesNotMatch(transcript, /Summary context/);
+  assert.match(transcript, /role="log"/);
+  assert.match(transcript, /ReactMarkdown/);
+  assert.match(transcript, /history: messages\.slice\(-8\)/);
+  assert.match(transcript, /hasMeetingContext/);
+  assert.match(transcript, /No saved transcript or summary yet/);
+  assert.match(content, /hasSavedSummary=\{summaryData !== null\}/);
   assert.match(summary, /onPromptChange/);
   assert.match(summary, /SummaryGeneratorButtonGroup/);
   assert.match(summaryGenerator, /hidden xl:inline/);
