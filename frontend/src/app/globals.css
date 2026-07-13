@@ -282,7 +282,7 @@
   }
 
   .app-display {
-    @apply text-[2.25rem] font-semibold leading-[1.06] tracking-[-0.04em] text-balance;
+    @apply text-[2rem] font-semibold leading-[1.08] tracking-[-0.04em] text-balance;
   }
 
   .app-rail-scrollbar::-webkit-scrollbar-thumb {

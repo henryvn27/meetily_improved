@@ -137,16 +137,6 @@ export default function MeetingsPage() {
         eyebrow="Library"
         title="Saved meetings"
         description="Revisit transcripts and notes stored in your local Meetily database."
-        actions={(
-          <>
-            {betaFeatures.importAndRetranscribe && (
-              <Button variant="outline" onClick={() => openImportDialog()}>
-                <ArrowUpTrayIcon />Import audio
-              </Button>
-            )}
-            <Button onClick={() => router.push('/new-meeting')}><MicrophoneIcon />New meeting</Button>
-          </>
-        )}
       />
       <section aria-label="Saved meeting list" className="mt-7">
         {viewState === 'loading' ? (

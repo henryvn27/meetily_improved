@@ -16,7 +16,7 @@ export function PageHeader({ eyebrow, title, description, actions }: PageHeaderP
             {eyebrow}
           </p>
         )}
-        <h1 className="app-display text-foreground xl:text-[3.125rem]">
+        <h1 className="app-display text-foreground xl:text-[2.5rem]">
           {title}
         </h1>
         {description && (

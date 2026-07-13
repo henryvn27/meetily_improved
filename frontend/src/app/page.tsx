@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRightIcon, ChevronRightIcon, Cog6ToothIcon, CpuChipIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
+import { ArrowRightIcon, ChevronRightIcon, CpuChipIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AppState } from '@/components/app-shell/AppState';
@@ -62,12 +62,6 @@ export default function DashboardPage() {
         eyebrow="This device / meeting workbench"
         title="Work from what was said."
         description="Capture a conversation, keep the record local, then return to the decisions without a meeting bot in the call."
-        actions={
-          <Button onClick={() => router.push('/new-meeting')}>
-            <MicrophoneIcon aria-hidden="true" />
-            New meeting
-          </Button>
-        }
       />
 
       <section aria-labelledby="workspace-heading" className="mt-10 border-y border-border">
@@ -103,15 +97,6 @@ export default function DashboardPage() {
                 </span>
               </div>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">{localModelStatus.description}</p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => router.push('/settings')}>
-                  <Cog6ToothIcon aria-hidden="true" />
-                  Settings
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => router.push('/chat')}>
-                  Ask notes
-                </Button>
-              </div>
             </aside>
           </div>
       </section>

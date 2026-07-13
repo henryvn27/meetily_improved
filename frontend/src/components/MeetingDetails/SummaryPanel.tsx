@@ -370,9 +370,9 @@ export function SummaryPanel({
       ) : transcripts?.length > 0 && (
         <div className="flex-1 overflow-y-auto min-h-0">
           {summaryResponse && (
-            <div className="fixed bottom-0 left-0 right-0 max-h-1/3 overflow-y-auto border-t border-border bg-card p-4 shadow-[0_-12px_32px_hsl(var(--foreground)/0.08)]">
+            <div className="mb-6 border border-border bg-secondary/40 p-4">
               <h3 className="text-lg font-semibold mb-2">Meeting Summary</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Key Points</h4>
                   <ul className="list-disc pl-4">

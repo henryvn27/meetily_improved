@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -35,9 +35,6 @@ export default function Sidebar() {
     isCollapsed,
     toggleCollapse,
     handleRecordingToggle,
-    searchTranscripts,
-    searchResults,
-    isSearching,
     meetings,
     setMeetings,
   } = useSidebar();
@@ -45,7 +42,6 @@ export default function Sidebar() {
   const isPostProcessing = isStopping || isProcessing || isSaving;
   const { openImportDialog } = useImportDialog();
   const { betaFeatures } = useConfig();
-  const [searchQuery, setSearchQuery] = useState('');
   const [deleteMeetingId, setDeleteMeetingId] = useState<string | null>(null);
   const [editingMeeting, setEditingMeeting] = useState<{ id: string; title: string } | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -60,18 +56,6 @@ export default function Sidebar() {
       delete window.openSettings;
     };
   }, [openSettings]);
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchQuery(value);
-    void searchTranscripts(value);
-  }, [searchTranscripts]);
-
-  const visibleMeetings = useMemo(() => {
-    if (!searchQuery.trim()) return meetings;
-    const matchingIds = new Set(searchResults.map((result) => result.id));
-    const query = searchQuery.toLowerCase();
-    return meetings.filter((meeting) => matchingIds.has(meeting.id) || meeting.title.toLowerCase().includes(query));
-  }, [meetings, searchQuery, searchResults]);
 
   const openMeeting = (id: string, title: string) => {
     if (isPostProcessing) return;
@@ -166,7 +150,7 @@ export default function Sidebar() {
       aria-label="Meetily workspace"
       className={cn(
         'fixed inset-y-0 left-0 z-40 flex border-r border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar)/0.94)] text-[hsl(var(--sidebar-foreground))] backdrop-blur-xl transition-[width] duration-200 ease-out',
-        isCollapsed ? 'w-[4.5rem]' : 'w-[17.5rem]',
+        isCollapsed ? 'w-[4.5rem]' : 'w-[15rem]',
       )}
     >
       <div className="flex min-w-0 flex-1 flex-col px-3 pb-4 pt-4">
@@ -202,44 +186,18 @@ export default function Sidebar() {
 
         {!isCollapsed && (
           <div className="mt-6 min-h-0 flex-1">
-            <div className="relative">
-              <label htmlFor="meeting-search" className="sr-only">Search saved meetings</label>
-              <MeetilyGlyph name="search" className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-[hsl(var(--sidebar-muted))]" />
-              <input
-                id="meeting-search"
-                type="search"
-                value={searchQuery}
-                onChange={(event) => handleSearchChange(event.target.value)}
-                disabled={isPostProcessing}
-                placeholder="Search meetings"
-                className="h-9 w-full rounded-[6px] border border-[hsl(var(--sidebar-border))] bg-[hsl(var(--card)/0.6)] pl-8 pr-8 text-[13px] text-[hsl(var(--sidebar-foreground))] placeholder:text-[hsl(var(--sidebar-muted))] focus-visible:border-accent/70 focus-visible:ring-offset-[hsl(var(--sidebar))] disabled:cursor-not-allowed disabled:opacity-45"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => handleSearchChange('')}
-                  disabled={isPostProcessing}
-                  aria-label="Clear meeting search"
-                  className="absolute right-1 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))]"
-                >
-                  <MeetilyGlyph name="close" className="size-4" />
-                </button>
-              )}
-            </div>
-
-            <div className="mt-5 flex items-center justify-between px-1">
+            <div className="flex items-center justify-between px-1">
               <p className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.12em] text-[hsl(var(--sidebar-muted))]">Meeting ledger</p>
-              {isSearching && <span className="font-mono text-[0.625rem] text-[hsl(var(--sidebar-muted))]">Searching…</span>}
             </div>
 
-            <div className="app-rail-scrollbar mt-1.5 max-h-[calc(100dvh-25rem)] min-h-20 overflow-y-auto custom-scrollbar">
-              {visibleMeetings.length === 0 ? (
+            <div className="app-rail-scrollbar mt-1.5 max-h-[calc(100dvh-21rem)] min-h-20 overflow-y-auto custom-scrollbar">
+              {meetings.length === 0 ? (
                 <p className="px-2 py-4 text-xs leading-5 text-[hsl(var(--sidebar-muted))]">
-                  {searchQuery ? 'No matching meetings.' : 'Saved meetings will appear here.'}
+                  Saved meetings will appear here.
                 </p>
               ) : (
                 <ul className="space-y-0.5">
-                  {visibleMeetings.map((meeting) => (
+                  {meetings.map((meeting) => (
                     <li key={meeting.id} className="group relative">
                       <button
                         type="button"
