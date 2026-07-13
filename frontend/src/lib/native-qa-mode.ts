@@ -42,3 +42,8 @@ export const nativeQaSettingsTab = nativeQaMode === 'routes' && [
 ].includes(configuredSettingsTab ?? '')
   ? configuredSettingsTab
   : null;
+
+const configuredOnboardingStep = Number(process.env.NEXT_PUBLIC_MEETILY_NATIVE_QA_ONBOARDING_STEP);
+export const nativeQaOnboardingStep = nativeQaMode === 'onboarding' && Number.isInteger(configuredOnboardingStep) && configuredOnboardingStep >= 1 && configuredOnboardingStep <= 4
+  ? configuredOnboardingStep
+  : null;

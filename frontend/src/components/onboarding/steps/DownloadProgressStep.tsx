@@ -413,7 +413,7 @@ export function DownloadProgressStep() {
             <span className="text-[11px] text-muted-foreground">Waiting</span>
           )}
           {state.status === 'downloading' && (
-            <ArrowPathIcon className="size-4 animate-spin text-muted-foreground" />
+            <ArrowPathIcon className="size-4 animate-spin text-muted-foreground motion-reduce:animate-none" />
           )}
           {state.status === 'completed' && (
             <div className="grid size-5 place-items-center rounded-full bg-[hsl(var(--success)/0.1)]">
@@ -528,7 +528,7 @@ export function DownloadProgressStep() {
             className="h-9 min-w-[116px] disabled:cursor-not-allowed"
           >
             {(isCompleting || !parakeetDownloaded) ? (
-              <ArrowPathIcon className="size-4 animate-spin" />
+              <ArrowPathIcon className="size-4 animate-spin motion-reduce:animate-none" />
             ) : (
               'Continue'
             )}

@@ -172,7 +172,7 @@ export function PermissionsStep({ onComplete }: PermissionsStepProps) {
           <button
             onClick={handleSkip}
             disabled={isPending}
-            className="text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-sm text-[12px] text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             I&apos;ll do this later
           </button>

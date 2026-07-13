@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import { cn } from '@/lib/utils';
 import { ProgressIndicator } from './shared/ProgressIndicator';
@@ -47,7 +48,7 @@ export function OnboardingContainer({
       <div className={cn('grid h-full w-full grid-cols-[264px_minmax(0,1fr)] max-[1160px]:grid-cols-[232px_minmax(0,1fr)]', className)}>
         <aside className="flex min-h-0 flex-col border-r border-border bg-secondary/35 px-7 pb-7 pt-10 max-[1160px]:px-6">
           <div className="flex items-center gap-2.5">
-            <span className="grid size-7 place-items-center rounded-[7px] bg-foreground text-[11px] font-semibold tracking-[-0.02em] text-background">MI</span>
+            <Image src="/logo-collapsed.png" alt="" width={28} height={28} priority />
             <span className="text-[13px] font-medium tracking-[-0.015em]">Meetily Improved</span>
           </div>
           <div className="mt-auto">

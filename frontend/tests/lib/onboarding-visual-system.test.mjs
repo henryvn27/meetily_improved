@@ -21,6 +21,7 @@ test('onboarding uses the native setup assistant visual language', async () => {
   assert.match(container, /grid-cols-\[264px_minmax\(0,1fr\)\]/);
   assert.match(container, /max-\[1160px\]:grid-cols-\[232px_minmax\(0,1fr\)\]/);
   assert.match(container, /Private by default/);
+  assert.match(container, /logo-collapsed\.png/);
   assert.match(progress, /aria-current=\{isActive \? 'step'/);
   assert.match(downloads, /role="progressbar"/);
   assert.match(downloads, /aria-valuenow=\{Math\.round\(state\.progress\)\}/);
@@ -29,6 +30,32 @@ test('onboarding uses the native setup assistant visual language', async () => {
   assert.doesNotMatch(combined, /rounded-\[3px\]/);
   assert.doesNotMatch(combined, /<svg/);
   assert.doesNotMatch(combined, /bg-(?:blue|gray|slate|white)-/);
+  assert.match(downloads, /motion-reduce:animate-none/);
+  assert.match(downloads, /state\.status === 'error'/);
+  assert.match(downloads, /Download couldn&apos;t finish/);
+  assert.match(downloads, /Try Again/);
+  assert.match(downloads, /text-destructive/);
+  assert.match(downloads, /disabled:cursor-not-allowed/);
+});
+
+test('native QA can open a real onboarding step without changing permissions or model state', async () => {
+  const [qaMode, context] = await Promise.all([
+    readFile(new URL('src/lib/native-qa-mode.ts', root), 'utf8'),
+    readFile(new URL('src/contexts/OnboardingContext.tsx', root), 'utf8'),
+  ]);
+
+  assert.match(qaMode, /NEXT_PUBLIC_MEETILY_NATIVE_QA_ONBOARDING_STEP/);
+  assert.match(qaMode, /nativeQaMode === 'onboarding'/);
+  assert.match(context, /useState\(nativeQaOnboardingStep \?\? 1\)/);
+  const completionFlow = context.slice(
+    context.indexOf('const completeOnboarding'),
+    context.indexOf('// Start background downloads for models.'),
+  );
+  const qaCompletionGuard = completionFlow.indexOf('if (isNativeQaMode)');
+  const readinessProbe = completionFlow.indexOf("invoke<boolean>('builtin_ai_is_model_ready'");
+  assert.ok(qaCompletionGuard > -1 && qaCompletionGuard < readinessProbe);
+  assert.match(completionFlow, /Native QA completion: skipping model readiness and download preparation/);
+  assert.doesNotMatch(qaMode, /trigger_microphone_permission|trigger_system_audio_permission_command|download_model/);
 });
 
 test('permissions completion exits onboarding without an unbounded reload wait', async () => {
