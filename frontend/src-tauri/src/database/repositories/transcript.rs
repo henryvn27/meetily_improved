@@ -99,19 +99,21 @@ impl TranscriptsRepository {
         Self::search_transcripts_scoped(pool, query, Some(meeting_id)).await
     }
 
-    /// Returns the selected meeting's transcript in chronological order for
-    /// the persistent meeting inspector. Unlike global recall search, this is
-    /// intentionally not keyword-filtered: questions about summaries, action
-    /// items, or conclusions may depend on text far from the first match.
+    /// Returns the selected meeting's saved transcript and summary in
+    /// chronological order for the persistent meeting inspector. Unlike
+    /// global recall search, this is intentionally not keyword-filtered:
+    /// questions about summaries, action items, or conclusions may depend on
+    /// text far from the first match. A summary-only meeting yields one source;
+    /// a meeting with no saved source material yields none.
     pub async fn get_meeting_transcripts_for_recall(
         pool: &SqlitePool,
         meeting_id: &str,
     ) -> Result<Vec<TranscriptSearchResult>, SqlxError> {
         sqlx::query_as::<_, (String, String, String, String, String, Option<String>)>(
-            "SELECT m.id, m.title, t.transcript, t.timestamp, m.created_at, s.result FROM meetings m \
-             JOIN transcripts t ON m.id = t.meeting_id \
+            "SELECT m.id, m.title, COALESCE(t.transcript, ''), COALESCE(t.timestamp, 'not available'), m.created_at, s.result FROM meetings m \
+             LEFT JOIN transcripts t ON m.id = t.meeting_id \
              LEFT JOIN summary_processes s ON m.id = s.meeting_id \
-             WHERE m.id = ? \
+             WHERE m.id = ? AND (t.meeting_id IS NOT NULL OR NULLIF(TRIM(COALESCE(s.result, '')), '') IS NOT NULL) \
              ORDER BY t.audio_start_time ASC, t.timestamp ASC",
         )
         .bind(meeting_id)
@@ -377,6 +379,51 @@ mod tests {
         assert!(results[1]
             .match_context
             .contains("action items are at the end"));
+    }
+
+    #[tokio::test]
+    async fn meeting_inspector_uses_summary_only_and_rejects_an_empty_meeting() {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE meetings (id TEXT PRIMARY KEY, title TEXT, created_at TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE transcripts (meeting_id TEXT, transcript TEXT, timestamp TEXT, audio_start_time REAL)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE summary_processes (meeting_id TEXT PRIMARY KEY, result TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO meetings VALUES ('summary-only', 'Summary meeting', '2026-07-13'), ('empty', 'Empty meeting', '2026-07-13')")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO summary_processes VALUES ('summary-only', '{\"markdown\":\"Saved local decision.\"}')")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let summary =
+            TranscriptsRepository::get_meeting_transcripts_for_recall(&pool, "summary-only")
+                .await
+                .unwrap();
+        let empty = TranscriptsRepository::get_meeting_transcripts_for_recall(&pool, "empty")
+            .await
+            .unwrap();
+
+        assert_eq!(summary.len(), 1);
+        assert!(summary[0].match_context.is_empty());
+        assert!(summary[0]
+            .summary
+            .as_deref()
+            .unwrap()
+            .contains("Saved local decision"));
+        assert!(empty.is_empty());
     }
 
     #[tokio::test]
