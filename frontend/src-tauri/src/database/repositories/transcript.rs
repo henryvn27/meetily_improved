@@ -107,9 +107,10 @@ impl TranscriptsRepository {
         pool: &SqlitePool,
         meeting_id: &str,
     ) -> Result<Vec<TranscriptSearchResult>, SqlxError> {
-        sqlx::query_as::<_, (String, String, String, String)>(
-            "SELECT m.id, m.title, t.transcript, t.timestamp FROM meetings m \
+        sqlx::query_as::<_, (String, String, String, String, String, Option<String>)>(
+            "SELECT m.id, m.title, t.transcript, t.timestamp, m.created_at, s.result FROM meetings m \
              JOIN transcripts t ON m.id = t.meeting_id \
+             LEFT JOIN summary_processes s ON m.id = s.meeting_id \
              WHERE m.id = ? \
              ORDER BY t.audio_start_time ASC, t.timestamp ASC",
         )
@@ -119,11 +120,13 @@ impl TranscriptsRepository {
         .map(|rows| {
             rows.into_iter()
                 .map(
-                    |(id, title, transcript, timestamp)| TranscriptSearchResult {
+                    |(id, title, transcript, timestamp, meeting_date, summary)| TranscriptSearchResult {
                         id,
                         title,
                         match_context: transcript,
                         timestamp,
+                        meeting_date: Some(meeting_date),
+                        summary,
                     },
                 )
                 .collect()
@@ -141,8 +144,9 @@ impl TranscriptsRepository {
         }
 
         let mut builder = QueryBuilder::<Sqlite>::new(
-            "SELECT m.id, m.title, t.transcript, t.timestamp FROM meetings m \
-             JOIN transcripts t ON m.id = t.meeting_id WHERE ",
+            "SELECT m.id, m.title, t.transcript, t.timestamp, m.created_at, s.result FROM meetings m \
+             JOIN transcripts t ON m.id = t.meeting_id \
+             LEFT JOIN summary_processes s ON m.id = s.meeting_id WHERE ",
         );
         if let Some(meeting_id) = meeting_id {
             builder.push("m.id = ").push_bind(meeting_id).push(" AND (");
@@ -156,6 +160,8 @@ impl TranscriptsRepository {
                 .push_bind(format!("%{term}%"))
                 .push(" OR LOWER(m.title) LIKE ")
                 .push_bind(format!("%{term}%"))
+                .push(" OR LOWER(COALESCE(s.result, '')) LIKE ")
+                .push_bind(format!("%{term}%"))
                 .push(")");
         }
         if meeting_id.is_some() {
@@ -164,7 +170,7 @@ impl TranscriptsRepository {
         builder.push(" ORDER BY m.created_at DESC LIMIT 64");
 
         let rows = builder
-            .build_query_as::<(String, String, String, String)>()
+            .build_query_as::<(String, String, String, String, String, Option<String>)>()
             .fetch_all(pool)
             .await?;
 
@@ -175,26 +181,35 @@ impl TranscriptsRepository {
         };
         let mut results = rows
             .into_iter()
-            .filter_map(|(id, title, transcript, timestamp)| {
-                let haystack = format!("{} {}", title.to_lowercase(), transcript.to_lowercase());
-                let score = terms
-                    .iter()
-                    .filter(|term| haystack.contains(term.as_str()))
-                    .count();
-                if score < minimum_score {
-                    return None;
-                }
-                let match_context = Self::get_match_context(&transcript, &terms);
-                Some((
-                    score,
-                    TranscriptSearchResult {
-                        id,
-                        title,
-                        match_context,
-                        timestamp,
-                    },
-                ))
-            })
+            .filter_map(
+                |(id, title, transcript, timestamp, meeting_date, summary)| {
+                    let haystack = format!(
+                        "{} {} {}",
+                        title.to_lowercase(),
+                        transcript.to_lowercase(),
+                        summary.as_deref().unwrap_or_default().to_lowercase()
+                    );
+                    let score = terms
+                        .iter()
+                        .filter(|term| haystack.contains(term.as_str()))
+                        .count();
+                    if score < minimum_score {
+                        return None;
+                    }
+                    let match_context = Self::get_match_context(&transcript, &terms);
+                    Some((
+                        score,
+                        TranscriptSearchResult {
+                            id,
+                            title,
+                            match_context,
+                            timestamp,
+                            meeting_date: Some(meeting_date),
+                            summary,
+                        },
+                    ))
+                },
+            )
             .collect::<Vec<_>>();
         results.sort_by(|left, right| right.0.cmp(&left.0));
 
@@ -268,6 +283,10 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
+        sqlx::query("CREATE TABLE summary_processes (meeting_id TEXT PRIMARY KEY, result TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
         sqlx::query("INSERT INTO meetings VALUES ('meeting-1', 'Audio test', '2026-07-12')")
             .execute(&pool)
             .await
@@ -301,6 +320,10 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
+        sqlx::query("CREATE TABLE summary_processes (meeting_id TEXT PRIMARY KEY, result TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
         sqlx::query("INSERT INTO meetings VALUES ('open', 'Open meeting', '2026-07-12'), ('other', 'Other meeting', '2026-07-11')")
             .execute(&pool).await.unwrap();
         sqlx::query("INSERT INTO transcripts VALUES ('open', 'We discussed safety.', '00:10'), ('other', 'We discussed safety and robotics.', '00:20')")
@@ -329,6 +352,10 @@ mod tests {
             .await
             .unwrap();
         sqlx::query("CREATE TABLE transcripts (meeting_id TEXT, transcript TEXT, timestamp TEXT, audio_start_time REAL)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE summary_processes (meeting_id TEXT PRIMARY KEY, result TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -366,6 +393,10 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
+        sqlx::query("CREATE TABLE summary_processes (meeting_id TEXT PRIMARY KEY, result TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
         sqlx::query("INSERT INTO meetings VALUES ('relevant', 'AI review', '2026-07-12'), ('noise', 'Greeting', '2026-07-11')")
             .execute(&pool).await.unwrap();
         sqlx::query("INSERT INTO transcripts VALUES ('relevant', 'Henry discussed local AI and human review.', '00:10'), ('noise', 'My name is Henry.', '00:20')")
@@ -380,5 +411,59 @@ mod tests {
 
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].id, "relevant");
+    }
+
+    #[tokio::test]
+    async fn global_recall_searches_saved_summaries_and_returns_meeting_metadata() {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE meetings (id TEXT PRIMARY KEY, title TEXT, created_at TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE transcripts (meeting_id TEXT, transcript TEXT, timestamp TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE summary_processes (meeting_id TEXT PRIMARY KEY, result TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query(
+            "INSERT INTO meetings VALUES ('meeting-1', 'Strategy review', '2026-07-13T10:00:00Z')",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query(
+            "INSERT INTO transcripts VALUES ('meeting-1', 'The team reviewed open work.', '00:10')",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query(r###"INSERT INTO summary_processes VALUES ('meeting-1', '{"markdown":"## Decision\nAdopt local model governance."}')"###)
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let results = TranscriptsRepository::search_transcripts(
+            &pool,
+            "What did we decide about local model governance?",
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(
+            results[0].meeting_date.as_deref(),
+            Some("2026-07-13T10:00:00Z")
+        );
+        assert!(results[0]
+            .summary
+            .as_deref()
+            .unwrap()
+            .contains("local model governance"));
     }
 }

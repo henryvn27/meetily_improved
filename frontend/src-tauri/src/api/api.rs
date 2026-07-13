@@ -1,6 +1,6 @@
 use log::{debug as log_debug, error as log_error, info as log_info, warn as log_warn};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::StoreExt;
@@ -79,6 +79,9 @@ pub struct TranscriptSearchResult {
     #[serde(rename = "matchContext")]
     pub match_context: String,
     pub timestamp: String,
+    #[serde(rename = "meetingDate")]
+    pub meeting_date: Option<String>,
+    pub summary: Option<String>,
 }
 
 /// A source the local recall command actually supplied to the local model.
@@ -91,6 +94,9 @@ pub struct LocalRecallSource {
     #[serde(rename = "matchContext")]
     pub match_context: String,
     pub timestamp: String,
+    #[serde(rename = "meetingDate")]
+    pub meeting_date: Option<String>,
+    pub summary: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -102,6 +108,7 @@ pub struct LocalRecallResponse {
 const MAX_MEETING_RECALL_CONTEXT_CHARS: usize = 48_000;
 const MAX_MEETING_RECALL_SOURCES: usize = 64;
 const MAX_MEETING_RECALL_SOURCE_CHARS: usize = 8_000;
+const MAX_GLOBAL_RECALL_MEETINGS: usize = 8;
 
 fn bounded_middle_excerpt(text: &str, maximum_characters: usize) -> String {
     let characters = text.chars().collect::<Vec<_>>();
@@ -145,8 +152,97 @@ fn build_meeting_recall_sources(matches: Vec<TranscriptSearchResult>) -> Vec<Loc
             title: item.title,
             match_context: bounded_middle_excerpt(&item.match_context, per_source_budget),
             timestamp: item.timestamp,
+            meeting_date: item.meeting_date,
+            summary: item.summary.as_deref().and_then(summary_markdown),
         })
         .collect()
+}
+
+fn build_global_recall_sources(matches: Vec<TranscriptSearchResult>) -> Vec<LocalRecallSource> {
+    let mut sources = Vec::<LocalRecallSource>::new();
+    for item in matches {
+        if let Some(source) = sources
+            .iter_mut()
+            .find(|source| source.meeting_id == item.id)
+        {
+            if !source.match_context.contains(&item.match_context) {
+                source.match_context = bounded_middle_excerpt(
+                    &format!(
+                        "{}\n[{}] {}",
+                        source.match_context, item.timestamp, item.match_context
+                    ),
+                    MAX_MEETING_RECALL_SOURCE_CHARS,
+                );
+            }
+            if source.summary.is_none() {
+                source.summary = item.summary.as_deref().and_then(summary_markdown);
+            }
+            continue;
+        }
+        if sources.len() >= MAX_GLOBAL_RECALL_MEETINGS {
+            continue;
+        }
+        sources.push(LocalRecallSource {
+            meeting_id: item.id,
+            title: item.title,
+            match_context: format!("[{}] {}", item.timestamp, item.match_context),
+            timestamp: item.timestamp,
+            meeting_date: item.meeting_date,
+            summary: item.summary.as_deref().and_then(summary_markdown),
+        });
+    }
+    sources
+}
+
+fn summary_markdown(raw: &str) -> Option<String> {
+    let raw = raw.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    let summary = match serde_json::from_str::<serde_json::Value>(raw) {
+        Ok(serde_json::Value::String(value)) => value,
+        Ok(mut value) => {
+            if let Some(markdown) = value.get("markdown").and_then(serde_json::Value::as_str) {
+                markdown.to_string()
+            } else {
+                if let Some(object) = value.as_object_mut() {
+                    object.remove("english_cache");
+                }
+                serde_json::to_string_pretty(&value).ok()?
+            }
+        }
+        Err(_) => raw.to_string(),
+    };
+    let summary = summary.trim();
+    (!summary.is_empty()).then(|| bounded_middle_excerpt(summary, MAX_MEETING_RECALL_SOURCE_CHARS))
+}
+
+fn build_local_recall_context(sources: &[LocalRecallSource]) -> String {
+    let mut summaries_included = HashSet::new();
+    let context = sources
+        .iter()
+        .enumerate()
+        .map(|(index, source)| {
+            let meeting_date = source.meeting_date.as_deref().unwrap_or("date unavailable");
+            let summary = source
+                .summary
+                .as_deref()
+                .filter(|_| summaries_included.insert(source.meeting_id.as_str()))
+                .map(|summary| format!("\nSaved summary:\n{summary}"))
+                .unwrap_or_default();
+            format!(
+                "[Source {} | {} | meeting date {} | transcript time {}]{}\nTranscript excerpt:\n{}",
+                index + 1,
+                source.title,
+                meeting_date,
+                source.timestamp,
+                summary,
+                source.match_context
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n");
+    bounded_middle_excerpt(&context, MAX_MEETING_RECALL_CONTEXT_CHARS)
 }
 
 #[derive(Debug, Serialize)]
@@ -546,31 +642,9 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     let sources = if is_meeting_scoped {
         build_meeting_recall_sources(matches)
     } else {
-        matches
-            .into_iter()
-            .take(8)
-            .map(|item| LocalRecallSource {
-                meeting_id: item.id,
-                title: item.title,
-                match_context: item.match_context,
-                timestamp: item.timestamp,
-            })
-            .collect::<Vec<_>>()
+        build_global_recall_sources(matches)
     };
-    let context = sources
-        .iter()
-        .enumerate()
-        .map(|(index, source)| {
-            format!(
-                "[Source {} | {} | {}]\n{}",
-                index + 1,
-                source.title,
-                source.timestamp,
-                source.match_context
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n\n");
+    let context = build_local_recall_context(&sources);
     let system_prompt = "You answer only from the supplied local meeting excerpts. If the excerpts do not answer the question, say so plainly. Do not claim access to any other meeting data, do not invent facts, and do not invent citations.";
     let user_prompt = format!("Question: {question}\n\nLocal meeting excerpts:\n{context}");
     let client = reqwest::Client::builder()
@@ -604,7 +678,8 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
 #[cfg(test)]
 mod local_recall_tests {
     use super::{
-        build_meeting_recall_sources, is_loopback_ollama_endpoint, TranscriptSearchResult,
+        build_global_recall_sources, build_local_recall_context, build_meeting_recall_sources,
+        is_loopback_ollama_endpoint, summary_markdown, LocalRecallSource, TranscriptSearchResult,
         MAX_MEETING_RECALL_SOURCE_CHARS,
     };
 
@@ -647,6 +722,8 @@ mod local_recall_tests {
             title: "AI meeting".to_string(),
             match_context: long_segment,
             timestamp: "00:00".to_string(),
+            meeting_date: Some("2026-07-13".to_string()),
+            summary: None,
         }]);
 
         assert_eq!(sources.len(), 1);
@@ -657,6 +734,80 @@ mod local_recall_tests {
             .match_context
             .contains("The action items are keep it simple"));
         assert!(sources[0].match_context.chars().count() <= MAX_MEETING_RECALL_SOURCE_CHARS + 3);
+    }
+
+    #[test]
+    fn recall_context_includes_real_date_summary_and_transcript_once_per_meeting() {
+        let raw_summary = r###"{"markdown":"## Decisions\nKeep recall local."}"###;
+        assert_eq!(
+            summary_markdown(raw_summary).as_deref(),
+            Some("## Decisions\nKeep recall local.")
+        );
+        assert_eq!(
+            summary_markdown("Legacy plain-text summary").as_deref(),
+            Some("Legacy plain-text summary")
+        );
+        let sources = vec![
+            LocalRecallSource {
+                meeting_id: "meeting-1".to_string(),
+                title: "AI review".to_string(),
+                match_context: "Henry opened the review.".to_string(),
+                timestamp: "00:05".to_string(),
+                meeting_date: Some("2026-07-13T10:00:00Z".to_string()),
+                summary: summary_markdown(raw_summary),
+            },
+            LocalRecallSource {
+                meeting_id: "meeting-1".to_string(),
+                title: "AI review".to_string(),
+                match_context: "Trent confirmed the decision.".to_string(),
+                timestamp: "00:30".to_string(),
+                meeting_date: Some("2026-07-13T10:00:00Z".to_string()),
+                summary: summary_markdown(raw_summary),
+            },
+        ];
+
+        let context = build_local_recall_context(&sources);
+        assert!(context.contains("meeting date 2026-07-13T10:00:00Z"));
+        assert!(context.contains("Saved summary:\n## Decisions"));
+        assert!(context.contains("Transcript excerpt:\nHenry opened"));
+        assert_eq!(context.matches("Saved summary:").count(), 1);
+    }
+
+    #[test]
+    fn global_recall_returns_one_source_per_meeting_with_bounded_excerpts() {
+        let matches = vec![
+            TranscriptSearchResult {
+                id: "meeting-1".to_string(),
+                title: "AI review".to_string(),
+                match_context: "First matching segment.".to_string(),
+                timestamp: "00:05".to_string(),
+                meeting_date: Some("2026-07-13".to_string()),
+                summary: Some(r###"{"markdown":"Saved decision."}"###.to_string()),
+            },
+            TranscriptSearchResult {
+                id: "meeting-1".to_string(),
+                title: "AI review".to_string(),
+                match_context: "Second matching segment.".to_string(),
+                timestamp: "00:30".to_string(),
+                meeting_date: Some("2026-07-13".to_string()),
+                summary: None,
+            },
+            TranscriptSearchResult {
+                id: "meeting-2".to_string(),
+                title: "Other review".to_string(),
+                match_context: "Another meeting.".to_string(),
+                timestamp: "00:10".to_string(),
+                meeting_date: Some("2026-07-12".to_string()),
+                summary: None,
+            },
+        ];
+
+        let sources = build_global_recall_sources(matches);
+        assert_eq!(sources.len(), 2);
+        assert_eq!(sources[0].meeting_id, "meeting-1");
+        assert!(sources[0].match_context.contains("First matching segment"));
+        assert!(sources[0].match_context.contains("Second matching segment"));
+        assert_eq!(sources[0].summary.as_deref(), Some("Saved decision."));
     }
 }
 
