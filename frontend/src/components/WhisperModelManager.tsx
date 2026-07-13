@@ -425,7 +425,7 @@ export function ModelManager({
   return (
     <div className={`space-y-3 ${className}`}>
       {/* Basic Models */}
-      <div className="space-y-3">
+      <div className="divide-y divide-border/70 border-y border-border/70">
         {basicModels.map((model) => {
           const isRecommended = model.name === 'base';
           return (
@@ -457,7 +457,7 @@ export function ModelManager({
               <span className='text-lg'>Advanced Models</span>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="space-y-3 pt-4">
+              <div className="divide-y divide-border/70 border-y border-border/70">
                 {advancedModels.map((model) => (
                   <ModelCard
                     key={model.name}
@@ -539,12 +539,12 @@ function ModelCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
-        relative rounded-md border transition-all cursor-pointer
+        relative transition-colors cursor-pointer
         ${isSelected && isAvailable
-          ? 'border-accent bg-[hsl(var(--accent-soft))]'
+          ? 'border-l-2 border-l-accent bg-[hsl(var(--accent-soft))]'
           : isAvailable
-            ? 'border-border hover:border-border-strong bg-card'
-            : 'border-border bg-secondary/45'
+            ? 'hover:bg-secondary/35'
+            : 'bg-secondary/25'
         }
         ${isAvailable ? '' : 'cursor-default'}
       `}
@@ -552,20 +552,16 @@ function ModelCard({
         if (isAvailable) onSelect();
       }}
     >
-      {/* Recommended Badge */}
-      {isRecommended && (
-        <div className="absolute -top-2 right-3 rounded-md bg-accent px-2 py-0.5 font-mono text-[0.625rem] font-medium text-accent-foreground">
-          Recommended
-        </div>
-      )}
-
-      <div className="p-3">
+      <div className="px-3 py-4 sm:px-4">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             {/* Model Name and Tagline */}
             <div className="flex items-center gap-2 flex-wrap mb-2">
               <CpuChipIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
               <h3 className="font-semibold">{displayName}</h3>
+              {isRecommended && (
+                <span className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">Recommended</span>
+              )}
               <span className="text-sm text-muted-foreground">•</span>
               <span className="text-sm text-muted-foreground">{getModelTagline(model.name, model.speed, model.accuracy)}</span>
               {isSelected && isAvailable && (

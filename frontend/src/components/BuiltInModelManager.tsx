@@ -283,8 +283,8 @@ export function BuiltInModelManager({
 
       <div
         className={cn(
-          'grid gap-4',
-          layout === 'dialog' && 'max-h-[50vh] overflow-y-auto pr-2 pb-2'
+          'divide-y divide-border/70 border-y border-border/70',
+          layout === 'dialog' && 'max-h-[50vh] overflow-y-auto pr-2'
         )}
       >
         {models.map((model) => {
@@ -300,13 +300,13 @@ export function BuiltInModelManager({
             <div
               key={model.name}
               className={cn(
-                'rounded-md border p-4 transition-colors',
+                'px-1 py-4 transition-colors sm:px-3',
                 modelIsDownloading
-                  ? 'border-border bg-card'
-                  : 'bg-card',
+                  ? 'bg-secondary/35'
+                  : 'bg-transparent',
                 selectedModel === model.name
-                  ? 'border-accent bg-[hsl(var(--accent-soft))] ring-2 ring-accent/20'
-                  : 'border-border hover:border-border-strong',
+                  ? 'border-l-2 border-l-accent bg-[hsl(var(--accent-soft))] pl-3'
+                  : 'hover:bg-secondary/35',
                 isAvailable && !modelIsDownloading && 'cursor-pointer'
               )}
               onClick={() => {

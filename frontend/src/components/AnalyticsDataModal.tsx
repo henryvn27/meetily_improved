@@ -13,6 +13,43 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+const analyticsCategories = [
+  {
+    title: 'Model preferences',
+    detail: 'Transcription and summary model names, plus the provider type.',
+    purpose: 'Helps prioritize the local model paths people actually use.',
+  },
+  {
+    title: 'Anonymous meeting metrics',
+    detail: 'Recording and pause duration, transcript segment count, and processed chunk count.',
+    purpose: 'Helps improve performance without seeing the meeting itself.',
+  },
+  {
+    title: 'Device types',
+    detail: 'Broad categories such as Bluetooth, wired, or unknown—never the device name.',
+    purpose: 'Helps identify compatibility gaps.',
+  },
+  {
+    title: 'App usage patterns',
+    detail: 'App sessions, feature usage, settings changes, and error occurrences.',
+    purpose: 'Helps find unreliable or confusing product areas.',
+  },
+  {
+    title: 'Platform information',
+    detail: 'Operating system, app version, and processor architecture.',
+    purpose: 'Helps prioritize platform support.',
+  },
+] as const;
+
+const neverCollected = [
+  'Meeting names or titles',
+  'File names, paths, or folders',
+  'Meeting transcripts or content',
+  'Audio recordings',
+  'Device names',
+  'Personal or identifiable information',
+] as const;
+
 interface AnalyticsDataModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,94 +71,52 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
           </div>
         </DialogHeader>
 
-        {/* Content */}
-        <div className="space-y-6 overflow-y-auto p-6">
-          {/* Privacy Notice */}
-          <div className="border border-success/30 bg-success/10 p-4">
+        <div className="space-y-7 overflow-y-auto px-6 py-6">
+          <div className="bg-secondary/50 px-4 py-3.5">
             <div className="flex items-start gap-3">
               <InformationCircleIcon className="mt-0.5 size-5 shrink-0 text-success" />
-              <div className="text-sm text-foreground">
+              <div className="text-sm leading-5 text-foreground">
                 <p className="mb-1 font-semibold">Your privacy is protected</p>
                 <p>Analytics is off by default. If you enable it, we collect <strong>anonymous usage data only</strong>. No meeting content, names, file paths, or personal information is ever collected.</p>
               </div>
             </div>
           </div>
 
-          {/* Data Categories */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Data collected when enabled</h3>
-
-            {/* Model Preferences */}
-            <div className="border border-border bg-muted/30 p-4">
-              <h4 className="mb-2 font-semibold text-foreground">1. Model Preferences</h4>
-              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
-                <li>Transcription model (e.g., &quot;Whisper large-v3&quot;, &quot;Parakeet&quot;)</li>
-                <li>Summary model (e.g., &quot;Llama 3.2&quot;, &quot;Claude Sonnet&quot;)</li>
-                <li>Model provider (e.g., &quot;Local&quot;, &quot;Ollama&quot;, &quot;OpenRouter&quot;)</li>
-              </ul>
-              <p className="mt-2 text-xs italic text-muted-foreground">Helps us understand which models users prefer</p>
+          <section aria-labelledby="analytics-collected-heading">
+            <h3 id="analytics-collected-heading" className="app-eyebrow mb-2">Collected when enabled</h3>
+            <div className="divide-y divide-border/70 border-y border-border/70">
+              {analyticsCategories.map((category, index) => (
+                <div key={category.title} className="grid gap-1 py-4 sm:grid-cols-[1.4rem_12rem_1fr] sm:gap-x-3">
+                  <span className="font-mono text-xs text-muted-foreground">{String(index + 1).padStart(2, '0')}</span>
+                  <h4 className="text-sm font-semibold text-foreground">{category.title}</h4>
+                  <div className="text-sm leading-5">
+                    <p className="text-foreground">{category.detail}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{category.purpose}</p>
+                  </div>
+                </div>
+              ))}
             </div>
+          </section>
 
-            {/* Meeting Metrics */}
-            <div className="border border-border bg-muted/30 p-4">
-              <h4 className="mb-2 font-semibold text-foreground">2. Anonymous Meeting Metrics</h4>
-              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
-                <li>Recording duration (e.g., &quot;125 seconds&quot;)</li>
-                <li>Pause duration (e.g., &quot;5 seconds&quot;)</li>
-                <li>Number of transcript segments</li>
-                <li>Number of audio chunks processed</li>
-              </ul>
-              <p className="mt-2 text-xs italic text-muted-foreground">Helps us optimize performance and understand usage patterns</p>
-            </div>
-
-            {/* Device Types */}
-            <div className="border border-border bg-muted/30 p-4">
-              <h4 className="mb-2 font-semibold text-foreground">3. Device Types (Not Names)</h4>
-              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
-                <li>Microphone type: &quot;Bluetooth&quot; or &quot;Wired&quot; or &quot;Unknown&quot;</li>
-                <li>System audio type: &quot;Bluetooth&quot; or &quot;Wired&quot; or &quot;Unknown&quot;</li>
-              </ul>
-              <p className="mt-2 text-xs italic text-muted-foreground">Helps us improve compatibility, NOT the actual device names</p>
-            </div>
-
-            {/* Usage Patterns */}
-            <div className="border border-border bg-muted/30 p-4">
-              <h4 className="mb-2 font-semibold text-foreground">4. App Usage Patterns</h4>
-              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
-                <li>App started/stopped events</li>
-                <li>Session duration</li>
-                <li>Feature usage (e.g., &quot;settings changed&quot;)</li>
-                <li>Error occurrences (helps us fix bugs)</li>
-              </ul>
-              <p className="mt-2 text-xs italic text-muted-foreground">Helps us improve user experience</p>
-            </div>
-
-            {/* Platform Info */}
-            <div className="border border-border bg-muted/30 p-4">
-              <h4 className="mb-2 font-semibold text-foreground">5. Platform Information</h4>
-              <ul className="ml-4 list-disc space-y-1 text-sm text-foreground marker:text-muted-foreground">
-                <li>Operating system (e.g., &quot;macOS&quot;, &quot;Windows&quot;)</li>
-                <li>App version (automatically included in all events)</li>
-                <li>Architecture (e.g., &quot;x86_64&quot;, &quot;aarch64&quot;)</li>
-              </ul>
-              <p className="mt-2 text-xs italic text-muted-foreground">Helps us prioritize platform support</p>
-            </div>
-          </div>
-
-          {/* What We DON'T Collect */}
-          <div className="border border-destructive/30 bg-destructive/10 p-4">
-            <h4 className="mb-2 font-semibold text-destructive">Never collected</h4>
-            <ul className="ml-4 space-y-1 text-sm text-destructive">
-              {['Meeting names or titles', 'File names, file paths, or meeting folders', 'Meeting transcripts or content', 'Audio recordings', 'Device names (only types: Bluetooth/Wired)', 'Personal information', 'Any identifiable data'].map((item) => (
-                <li key={item} className="flex items-start gap-2"><CheckIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />{item}</li>
+          <section aria-labelledby="analytics-never-heading">
+            <h3 id="analytics-never-heading" className="app-eyebrow mb-3">Never collected</h3>
+            <ul className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+              {neverCollected.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckIcon className="mt-0.5 size-3.5 shrink-0 text-success" aria-hidden="true" />
+                  {item}
+                </li>
               ))}
             </ul>
-          </div>
+          </section>
 
-          {/* Example Event */}
-          <div className="border border-border bg-muted/50 p-4">
-            <h4 className="mb-2 font-semibold text-foreground">Example Event:</h4>
-            <pre className="overflow-x-auto text-xs text-foreground">
+          <details className="group border-y border-border/70 py-3">
+            <summary className="cursor-pointer list-none text-sm font-medium text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+              View an example anonymous event
+              <span className="ml-2 text-xs font-normal text-muted-foreground group-open:hidden">Show</span>
+              <span className="ml-2 hidden text-xs font-normal text-muted-foreground group-open:inline">Hide</span>
+            </summary>
+            <pre className="mt-3 overflow-x-auto bg-secondary/50 p-4 text-xs leading-5 text-foreground">
               {`{
   "event": "meeting_ended",
   "app_version": "${APP_VERSION}",
@@ -136,7 +131,7 @@ export default function AnalyticsDataModal({ isOpen, onClose, onConfirmDisable }
   "had_fatal_error": "false"
 }`}
             </pre>
-          </div>
+          </details>
         </div>
 
         {/* Footer */}

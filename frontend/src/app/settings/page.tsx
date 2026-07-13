@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/app-shell/PageHeader';
 import { AppState } from '@/components/app-shell/AppState';
 import { MeetilyGlyph, type MeetilyGlyphName } from '@/components/app-shell/MeetilyGlyph';
+import { nativeQaSettingsTab } from '@/lib/native-qa-mode';
 
 // Tabs configuration (constant)
 const TABS = [
@@ -29,7 +30,7 @@ export default function SettingsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Animation state for tabs
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState(nativeQaSettingsTab ?? 'general');
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
 

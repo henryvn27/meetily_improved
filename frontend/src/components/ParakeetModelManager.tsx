@@ -357,7 +357,7 @@ export function ParakeetModelManager({
   );
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={`divide-y divide-border/70 border-y border-border/70 ${className}`}>
       {/* Recommended Model */}
       {recommendedModel && (
         <ModelCard
@@ -378,7 +378,7 @@ export function ParakeetModelManager({
 
       {/* Other Models */}
       {otherModels.length > 0 && (
-        <div className="space-y-3">
+        <div className="divide-y divide-border/70">
           {otherModels.map(model => (
             <ModelCard
               key={model.name}
@@ -457,12 +457,12 @@ function ModelCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
-        relative rounded-md border transition-all cursor-pointer
+        relative transition-colors cursor-pointer
         ${isSelected && isAvailable
-          ? 'border-accent bg-[hsl(var(--accent-soft))]'
+          ? 'border-l-2 border-l-accent bg-[hsl(var(--accent-soft))]'
           : isAvailable
-            ? 'border-border hover:border-border-strong bg-card'
-            : 'border-border bg-secondary/45'
+            ? 'hover:bg-secondary/35'
+            : 'bg-secondary/25'
         }
         ${isAvailable ? '' : 'cursor-default'}
       `}
@@ -470,20 +470,16 @@ function ModelCard({
         if (isAvailable) onSelect();
       }}
     >
-      {/* Recommended Badge */}
-      {isRecommended && (
-        <div className="absolute -top-2 right-3 rounded-md bg-accent px-2 py-0.5 font-mono text-[0.625rem] font-medium text-accent-foreground">
-          Recommended
-        </div>
-      )}
-
-      <div className="p-4">
+      <div className="px-3 py-4 sm:px-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             {/* Model Name */}
             <div className="flex items-center gap-2 mb-1">
               <CpuChipIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
               <h3 className="font-semibold">{displayName}</h3>
+              {isRecommended && (
+                <span className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">Recommended</span>
+              )}
               {isSelected && isAvailable && (
                 <motion.span
                   initial={{ scale: 0 }}
