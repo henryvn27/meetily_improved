@@ -1515,6 +1515,28 @@ pub async fn open_meeting_folder<R: Runtime>(
     }
 }
 
+fn build_local_meeting_export(
+    title: &str,
+    created_at: &str,
+    updated_at: &str,
+    summary: Option<&str>,
+    transcripts: &[(String, String)],
+) -> String {
+    let summary_section = summary
+        .map(str::trim)
+        .filter(|summary| !summary.is_empty())
+        .map(|summary| format!("\n\n## Summary\n\n{summary}"))
+        .unwrap_or_default();
+    let transcript = transcripts
+        .iter()
+        .map(|(timestamp, text)| format!("- {timestamp} {text}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    format!(
+        "# {title}\n\nCreated: {created_at}\nUpdated: {updated_at}{summary_section}\n\n## Transcript\n\n{transcript}\n"
+    )
+}
+
 /// Exports only persisted local meeting fields after the user chooses a destination.
 #[tauri::command]
 pub async fn api_export_meeting_locally<R: Runtime>(
@@ -1541,6 +1563,17 @@ pub async fn api_export_meeting_locally<R: Runtime>(
     .fetch_all(pool)
     .await
     .map_err(|error| format!("Could not read local transcripts: {error}"))?;
+    let saved_summary: Option<(Option<String>,)> = sqlx::query_as(
+        "SELECT result FROM summary_processes WHERE meeting_id = ? AND status = 'completed'",
+    )
+    .bind(&meeting_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|error| format!("Could not read the local meeting summary: {error}"))?;
+    let summary = saved_summary
+        .and_then(|(result,)| result)
+        .as_deref()
+        .and_then(summary_markdown);
 
     let filename = format!("{}.md", meeting.title.replace(['/', ':'], "-"));
     let Some(path) = app
@@ -1551,17 +1584,12 @@ pub async fn api_export_meeting_locally<R: Runtime>(
     else {
         return Ok(LocalExportResult { saved: false });
     };
-    let transcript = transcripts
-        .iter()
-        .map(|(timestamp, text)| format!("- {timestamp} {text}"))
-        .collect::<Vec<_>>()
-        .join("\n");
-    let contents = format!(
-        "# {}\n\nCreated: {}\nUpdated: {}\n\n## Transcript\n\n{}\n",
-        meeting.title,
-        meeting.created_at.0.to_rfc3339(),
-        meeting.updated_at.0.to_rfc3339(),
-        transcript
+    let contents = build_local_meeting_export(
+        &meeting.title,
+        &meeting.created_at.0.to_rfc3339(),
+        &meeting.updated_at.0.to_rfc3339(),
+        summary.as_deref(),
+        &transcripts,
     );
     let path = path
         .as_path()
@@ -1569,6 +1597,41 @@ pub async fn api_export_meeting_locally<R: Runtime>(
     std::fs::write(path, contents)
         .map_err(|error| format!("Could not write the local export: {error}"))?;
     Ok(LocalExportResult { saved: true })
+}
+
+#[cfg(test)]
+mod local_export_tests {
+    use super::build_local_meeting_export;
+
+    #[test]
+    fn local_export_includes_saved_summary_and_transcript() {
+        let transcripts = vec![("00:10".to_string(), "Real spoken text.".to_string())];
+        let export = build_local_meeting_export(
+            "Strategy review",
+            "2026-07-13T10:00:00Z",
+            "2026-07-13T10:30:00Z",
+            Some("**Summary**\nPreserve the exact record."),
+            &transcripts,
+        );
+
+        assert!(export.contains("## Summary\n\n**Summary**"));
+        assert!(export.contains("## Transcript\n\n- 00:10 Real spoken text."));
+    }
+
+    #[test]
+    fn local_export_without_a_summary_remains_transcript_only() {
+        let transcripts = vec![("00:10".to_string(), "Real spoken text.".to_string())];
+        let export = build_local_meeting_export(
+            "Strategy review",
+            "2026-07-13T10:00:00Z",
+            "2026-07-13T10:30:00Z",
+            None,
+            &transcripts,
+        );
+
+        assert!(!export.contains("## Summary"));
+        assert!(export.contains("## Transcript\n\n- 00:10 Real spoken text."));
+    }
 }
 
 // Simple test command to check backend connectivity

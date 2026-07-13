@@ -61,6 +61,9 @@ test('meeting detail remains a summary-first reading workspace with a persistent
   assert.match(api, /blocking_save_file\(\)/);
   assert.match(api, /LocalExportResult \{ saved: false \}/);
   assert.match(api, /SELECT timestamp, transcript FROM transcripts WHERE meeting_id = \?/);
+  assert.match(api, /SELECT result FROM summary_processes WHERE meeting_id = \? AND status = 'completed'/);
+  assert.match(api, /build_local_meeting_export/);
+  assert.match(api, /## Summary/);
   assert.match(blockNote, /theme=\{resolvedTheme\}/);
   assert.match(editor, /theme=\{resolvedTheme\}/);
   assert.doesNotMatch(editor, /fonts\/inter\.css/);
