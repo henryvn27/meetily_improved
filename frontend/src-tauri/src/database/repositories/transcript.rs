@@ -137,16 +137,24 @@ impl TranscriptsRepository {
             .fetch_all(pool)
             .await?;
 
+        let minimum_score = if meeting_id.is_none() && terms.len() >= 3 {
+            2
+        } else {
+            1
+        };
         let mut results = rows
             .into_iter()
-            .map(|(id, title, transcript, timestamp)| {
+            .filter_map(|(id, title, transcript, timestamp)| {
                 let haystack = format!("{} {}", title.to_lowercase(), transcript.to_lowercase());
                 let score = terms
                     .iter()
                     .filter(|term| haystack.contains(term.as_str()))
                     .count();
+                if score < minimum_score {
+                    return None;
+                }
                 let match_context = Self::get_match_context(&transcript, &terms);
-                (
+                Some((
                     score,
                     TranscriptSearchResult {
                         id,
@@ -154,7 +162,7 @@ impl TranscriptsRepository {
                         match_context,
                         timestamp,
                     },
-                )
+                ))
             })
             .collect::<Vec<_>>();
         results.sort_by(|left, right| right.0.cmp(&left.0));
@@ -164,8 +172,9 @@ impl TranscriptsRepository {
 
     fn search_terms(query: &str) -> Vec<String> {
         const STOP_WORDS: &[&str] = &[
-            "about", "from", "have", "meetings", "meeting", "that", "the", "this", "what",
-            "when", "where", "which", "with", "would", "were", "did", "does", "our", "was",
+            "about", "from", "have", "meetings", "meeting", "that", "the", "this", "what", "when",
+            "where", "which", "with", "would", "were", "did", "does", "our", "was", "and", "how",
+            "who",
         ];
         let mut terms = query
             .split(|character: char| !character.is_alphanumeric())
@@ -254,9 +263,13 @@ mod tests {
             .await
             .unwrap();
         sqlx::query("CREATE TABLE meetings (id TEXT PRIMARY KEY, title TEXT, created_at TEXT)")
-            .execute(&pool).await.unwrap();
+            .execute(&pool)
+            .await
+            .unwrap();
         sqlx::query("CREATE TABLE transcripts (meeting_id TEXT, transcript TEXT, timestamp TEXT)")
-            .execute(&pool).await.unwrap();
+            .execute(&pool)
+            .await
+            .unwrap();
         sqlx::query("INSERT INTO meetings VALUES ('open', 'Open meeting', '2026-07-12'), ('other', 'Other meeting', '2026-07-11')")
             .execute(&pool).await.unwrap();
         sqlx::query("INSERT INTO transcripts VALUES ('open', 'We discussed safety.', '00:10'), ('other', 'We discussed safety and robotics.', '00:20')")
@@ -266,9 +279,41 @@ mod tests {
             &pool,
             "What did we discuss about safety?",
             "open",
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
 
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].id, "open");
+    }
+
+    #[tokio::test]
+    async fn global_recall_drops_single_term_noise_for_multi_term_questions() {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE meetings (id TEXT PRIMARY KEY, title TEXT, created_at TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE transcripts (meeting_id TEXT, transcript TEXT, timestamp TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO meetings VALUES ('relevant', 'AI review', '2026-07-12'), ('noise', 'Greeting', '2026-07-11')")
+            .execute(&pool).await.unwrap();
+        sqlx::query("INSERT INTO transcripts VALUES ('relevant', 'Henry discussed local AI and human review.', '00:10'), ('noise', 'My name is Henry.', '00:20')")
+            .execute(&pool).await.unwrap();
+
+        let results = TranscriptsRepository::search_transcripts(
+            &pool,
+            "What did Henry discuss about local AI and human review?",
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "relevant");
     }
 }

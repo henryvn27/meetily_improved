@@ -15,8 +15,13 @@ test('recording command treats omitted selected devices as system defaults', asy
   assert.match(deviceSelection, /deviceName === 'default' \? null : deviceName/);
   assert.match(hook, /selectedDevices\?\.micDevice \|\| null/);
   assert.match(hook, /!selectedDevices\.micDevice && !selectedDevices\.systemDevice/);
-  assert.match(readinessHook, /trigger_microphone_permission/);
+  assert.doesNotMatch(readinessHook, /trigger_microphone_permission/);
+  assert.match(readinessHook, /Promise\.resolve\(\[\{ name: 'Default microphone'/);
   assert.match(readinessHook, /Default microphone/);
+  assert.equal(
+    (hook.match(/if \(!selectedDevices\.micDevice && !selectedDevices\.systemDevice\) return true;/g) || []).length,
+    1,
+  );
   const customCommand = commands.slice(
     commands.indexOf('pub async fn start_recording_with_devices_and_meeting'),
     commands.indexOf('/// Stop recording with optimized graceful shutdown', commands.indexOf('pub async fn start_recording_with_devices_and_meeting')),

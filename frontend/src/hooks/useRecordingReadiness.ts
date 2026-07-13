@@ -47,10 +47,7 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
 
     const usesDefaultDevices = !selectedDevices.micDevice && !selectedDevices.systemDevice;
     const audioOperation = usesDefaultDevices
-      ? invoke<boolean>('trigger_microphone_permission').then(granted => {
-          if (!granted) throw new Error('Microphone access is required.');
-          return [{ name: 'Default microphone', device_type: 'Input' as const }];
-        })
+      ? Promise.resolve([{ name: 'Default microphone', device_type: 'Input' as const }])
       : invoke<AudioDevice[]>('get_audio_devices');
 
     const [audioResult, modelResult] = await Promise.allSettled([
