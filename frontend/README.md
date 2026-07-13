@@ -1,176 +1,104 @@
-# Meetily - Frontend
+# Meetily Improved desktop app
 
-A modern desktop application for recording, transcribing, and analyzing meetings with AI assistance. Built with Next.js and Tauri for a native desktop experience.
+This directory contains the supported Meetily Improved desktop application: a Next.js 14 interface packaged with Tauri 2 and backed by the Rust audio, transcription, storage, recovery, and summary services in `src-tauri/`.
 
-## Features
-
-- Real-time audio recording from both microphone and system audio
-- Live transcription using Whisper ASR (locally running)
-- Native desktop integration using Tauri
-- Speaker diarization support
-- Rich text editor for note-taking
-- Local-first storage and transcription; summaries can use local or explicitly configured remote AI providers
+Meetily Improved is an independent MIT-licensed fork of [Zackriya Solutions' Meetily](https://github.com/Zackriya-Solutions/meetily). See the [root README](../README.md) for product status, privacy boundaries, screenshots, and upstream attribution.
 
 ## Prerequisites
 
-### For macOS:
-- Node.js (v18 or later)
-- Rust (latest stable)
-- pnpm (v8 or later)
-- [Xcode Command Line Tools](https://developer.apple.com/download/all/?q=xcode)
+- Node.js and pnpm
+- Rust stable
+- CMake
+- macOS: Xcode Command Line Tools; a supported full Xcode installation is required for signed release packaging
+- Windows: Visual Studio Build Tools with the Desktop development with C++ workload
+- Linux: the platform packages listed in [Building from source](../docs/BUILDING.md)
 
-### For Windows:
-- Node.js (v18 or later)
-- Rust (latest stable)
-- pnpm (v8 or later)
-- Visual Studio Build Tools with C++ development tools
-- Windows 10 or later
+## Install
 
-
-## Project Structure
-
-```
-/frontend
-├── src/                   # Next.js frontend code
-├── src-tauri/             # Rust backend for Tauri
-├── public/                # Static assets
-└── package.json           # Project dependencies
+```bash
+git clone https://github.com/henryvn27/meetily_improved.git
+cd meetily_improved/frontend
+pnpm install --frozen-lockfile
 ```
 
-## Installation
+The frozen lockfile is the reproducible install path used by release QA.
 
-### For macOS:
+## Run the frontend only
 
-1. Install prerequisites:
-   ```bash
-   # Install Homebrew if not already installed
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   
-   # Install Node.js
-   brew install node
-   
-   # Install Rust
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   
-   # Install pnpm
-   npm install -g pnpm
-   
-   # Install Xcode Command Line Tools
-   xcode-select --install
-   ```
+```bash
+pnpm run dev
+```
 
-2. Clone the repository and navigate to the frontend directory:
-   ```bash
-   git clone https://github.com/Zackriya-Solutions/meeting-minutes
-   cd meeting-minutes/frontend
-   ```
-  
+This starts the Next.js development server at `http://localhost:3118`. Frontend-only mode is useful for layout work, but it does not replace native Tauri verification for recording, permissions, imports, storage, or local AI behavior.
 
-3. Install dependencies:
-   ```bash
-   pnpm install
-   ```
+## Run the macOS desktop app
 
-### For Windows:
+The desktop bundle expects the Rust `llama-helper` sidecar to be staged under the Tauri target triple name. From the repository root on Apple Silicon macOS:
 
-1. Install prerequisites:
-   - Install [Node.js](https://nodejs.org/) (v18 or later)
-   - Install [Rust](https://www.rust-lang.org/tools/install)
-   - Install pnpm: `npm install -g pnpm`
-   - Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with C++ development tools
+```bash
+cargo build --release -p llama-helper --features metal
+mkdir -p frontend/src-tauri/binaries
+cp target/release/llama-helper frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
+cd frontend
+pnpm run tauri:dev
+```
 
-2. Clone the repository and navigate to the frontend directory:
-   ```cmd
-   git clone https://github.com/Zackriya-Solutions/meeting-minutes
-   cd meeting-minutes/frontend
-   ```
+The staged binary is a generated local artifact and is ignored by Git. For Intel macOS or another platform, use the matching Rust target triple described in [Building from source](../docs/BUILDING.md).
 
-3. Install dependencies:
-   ```cmd
-   pnpm install
-   ```
+The repository helper scripts remain available from this directory:
 
-## Running the App
-
-### For macOS:
-
-Use the provided script to run the app in development mode:
 ```bash
 ./clean_run.sh
-```
-
-To build a production version:
-```bash
+./clean_run.sh debug
 ./clean_build.sh
 ```
 
-You can specify the log level (info, debug, trace):
+GPU-specific development scripts are `dev-gpu.sh` and `build-gpu.sh`.
+
+## Build
+
+After staging the matching sidecar:
+
 ```bash
-./clean_run.sh debug
-```
-
-### For Windows:
-
-Use the provided script to run the app in development mode:
-```cmd
-clean_run_windows.bat
-```
-
-To build a production version:
-```cmd
-clean_build_windows.bat
-```
-
-You can also use the package scripts directly:
-```bash
-pnpm run tauri:dev
 pnpm run tauri:build
 ```
 
-## Local Transcription
+Platform signing, notarization, updater signatures, and installer formats require the platform credentials and toolchains documented in the repository workflows. A locally built or ad-hoc-signed app is not equivalent to a notarized public macOS release.
 
-Current Meetily does not require a separate FastAPI service, Docker backend, or manually started whisper-server process. Local transcription is handled by the Rust/Tauri desktop app.
+## Checks
 
-For build and acceleration details, see:
+Run these from `frontend/`:
 
-- [Building from Source](../docs/BUILDING.md)
-- [GPU Acceleration](../docs/GPU_ACCELERATION.md)
-- [Architecture](../docs/architecture.md)
+```bash
+npm run lint
+npm run build
+npx tsc --noEmit
+node --test tests/lib/*.test.mjs
+```
 
-## Development
+The BlockNote Markdown test uses Bun:
 
-### Frontend (Next.js)
-- The frontend is built with Next.js and Tailwind CSS
-- Source code is in the `src/` directory
-- To run only the frontend: `pnpm run dev`
+```bash
+bun test tests/lib/blocknote-markdown.test.ts
+```
 
-### Backend (Tauri)
-- The Rust backend is in the `src-tauri/` directory
-- Handles audio capture, file system access, transcription, storage, and native integrations
-- To run only the Tauri development server: `pnpm run tauri:dev`
+Rust changes should also run the narrowest relevant `cargo test` or `cargo check` from the repository root. Finish every change with `/usr/bin/git diff --check`.
 
-## Troubleshooting
+## Architecture and privacy
 
-### Common Issues on macOS
-- If you encounter permission issues with scripts, make them executable:
-  ```bash
-  chmod +x clean_run.sh clean_build.sh
-  ```
-- For microphone access issues, ensure the app has microphone permissions in System Preferences
+- `src/`: Next.js routes, components, contexts, hooks, and local UI state
+- `src-tauri/`: supported Rust/Tauri application core and native command/event boundary
+- `src-tauri/binaries/`: generated local sidecars, not source-controlled release secrets
+- `tests/`: focused frontend and route behavior checks
 
-### Common Issues on Windows
-- If you encounter build errors, ensure Visual Studio Build Tools are properly installed
-- For audio capture issues, check Windows privacy settings for microphone access
-- If the app fails to start, try running Command Prompt as administrator
+Recording, transcription, meetings, recovery, and storage are handled by the Rust/Tauri app. The old Python/FastAPI and Docker implementation under `../backend/` is archived migration context and is not a supported runtime dependency.
 
-## Contributing
+Meeting data and local models stay on the device by default. Remote summary providers receive meeting content only when a user explicitly configures and invokes one. Ask Meetings accepts only a loopback Ollama endpoint.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Permissions
 
-## License
+On macOS, microphone capture requires Microphone permission. System-audio capture uses ScreenCaptureKit and requires Screen Recording permission. Meetily Improved must explain these permissions before requesting them; release QA should test them in the packaged app identity.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## Contributing and license
+
+Read [CONTRIBUTING.md](../CONTRIBUTING.md) before opening a pull request. Meetily Improved remains licensed under the repository's [MIT License](../LICENSE), with the upstream Zackriya Solutions attribution preserved.
