@@ -18,6 +18,8 @@ export function PreferenceSettings() {
   } = useConfig();
 
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean | null>(null);
+  const [menuBarEnabled, setMenuBarEnabled] = useState<boolean | null>(null);
+  const [menuBarError, setMenuBarError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [previousNotificationsEnabled, setPreviousNotificationsEnabled] = useState<boolean | null>(null);
   const hasTrackedViewRef = useRef(false);
@@ -110,6 +112,29 @@ export function PreferenceSettings() {
     handleUpdateNotificationSettings();
   }, [notificationsEnabled, notificationSettings, isInitialLoad, previousNotificationsEnabled, updateNotificationSettings])
 
+  useEffect(() => {
+    invoke<boolean>('get_menu_bar_enabled')
+      .then(setMenuBarEnabled)
+      .catch((error) => {
+        console.error('Failed to load menu bar preference:', error);
+        setMenuBarError('The menu bar preference could not be loaded.');
+      });
+  }, []);
+
+  const handleMenuBarChange = async (enabled: boolean) => {
+    const previousValue = menuBarEnabled;
+    setMenuBarEnabled(enabled);
+    setMenuBarError(null);
+
+    try {
+      await invoke('set_menu_bar_enabled', { enabled });
+    } catch (error) {
+      console.error('Failed to update menu bar preference:', error);
+      setMenuBarEnabled(previousValue);
+      setMenuBarError('Meetily could not update the menu bar icon. Try again.');
+    }
+  };
+
   const handleOpenFolder = async (folderType: 'database' | 'models' | 'recordings') => {
     try {
       switch (folderType) {
@@ -148,6 +173,26 @@ export function PreferenceSettings() {
 
   return (
     <div className="space-y-6">
+      <section aria-labelledby="menu-bar-heading" className="settings-card">
+        <div className="flex items-center justify-between gap-6">
+          <div>
+            <p className="app-eyebrow mb-2">Desktop</p>
+            <h3 id="menu-bar-heading" className="text-lg font-semibold tracking-[-0.03em]">Show in menu bar</h3>
+            <p id="menu-bar-description" className="mt-1 text-sm text-muted-foreground">
+              Keep Meetily available beside your Mac status icons. Meetily remains in the Dock when this is off.
+            </p>
+          </div>
+          <Switch
+            aria-label="Show Meetily in menu bar"
+            aria-describedby="menu-bar-description"
+            checked={menuBarEnabled ?? false}
+            disabled={menuBarEnabled === null}
+            onCheckedChange={handleMenuBarChange}
+          />
+        </div>
+        {menuBarError && <p role="alert" className="mt-3 text-sm text-destructive">{menuBarError}</p>}
+      </section>
+
       {/* Notifications Section */}
       <section className="settings-card">
         <div className="flex items-center justify-between">
