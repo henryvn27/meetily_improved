@@ -1,11 +1,13 @@
 use log::{debug as log_debug, error as log_error, info as log_info, warn as log_warn};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::StoreExt;
 
 use crate::{
+    audio::recording_preferences::{get_default_recordings_folder, load_recording_preferences},
     database::{
         models::MeetingModel,
         repositories::{
@@ -1169,9 +1171,115 @@ pub async fn api_delete_api_key<R: Runtime>(
     }
 }
 
+fn remove_owned_meeting_folder(
+    folder_path: &Path,
+    allowed_recordings_roots: &[PathBuf],
+) -> Result<Option<PathBuf>, String> {
+    if !folder_path.is_absolute() {
+        return Err("Refusing to delete a meeting folder with a relative path".to_string());
+    }
+    if !folder_path.exists() {
+        return Ok(None);
+    }
+
+    let canonical_folder = folder_path
+        .canonicalize()
+        .map_err(|error| format!("Could not resolve the meeting folder: {error}"))?;
+    if !canonical_folder.is_dir() {
+        return Err("Refusing to delete a meeting folder path that is not a directory".to_string());
+    }
+
+    let is_owned_folder = allowed_recordings_roots.iter().any(|root| {
+        root.canonicalize().ok().is_some_and(|canonical_root| {
+            canonical_folder.parent() == Some(canonical_root.as_path())
+        })
+    });
+    if !is_owned_folder {
+        return Err(format!(
+            "Refusing to delete a folder outside Meetily's configured recordings root: {}",
+            canonical_folder.display()
+        ));
+    }
+
+    std::fs::remove_dir_all(&canonical_folder).map_err(|error| {
+        format!("Could not delete the meeting's local recording folder: {error}")
+    })?;
+    Ok(Some(canonical_folder))
+}
+
+#[cfg(test)]
+mod local_meeting_folder_cleanup_tests {
+    use super::remove_owned_meeting_folder;
+    use std::{
+        fs,
+        path::PathBuf,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    fn test_directory(label: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time must be after the Unix epoch")
+            .as_nanos();
+        std::env::temp_dir().join(format!("meetily-{label}-{}-{nonce}", std::process::id()))
+    }
+
+    #[test]
+    fn removes_a_direct_child_of_the_recordings_root() {
+        let base = test_directory("owned-folder");
+        let recordings_root = base.join("recordings");
+        let meeting_folder = recordings_root.join("meeting-1");
+        fs::create_dir_all(&meeting_folder).unwrap();
+        fs::write(meeting_folder.join("audio.mp4"), b"local audio").unwrap();
+
+        let removed =
+            remove_owned_meeting_folder(&meeting_folder, std::slice::from_ref(&recordings_root))
+                .unwrap();
+
+        assert!(removed.is_some());
+        assert!(!meeting_folder.exists());
+        assert!(recordings_root.exists());
+        let _ = fs::remove_dir_all(base);
+    }
+
+    #[test]
+    fn treats_an_already_missing_meeting_folder_as_clean() {
+        let base = test_directory("missing-folder");
+        let recordings_root = base.join("recordings");
+        fs::create_dir_all(&recordings_root).unwrap();
+        let missing_folder = recordings_root.join("meeting-missing");
+
+        let removed =
+            remove_owned_meeting_folder(&missing_folder, std::slice::from_ref(&recordings_root))
+                .unwrap();
+
+        assert!(removed.is_none());
+        assert!(recordings_root.exists());
+        let _ = fs::remove_dir_all(base);
+    }
+
+    #[test]
+    fn refuses_a_folder_outside_the_recordings_root() {
+        let base = test_directory("unsafe-folder");
+        let recordings_root = base.join("recordings");
+        let outside_folder = base.join("not-owned");
+        fs::create_dir_all(&recordings_root).unwrap();
+        fs::create_dir_all(&outside_folder).unwrap();
+        fs::write(outside_folder.join("keep.txt"), b"must remain").unwrap();
+
+        let error =
+            remove_owned_meeting_folder(&outside_folder, std::slice::from_ref(&recordings_root))
+                .unwrap_err();
+
+        assert!(error.contains("outside Meetily's configured recordings root"));
+        assert!(outside_folder.join("keep.txt").exists());
+        let _ = fs::remove_dir_all(base);
+    }
+}
+
 #[tauri::command]
 pub async fn api_delete_meeting<R: Runtime>(
-    _app: AppHandle<R>,
+    app: AppHandle<R>,
     state: tauri::State<'_, AppState>,
     meeting_id: String,
     auth_token: Option<String>,
@@ -1183,6 +1291,35 @@ pub async fn api_delete_meeting<R: Runtime>(
     );
 
     let pool = state.db_manager.pool();
+    let stored_folder: Option<(Option<String>,)> =
+        sqlx::query_as("SELECT folder_path FROM meetings WHERE id = ?")
+            .bind(&meeting_id)
+            .fetch_optional(pool)
+            .await
+            .map_err(|error| format!("Failed to read the meeting's local folder: {error}"))?;
+
+    if let Some(folder_path) = stored_folder
+        .and_then(|(folder_path,)| folder_path)
+        .filter(|folder_path| !folder_path.trim().is_empty())
+    {
+        let preferences = load_recording_preferences(&app)
+            .await
+            .map_err(|error| format!("Failed to read the recordings folder preference: {error}"))?;
+        let allowed_roots = vec![preferences.save_folder, get_default_recordings_folder()];
+        let folder_path = PathBuf::from(folder_path);
+        let removed_folder = tokio::task::spawn_blocking(move || {
+            remove_owned_meeting_folder(&folder_path, &allowed_roots)
+        })
+        .await
+        .map_err(|error| format!("Meeting folder cleanup task failed: {error}"))??;
+        if let Some(removed_folder) = removed_folder {
+            log_info!(
+                "Deleted owned local meeting folder {} before removing meeting {}",
+                removed_folder.display(),
+                meeting_id
+            );
+        }
+    }
 
     match MeetingsRepository::delete_meeting(pool, &meeting_id).await {
         Ok(true) => {
