@@ -1,9 +1,22 @@
 use tauri::{
-    Emitter,
     menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    AppHandle, Manager, Runtime,
+    AppHandle, Emitter, Manager, Runtime,
 };
+use tauri_plugin_store::StoreExt;
+
+const APP_PREFERENCES_STORE: &str = "app-preferences.json";
+const MENU_BAR_ENABLED_KEY: &str = "showInMenuBar";
+
+#[cfg(target_os = "macos")]
+const fn default_menu_bar_enabled() -> bool {
+    false
+}
+
+#[cfg(not(target_os = "macos"))]
+const fn default_menu_bar_enabled() -> bool {
+    true
+}
 
 #[derive(Debug, Clone)]
 pub enum RecordingState {
@@ -14,6 +27,40 @@ pub enum RecordingState {
     Paused,
     Resuming,
     Stopping,
+}
+
+pub fn menu_bar_enabled<R: Runtime>(app: &AppHandle<R>) -> bool {
+    app.store(APP_PREFERENCES_STORE)
+        .ok()
+        .and_then(|store| store.get(MENU_BAR_ENABLED_KEY))
+        .and_then(|value| value.as_bool())
+        .unwrap_or_else(default_menu_bar_enabled)
+}
+
+#[tauri::command]
+pub fn get_menu_bar_enabled<R: Runtime>(app: AppHandle<R>) -> bool {
+    menu_bar_enabled(&app)
+}
+
+#[tauri::command]
+pub fn set_menu_bar_enabled<R: Runtime>(app: AppHandle<R>, enabled: bool) -> Result<(), String> {
+    let store = app
+        .store(APP_PREFERENCES_STORE)
+        .map_err(|error| format!("Failed to open app preferences: {error}"))?;
+    store.set(MENU_BAR_ENABLED_KEY, serde_json::Value::Bool(enabled));
+    store
+        .save()
+        .map_err(|error| format!("Failed to save app preferences: {error}"))?;
+
+    if let Some(tray) = app.tray_by_id("main-tray") {
+        tray.set_visible(enabled)
+            .map_err(|error| format!("Failed to update the menu bar icon: {error}"))?;
+    } else if enabled {
+        create_tray(&app)
+            .map_err(|error| format!("Failed to create the menu bar icon: {error}"))?;
+    }
+
+    Ok(())
 }
 
 pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
@@ -59,6 +106,11 @@ mod tests {
         let mut alpha = TRAY_ICON.chunks_exact(4).map(|pixel| pixel[3]);
         assert!(alpha.clone().any(|value| value == 0));
         assert!(alpha.any(|value| value > 0));
+    }
+
+    #[test]
+    fn menu_bar_is_opt_in_on_macos() {
+        assert!(!super::default_menu_bar_enabled());
     }
 }
 

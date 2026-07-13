@@ -441,10 +441,10 @@ pub fn run() {
         .setup(|_app| {
             log::info!("Application setup complete");
 
-            // macOS keeps the app in the Dock without adding a persistent menu-bar icon.
-            #[cfg(not(target_os = "macos"))]
-            if let Err(e) = tray::create_tray(_app.handle()) {
-                log::error!("Failed to create system tray: {}", e);
+            if tray::menu_bar_enabled(_app.handle()) {
+                if let Err(e) = tray::create_tray(_app.handle()) {
+                    log::error!("Failed to create system tray: {}", e);
+                }
             }
 
             // Initialize notification system with proper defaults
@@ -720,6 +720,8 @@ pub fn run() {
             audio::recording_preferences::get_audio_backend_info,
             // Language preference commands
             set_language_preference,
+            tray::get_menu_bar_enabled,
+            tray::set_menu_bar_enabled,
             // Notification system commands
             notifications::commands::get_notification_settings,
             notifications::commands::set_notification_settings,
