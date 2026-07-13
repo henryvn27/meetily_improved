@@ -62,6 +62,19 @@ export default function PageContent({
   const [summaryResponse] = useState<SummaryResponse | null>(null);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isInspectorOpen) return;
+
+    const closeInspectorOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsInspectorOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', closeInspectorOnEscape);
+    return () => window.removeEventListener('keydown', closeInspectorOnEscape);
+  }, [isInspectorOpen]);
+
   // Ref to store the modal open function from SummaryGeneratorButtonGroup
   const openModelSettingsRef = useRef<(() => void) | null>(null);
 
@@ -181,7 +194,11 @@ export default function PageContent({
           onTitleChange={meetingData.handleTitleChange}
           isEditingTitle={meetingData.isEditingTitle}
           onStartEditTitle={() => meetingData.setIsEditingTitle(true)}
-          onFinishEditTitle={() => meetingData.setIsEditingTitle(false)}
+          onFinishEditTitle={async () => {
+            if (!meetingData.isTitleDirty || await meetingData.handleSaveMeetingTitle()) {
+              meetingData.setIsEditingTitle(false);
+            }
+          }}
           isTitleDirty={meetingData.isTitleDirty}
           summaryRef={meetingData.blockNoteSummaryRef}
           isSaving={meetingData.isSaving}

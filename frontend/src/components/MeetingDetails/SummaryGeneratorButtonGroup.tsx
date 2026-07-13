@@ -259,7 +259,7 @@ export function SummaryGeneratorButtonGroup({
           title="Stop summary generation"
         >
           <StopIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
-          <span className="hidden lg:inline xl:inline">Stop</span>
+          <span className="hidden xl:inline">Stop</span>
         </Button>
       ) : (
         <Button
@@ -287,7 +287,7 @@ export function SummaryGeneratorButtonGroup({
           ) : (
             <>
               <SparklesIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
-              <span className="hidden lg:inline xl:inline">{hasSummary ? 'Regenerate Summary' : 'Generate Summary'}</span>
+              <span className="hidden xl:inline">{hasSummary ? 'Regenerate Summary' : 'Generate Summary'}</span>
             </>
           )}
         </Button>
@@ -299,7 +299,7 @@ export function SummaryGeneratorButtonGroup({
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" title="Optional summary instructions">
             <PencilSquareIcon className="size-4" aria-hidden="true" />
-            <span className="hidden lg:inline">Instructions</span>
+            <span className="hidden 2xl:inline">Instructions</span>
           </Button>
         </DialogTrigger>
         <DialogContent aria-describedby="summary-instructions-description">
@@ -327,7 +327,7 @@ export function SummaryGeneratorButtonGroup({
             title="Summary Settings"
           >
             <Cog6ToothIcon className="size-4" aria-hidden="true" />
-            <span className="hidden lg:inline">AI Model</span>
+            <span className="hidden 2xl:inline">AI Model</span>
           </Button>
         </DialogTrigger>
         <DialogContent
@@ -359,7 +359,7 @@ export function SummaryGeneratorButtonGroup({
               title="Select summary template"
             >
               <DocumentTextIcon className="size-4" aria-hidden="true" />
-              <span className="hidden lg:inline">Template</span>
+              <span className="hidden 2xl:inline">Template</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

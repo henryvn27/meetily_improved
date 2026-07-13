@@ -9,7 +9,7 @@ import { SummaryUpdaterButtonGroup } from './SummaryUpdaterButtonGroup';
 import Analytics from '@/lib/analytics';
 import { useEffect, useRef, useState, RefObject, ReactNode } from 'react';
 import { toast } from 'sonner';
-import { ChevronDownIcon, LanguageIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, LanguageIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { LanguagePickerPopover } from '@/components/LanguagePickerPopover';
@@ -31,7 +31,7 @@ interface SummaryPanelProps {
   onTitleChange: (title: string) => void;
   isEditingTitle: boolean;
   onStartEditTitle: () => void;
-  onFinishEditTitle: () => void;
+  onFinishEditTitle: () => void | Promise<void>;
   isTitleDirty: boolean;
   summaryRef: RefObject<BlockNoteSummaryViewRef>;
   isSaving: boolean;
@@ -226,6 +226,10 @@ export function SummaryPanel({
   };
 
   const isSummaryLoading = summaryStatus === 'processing' || summaryStatus === 'summarizing' || summaryStatus === 'regenerating';
+  const meetingDate = new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(meeting.created_at));
 
   const languageSlot = (
     <Popover open={langPickerOpen} onOpenChange={setLangPickerOpen}>
@@ -257,18 +261,48 @@ export function SummaryPanel({
 
   return (
     <section aria-label="Meeting summary" className="flex min-w-0 flex-1 flex-col overflow-hidden bg-card">
-      <div className="border-b border-border px-6 py-5 sm:px-8">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div className="min-w-0">
-            <p className="app-eyebrow">Meeting note</p>
-            <div className="mt-2 flex items-start justify-between gap-3">
-              <h1 className="truncate text-[1.625rem] font-semibold leading-tight tracking-[-0.045em]">{meetingTitle}</h1>
-              {inspectorControl}
+      <div className="border-b border-border px-6 pb-4 pt-5 sm:px-8">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2.5">
+              <p className="app-eyebrow">Meeting note</p>
+              <span className="text-border" aria-hidden="true">/</span>
+              <time className="truncate text-[0.6875rem] text-muted-foreground" dateTime={meeting.created_at}>{meetingDate}</time>
+            </div>
+            <div className="mt-2 min-w-0">
+              {isEditingTitle ? (
+                <input
+                  autoFocus
+                  value={meetingTitle}
+                  onChange={(event) => onTitleChange(event.target.value)}
+                  onBlur={() => void onFinishEditTitle()}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      event.currentTarget.blur();
+                    }
+                  }}
+                  aria-label="Meeting title"
+                  className="w-full border-0 border-b border-accent bg-transparent pb-1 text-[1.625rem] font-semibold leading-tight tracking-[-0.045em] outline-none"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={onStartEditTitle}
+                  className="group/title flex max-w-full items-center gap-2 rounded-sm text-left"
+                  aria-label={`Rename ${meetingTitle}`}
+                >
+                  <h1 className="truncate text-[1.625rem] font-semibold leading-tight tracking-[-0.045em]">{meetingTitle}</h1>
+                  <PencilIcon className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/title:opacity-100 group-focus-visible/title:opacity-100" aria-hidden="true" />
+                </button>
+              )}
             </div>
           </div>
+          {inspectorControl}
+        </div>
         {aiSummary && !isSummaryLoading && (
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="shrink-0">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-3">
+            <div className="min-w-0 shrink-0">
               <SummaryGeneratorButtonGroup
                 modelConfig={modelConfig}
                 setModelConfig={setModelConfig}
@@ -289,7 +323,7 @@ export function SummaryPanel({
               />
             </div>
 
-            <div className="shrink-0">
+            <div className="ml-auto shrink-0">
               <SummaryUpdaterButtonGroup
                 isSaving={isSaving}
                 isDirty={isTitleDirty || (summaryRef.current?.isDirty || false)}
@@ -305,7 +339,6 @@ export function SummaryPanel({
             </div>
           </div>
         )}
-        </div>
       </div>
 
       {isSummaryLoading ? (

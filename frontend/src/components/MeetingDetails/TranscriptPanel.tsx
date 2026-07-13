@@ -100,7 +100,7 @@ export function TranscriptPanel({
     <aside
       aria-label="Meeting assistant inspector"
       className={cn(
-        'min-w-0 shrink-0 flex-col border-l border-border bg-secondary/35',
+        'min-w-0 shrink-0 flex-col border-l border-border bg-card xl:bg-secondary/35',
         className,
       )}
     >

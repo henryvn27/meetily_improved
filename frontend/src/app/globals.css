@@ -252,6 +252,22 @@
 
   .bn-default-styles {
     max-width: none !important;
+    font-family: inherit !important;
+  }
+
+  .bn-container,
+  .bn-editor,
+  .bn-default-styles {
+    background: transparent !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* BlockNote's shadcn theme has a more specific editor background rule. */
+  .bn-container.bn-shadcn,
+  .bn-container .bn-shadcn,
+  .bn-shadcn.dark,
+  .bn-shadcn .bn-editor {
+    background-color: transparent !important;
   }
 
   /* Disable scrolling on any BlockNote wrapper elements */

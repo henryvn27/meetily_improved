@@ -41,12 +41,12 @@ export function SummaryUpdaterButtonGroup({
         {isSaving ? (
           <>
             <ArrowPathIcon className="size-4 animate-spin" aria-hidden="true" />
-            <span className="hidden lg:inline">Saving...</span>
+            <span className="hidden 2xl:inline">Saving...</span>
           </>
         ) : (
           <>
             <CheckIcon className="size-4" aria-hidden="true" />
-            <span className="hidden lg:inline">Save</span>
+            <span className="hidden 2xl:inline">Save</span>
           </>
         )}
       </Button>
@@ -64,7 +64,7 @@ export function SummaryUpdaterButtonGroup({
         className="cursor-pointer"
       >
         <DocumentDuplicateIcon className="size-4" aria-hidden="true" />
-        <span className="hidden lg:inline">Copy</span>
+        <span className="hidden 2xl:inline">Copy</span>
       </Button>
 
       {/* Find button */}

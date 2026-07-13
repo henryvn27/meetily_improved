@@ -185,12 +185,12 @@ export default function Sidebar() {
         </nav>
 
         {!isCollapsed && (
-          <div className="mt-6 min-h-0 flex-1">
+          <div className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="flex items-center justify-between px-1">
               <p className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.12em] text-[hsl(var(--sidebar-muted))]">Meeting ledger</p>
             </div>
 
-            <div className="app-rail-scrollbar mt-1.5 max-h-[calc(100dvh-21rem)] min-h-20 overflow-y-auto custom-scrollbar">
+            <div className="app-rail-scrollbar mt-1.5 min-h-0 flex-1 overflow-y-auto custom-scrollbar">
               {meetings.length === 0 ? (
                 <p className="px-2 py-4 text-xs leading-5 text-[hsl(var(--sidebar-muted))]">
                   Saved meetings will appear here.
