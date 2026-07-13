@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { ArrowRight, CalendarDays, Mic, Search, Upload, X } from 'lucide-react';
+import { ArrowRightIcon, ArrowUpTrayIcon, CalendarDaysIcon, MagnifyingGlassIcon, MicrophoneIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { AppState } from '@/components/app-shell/AppState';
 import { PageHeader } from '@/components/app-shell/PageHeader';
@@ -137,16 +137,6 @@ export default function MeetingsPage() {
         eyebrow="Library"
         title="Saved meetings"
         description="Revisit transcripts and notes stored in your local Meetily database."
-        actions={(
-          <>
-            {betaFeatures.importAndRetranscribe && (
-              <Button variant="outline" onClick={() => openImportDialog()}>
-                <Upload />Import audio
-              </Button>
-            )}
-            <Button onClick={() => router.push('/new-meeting')}><Mic />New meeting</Button>
-          </>
-        )}
       />
       <section aria-label="Saved meeting list" className="mt-7">
         {viewState === 'loading' ? (
@@ -171,9 +161,9 @@ export default function MeetingsPage() {
               : 'Complete a recording to create your first saved meeting.'}
             action={(
               <div className="flex flex-wrap justify-center gap-2">
-                <Button onClick={() => router.push('/new-meeting')}><Mic />Open recorder</Button>
+                <Button onClick={() => router.push('/new-meeting')}><MicrophoneIcon />Open recorder</Button>
                 {betaFeatures.importAndRetranscribe && (
-                  <Button variant="outline" onClick={() => openImportDialog()}><Upload />Import audio</Button>
+                  <Button variant="outline" onClick={() => openImportDialog()}><ArrowUpTrayIcon />Import audio</Button>
                 )}
               </div>
             )}
@@ -182,7 +172,7 @@ export default function MeetingsPage() {
           <div className="space-y-4">
             <Surface className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <Input
                   type="text"
                   value={query}
@@ -198,7 +188,7 @@ export default function MeetingsPage() {
                     className="absolute right-2 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label="Clear search"
                   >
-                    <X className="size-4" aria-hidden="true" />
+                    <XMarkIcon className="size-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -250,12 +240,12 @@ export default function MeetingsPage() {
                         </span>
                       ) : (
                         <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <CalendarDays className="size-3.5" aria-hidden="true" />
+                          <CalendarDaysIcon className="size-3.5" aria-hidden="true" />
                           {formatMeetingDate(meeting.updatedAt || meeting.createdAt)}
                         </span>
                       )}
                     </span>
-                    <ArrowRight className="mt-1 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    <ArrowRightIcon className="mt-1 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" aria-hidden="true" />
                   </button>
                 ))}
                 {isSearching && (

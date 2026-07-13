@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowDownTrayIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import {
   Dialog,
   DialogContent,
@@ -189,17 +189,17 @@ export function UpdateDialog({ open, onOpenChange, updateInfo }: UpdateDialogPro
           <DialogTitle className="flex items-center gap-2">
             {isDownloading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin text-accent" />
+                <ArrowPathIcon className="h-5 w-5 animate-spin text-accent motion-reduce:animate-none" />
                 Downloading Update
               </>
             ) : error ? (
               <>
-                <AlertCircle className="h-5 w-5 text-destructive" />
+                <ExclamationCircleIcon className="h-5 w-5 text-destructive" />
                 Update Error
               </>
             ) : (
               <>
-                <Download className="h-5 w-5 text-accent" />
+                <ArrowDownTrayIcon className="h-5 w-5 text-accent" />
                 Update Available
               </>
             )}
@@ -281,7 +281,7 @@ export function UpdateDialog({ open, onOpenChange, updateInfo }: UpdateDialogPro
                 Later
               </Button>
               <Button onClick={handleDownloadAndInstall} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                <Download className="h-4 w-4 mr-2" />
+                <ArrowDownTrayIcon className="mr-2 h-4 w-4" />
                 Download & Install
               </Button>
             </>

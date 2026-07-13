@@ -11,6 +11,7 @@ import {
   getModelDisplayName,
   formatFileSize
 } from '../lib/parakeet';
+import { CheckIcon, CpuChipIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface ParakeetModelManagerProps {
   selectedModel?: string;
@@ -133,7 +134,7 @@ export function ParakeetModelManager({
           // Clean up throttle data
           progressThrottleRef.current.delete(modelName);
 
-          toast.success(`${displayInfo?.icon || '✓'} ${displayName} ready!`, {
+          toast.success(`${displayName} ready`, {
             description: 'Model downloaded and ready to use',
             duration: 4000
           });
@@ -332,8 +333,8 @@ export function ParakeetModelManager({
     return (
       <div className={`space-y-3 ${className}`}>
         <div className="animate-pulse space-y-3">
-          <div className="h-20 rounded-[3px] bg-muted"></div>
-          <div className="h-20 rounded-[3px] bg-muted"></div>
+          <div className="h-20 rounded-md bg-muted"></div>
+          <div className="h-20 rounded-md bg-muted"></div>
         </div>
       </div>
     );
@@ -356,7 +357,7 @@ export function ParakeetModelManager({
   );
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={`divide-y divide-border/70 border-y border-border/70 ${className}`}>
       {/* Recommended Model */}
       {recommendedModel && (
         <ModelCard
@@ -377,7 +378,7 @@ export function ParakeetModelManager({
 
       {/* Other Models */}
       {otherModels.length > 0 && (
-        <div className="space-y-3">
+        <div className="divide-y divide-border/70">
           {otherModels.map(model => (
             <ModelCard
               key={model.name}
@@ -437,7 +438,6 @@ function ModelCard({
   const [isHovered, setIsHovered] = useState(false);
   const displayInfo = getModelDisplayInfo(model.name);
   const displayName = displayInfo?.friendlyName || model.name;
-  const icon = displayInfo?.icon || '📦';
   const tagline = displayInfo?.tagline || model.description || '';
 
   const isAvailable = model.status === 'Available';
@@ -457,12 +457,12 @@ function ModelCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
-        relative rounded-[3px] border transition-all cursor-pointer
+        relative transition-colors cursor-pointer
         ${isSelected && isAvailable
-          ? 'border-accent bg-[hsl(var(--accent-soft))]'
+          ? 'border-l-2 border-l-accent bg-[hsl(var(--accent-soft))]'
           : isAvailable
-            ? 'border-border hover:border-border-strong bg-card'
-            : 'border-border bg-secondary/45'
+            ? 'hover:bg-secondary/35'
+            : 'bg-secondary/25'
         }
         ${isAvailable ? '' : 'cursor-default'}
       `}
@@ -470,27 +470,23 @@ function ModelCard({
         if (isAvailable) onSelect();
       }}
     >
-      {/* Recommended Badge */}
-      {isRecommended && (
-        <div className="absolute -top-2 right-3 rounded-[3px] bg-accent px-2 py-0.5 font-mono text-[0.625rem] font-medium text-accent-foreground">
-          Recommended
-        </div>
-      )}
-
-      <div className="p-4">
+      <div className="px-3 py-4 sm:px-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             {/* Model Name */}
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-2xl">{icon}</span>
+              <CpuChipIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
               <h3 className="font-semibold">{displayName}</h3>
+              {isRecommended && (
+                <span className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">Recommended</span>
+              )}
               {isSelected && isAvailable && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="flex items-center gap-1 rounded-[3px] bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground"
+                  className="flex items-center gap-1 rounded-md bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground"
                 >
-                  ✓
+                  <CheckIcon className="size-3" aria-hidden="true" />
                 </motion.span>
               )}
             </div>
@@ -521,9 +517,7 @@ function ModelCard({
                       className="p-1 text-muted-foreground transition-colors hover:text-destructive"
                       title="Delete model to free up space"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      <TrashIcon className="size-4" />
                     </motion.button>
                   )}
                 </AnimatePresence>
@@ -536,7 +530,7 @@ function ModelCard({
                   e.stopPropagation();
                   onDownload();
                 }}
-                className="rounded-[3px] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/88"
+                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/88"
               >
                 Download
               </button>
@@ -548,7 +542,7 @@ function ModelCard({
                   e.stopPropagation();
                   onDownload();
                 }}
-                className="rounded-[3px] bg-destructive px-3 py-1.5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
+                className="rounded-md bg-destructive px-3 py-1.5 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
               >
                 Retry
               </button>
@@ -561,7 +555,7 @@ function ModelCard({
                     e.stopPropagation();
                     onDelete();
                   }}
-                  className="rounded-[3px] bg-warning px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-warning/90"
+                  className="rounded-md bg-warning px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-warning/90"
                 >
                   Delete
                 </button>
@@ -570,7 +564,7 @@ function ModelCard({
                     e.stopPropagation();
                     onDownload();
                   }}
-                  className="rounded-[3px] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/88"
+                  className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/88"
                 >
                   Re-download
                 </button>
@@ -597,13 +591,13 @@ function ModelCard({
                   e.stopPropagation();
                   onCancel();
                 }}
-                className="rounded-[3px] px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 title="Cancel download"
               >
                 Cancel
               </button>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-[3px] bg-secondary">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(downloadProgress)}>
               <motion.div
                 className="h-full bg-accent"
                 initial={{ width: 0 }}

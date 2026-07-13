@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, Bot, ChevronRight, Circle, Mic, Settings2 } from 'lucide-react';
+import { ArrowRightIcon, ChevronRightIcon, CpuChipIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AppState } from '@/components/app-shell/AppState';
@@ -62,12 +62,6 @@ export default function DashboardPage() {
         eyebrow="This device / meeting workbench"
         title="Work from what was said."
         description="Capture a conversation, keep the record local, then return to the decisions without a meeting bot in the call."
-        actions={
-          <Button onClick={() => router.push('/new-meeting')}>
-            <Mic aria-hidden="true" />
-            New meeting
-          </Button>
-        }
       />
 
       <section aria-labelledby="workspace-heading" className="mt-10 border-y border-border">
@@ -75,7 +69,7 @@ export default function DashboardPage() {
             <div className="p-7 sm:p-10">
               <div className="flex items-start gap-5">
                 <span className="mt-1 grid size-7 shrink-0 place-items-center text-accent">
-                  <Mic className="size-[1.15rem]" aria-hidden="true" />
+                  <MicrophoneIcon className="size-[1.15rem]" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <p className="app-eyebrow">Capture</p>
@@ -85,7 +79,7 @@ export default function DashboardPage() {
                   </p>
                   <Button className="mt-7" onClick={() => router.push('/new-meeting')}>
                     Open recorder
-                    <ArrowRight aria-hidden="true" />
+                    <ArrowRightIcon aria-hidden="true" />
                   </Button>
                 </div>
               </div>
@@ -94,24 +88,15 @@ export default function DashboardPage() {
             <aside aria-label="Local model status" className="border-t border-border bg-secondary/55 p-6 xl:border-l xl:border-t-0">
               <div className="flex items-center justify-between gap-3">
                 <div className="app-eyebrow flex items-center gap-2">
-                  <Bot className="size-3.5" aria-hidden="true" />
+                  <CpuChipIcon className="size-3.5" aria-hidden="true" />
                   Local model
                 </div>
                 <span className="flex items-center gap-1.5 font-mono text-[0.6875rem] font-medium">
-                  <Circle className={`size-2 fill-current ${localModelStatus.ready ? 'text-[hsl(var(--success))]' : 'text-[hsl(var(--warning))]'}`} aria-hidden="true" />
+                  <span className={`size-2 rounded-full ${localModelStatus.ready ? 'bg-[hsl(var(--success))]' : 'bg-[hsl(var(--warning))]'}`} aria-hidden="true" />
                   {localModelStatus.ready ? 'Ready' : 'Check setup'}
                 </span>
               </div>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">{localModelStatus.description}</p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => router.push('/settings')}>
-                  <Settings2 aria-hidden="true" />
-                  Settings
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => router.push('/chat')}>
-                  Ask notes
-                </Button>
-              </div>
             </aside>
           </div>
       </section>
@@ -136,7 +121,7 @@ export default function DashboardPage() {
           {meetings.length > 0 && (
             <Button variant="ghost" size="sm" onClick={() => router.push('/meetings')}>
               View all
-              <ArrowRight aria-hidden="true" />
+              <ArrowRightIcon aria-hidden="true" />
             </Button>
           )}
         </div>
@@ -159,11 +144,11 @@ export default function DashboardPage() {
               >
                 <span className="flex min-w-0 items-center gap-3">
                   <span className="grid size-8 shrink-0 place-items-center rounded-md bg-card text-muted-foreground ring-1 ring-inset ring-border">
-                    <Mic className="size-3.5" aria-hidden="true" />
+                    <MicrophoneIcon className="size-3.5" aria-hidden="true" />
                   </span>
                   <span className="min-w-0 truncate text-sm font-medium">{meeting.title}</span>
                 </span>
-                <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" aria-hidden="true" />
               </button>
             ))}
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Check, Database, FileAudio2, FileText, LoaderCircle, ShieldCheck } from 'lucide-react';
+import { ArrowPathIcon, CheckIcon, CircleStackIcon, DocumentTextIcon, ExclamationTriangleIcon, ShieldCheckIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { Surface } from '@/components/app-shell/Surface';
 import { Progress } from '@/components/ui/progress';
 import { RecordingStatus, useRecordingState } from '@/contexts/RecordingStateContext';
@@ -12,20 +12,20 @@ import {
 import { cn } from '@/lib/utils';
 
 const steps = [
-  { label: 'Capture ended', icon: FileAudio2 },
-  { label: 'Transcript', icon: FileText },
-  { label: 'Saved locally', icon: Database },
+  { label: 'Capture ended', icon: SpeakerWaveIcon },
+  { label: 'Transcript', icon: DocumentTextIcon },
+  { label: 'Saved locally', icon: CircleStackIcon },
 ] as const;
 
 function StepState({ state }: { state: PostRecordingStepState }) {
   if (state === 'complete') {
-    return <Check className="size-4" aria-hidden="true" />;
+    return <CheckIcon className="size-4" aria-hidden="true" />;
   }
   if (state === 'active') {
-    return <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />;
+    return <ArrowPathIcon className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />;
   }
   if (state === 'error') {
-    return <AlertTriangle className="size-4" aria-hidden="true" />;
+    return <ExclamationTriangleIcon className="size-4" aria-hidden="true" />;
   }
   return <span className="size-2 rounded-full bg-current opacity-35" aria-hidden="true" />;
 }
@@ -60,11 +60,11 @@ export function PostRecordingWorkspace() {
                     : 'bg-secondary text-foreground',
               )}>
                 {isError ? (
-                  <AlertTriangle className="size-5" aria-hidden="true" />
+                  <ExclamationTriangleIcon className="size-5" aria-hidden="true" />
                 ) : isComplete ? (
-                  <Check className="size-5" aria-hidden="true" />
+                  <CheckIcon className="size-5" aria-hidden="true" />
                 ) : (
-                  <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
+                  <ArrowPathIcon className="size-5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
                 )}
               </span>
               <div className="min-w-0">
@@ -115,7 +115,7 @@ export function PostRecordingWorkspace() {
           </div>
 
           <div className="flex items-start gap-3 border-t border-border/70 bg-secondary/35 px-6 py-4 text-sm leading-6 text-muted-foreground sm:px-8">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <ShieldCheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <p>
               {isError
                 ? 'Recovery data remains on this device. Keep Meetily open until a supported recovery action is available.'

@@ -1,11 +1,13 @@
 use log::{debug as log_debug, error as log_error, info as log_info, warn as log_warn};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use tauri::{AppHandle, Runtime};
+use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
+use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::StoreExt;
 
 use crate::{
+    audio::recording_preferences::{get_default_recordings_folder, load_recording_preferences},
     database::{
         models::MeetingModel,
         repositories::{
@@ -14,7 +16,10 @@ use crate::{
         },
     },
     state::AppState,
-    summary::{llm_client::{generate_summary, LLMProvider}, CustomOpenAIConfig},
+    summary::{
+        llm_client::{generate_summary, LLMProvider},
+        CustomOpenAIConfig,
+    },
 };
 
 // Hardcoded server URL
@@ -27,14 +32,28 @@ fn is_loopback_ollama_endpoint(endpoint: Option<&str>) -> bool {
     let Ok(url) = reqwest::Url::parse(endpoint) else {
         return false;
     };
-    matches!(url.host_str(), Some("localhost") | Some("127.0.0.1") | Some("::1") | Some("[::1]"))
+    matches!(
+        url.host_str(),
+        Some("localhost") | Some("127.0.0.1") | Some("::1") | Some("[::1]")
+    )
 }
 
 fn is_unsupported_recall_question(question: &str) -> bool {
     let question = question.to_lowercase();
-    ["calendar", "email", "inbox", "internet", "web search", "browser", "account", "drive", "file system", "filesystem"]
-        .iter()
-        .any(|term| question.contains(term))
+    [
+        "calendar",
+        "email",
+        "inbox",
+        "internet",
+        "web search",
+        "browser",
+        "account",
+        "drive",
+        "file system",
+        "filesystem",
+    ]
+    .iter()
+    .any(|term| question.contains(term))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -62,6 +81,9 @@ pub struct TranscriptSearchResult {
     #[serde(rename = "matchContext")]
     pub match_context: String,
     pub timestamp: String,
+    #[serde(rename = "meetingDate")]
+    pub meeting_date: Option<String>,
+    pub summary: Option<String>,
 }
 
 /// A source the local recall command actually supplied to the local model.
@@ -74,12 +96,155 @@ pub struct LocalRecallSource {
     #[serde(rename = "matchContext")]
     pub match_context: String,
     pub timestamp: String,
+    #[serde(rename = "meetingDate")]
+    pub meeting_date: Option<String>,
+    pub summary: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LocalRecallResponse {
     pub answer: String,
     pub sources: Vec<LocalRecallSource>,
+}
+
+const MAX_MEETING_RECALL_CONTEXT_CHARS: usize = 48_000;
+const MAX_MEETING_RECALL_SOURCES: usize = 64;
+const MAX_MEETING_RECALL_SOURCE_CHARS: usize = 8_000;
+const MAX_GLOBAL_RECALL_MEETINGS: usize = 8;
+
+fn bounded_middle_excerpt(text: &str, maximum_characters: usize) -> String {
+    let characters = text.chars().collect::<Vec<_>>();
+    if characters.len() <= maximum_characters {
+        return text.to_string();
+    }
+
+    let head_length = maximum_characters / 2;
+    let tail_length = maximum_characters.saturating_sub(head_length);
+    let head = characters[..head_length].iter().collect::<String>();
+    let tail = characters[characters.len() - tail_length..]
+        .iter()
+        .collect::<String>();
+    format!("{head}\n…\n{tail}")
+}
+
+fn build_meeting_recall_sources(matches: Vec<TranscriptSearchResult>) -> Vec<LocalRecallSource> {
+    let match_count = matches.len();
+    let selected = if match_count > MAX_MEETING_RECALL_SOURCES {
+        let edge_count = MAX_MEETING_RECALL_SOURCES / 2;
+        matches
+            .into_iter()
+            .enumerate()
+            .filter_map(|(index, item)| {
+                (index < edge_count || index >= match_count - edge_count).then_some(item)
+            })
+            .collect::<Vec<_>>()
+    } else {
+        matches
+    };
+    let per_source_budget = if selected.is_empty() {
+        MAX_MEETING_RECALL_SOURCE_CHARS
+    } else {
+        (MAX_MEETING_RECALL_CONTEXT_CHARS / selected.len()).min(MAX_MEETING_RECALL_SOURCE_CHARS)
+    };
+
+    selected
+        .into_iter()
+        .map(|item| LocalRecallSource {
+            meeting_id: item.id,
+            title: item.title,
+            match_context: bounded_middle_excerpt(&item.match_context, per_source_budget),
+            timestamp: item.timestamp,
+            meeting_date: item.meeting_date,
+            summary: item.summary.as_deref().and_then(summary_markdown),
+        })
+        .collect()
+}
+
+fn build_global_recall_sources(matches: Vec<TranscriptSearchResult>) -> Vec<LocalRecallSource> {
+    let mut sources = Vec::<LocalRecallSource>::new();
+    for item in matches {
+        if let Some(source) = sources
+            .iter_mut()
+            .find(|source| source.meeting_id == item.id)
+        {
+            if !source.match_context.contains(&item.match_context) {
+                source.match_context = bounded_middle_excerpt(
+                    &format!(
+                        "{}\n[{}] {}",
+                        source.match_context, item.timestamp, item.match_context
+                    ),
+                    MAX_MEETING_RECALL_SOURCE_CHARS,
+                );
+            }
+            if source.summary.is_none() {
+                source.summary = item.summary.as_deref().and_then(summary_markdown);
+            }
+            continue;
+        }
+        if sources.len() >= MAX_GLOBAL_RECALL_MEETINGS {
+            continue;
+        }
+        sources.push(LocalRecallSource {
+            meeting_id: item.id,
+            title: item.title,
+            match_context: format!("[{}] {}", item.timestamp, item.match_context),
+            timestamp: item.timestamp,
+            meeting_date: item.meeting_date,
+            summary: item.summary.as_deref().and_then(summary_markdown),
+        });
+    }
+    sources
+}
+
+fn summary_markdown(raw: &str) -> Option<String> {
+    let raw = raw.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    let summary = match serde_json::from_str::<serde_json::Value>(raw) {
+        Ok(serde_json::Value::String(value)) => value,
+        Ok(mut value) => {
+            if let Some(markdown) = value.get("markdown").and_then(serde_json::Value::as_str) {
+                markdown.to_string()
+            } else {
+                if let Some(object) = value.as_object_mut() {
+                    object.remove("english_cache");
+                }
+                serde_json::to_string_pretty(&value).ok()?
+            }
+        }
+        Err(_) => raw.to_string(),
+    };
+    let summary = summary.trim();
+    (!summary.is_empty()).then(|| bounded_middle_excerpt(summary, MAX_MEETING_RECALL_SOURCE_CHARS))
+}
+
+fn build_local_recall_context(sources: &[LocalRecallSource]) -> String {
+    let mut summaries_included = HashSet::new();
+    let context = sources
+        .iter()
+        .enumerate()
+        .map(|(index, source)| {
+            let meeting_date = source.meeting_date.as_deref().unwrap_or("date unavailable");
+            let summary = source
+                .summary
+                .as_deref()
+                .filter(|_| summaries_included.insert(source.meeting_id.as_str()))
+                .map(|summary| format!("\nSaved summary:\n{summary}"))
+                .unwrap_or_default();
+            format!(
+                "[Source {} | {} | meeting date {} | transcript time {}]{}\nTranscript excerpt:\n{}",
+                index + 1,
+                source.title,
+                meeting_date,
+                source.timestamp,
+                summary,
+                source.match_context
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n");
+    bounded_middle_excerpt(&context, MAX_MEETING_RECALL_CONTEXT_CHARS)
 }
 
 #[derive(Debug, Serialize)]
@@ -424,12 +589,13 @@ pub async fn api_search_transcripts<R: Runtime>(
 }
 
 /// Answer a question only from matching local transcript snippets via a
-/// configured local Ollama model. This intentionally has no cloud fallback.
+/// configured local model. This intentionally has no cloud fallback.
 #[tauri::command]
 pub async fn api_answer_meetings_locally<R: Runtime>(
-    _app: AppHandle<R>,
+    app: AppHandle<R>,
     state: tauri::State<'_, AppState>,
     question: String,
+    meeting_id: Option<String>,
 ) -> Result<LocalRecallResponse, String> {
     let question = question.trim();
     if question.is_empty() {
@@ -446,44 +612,51 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     let config = SettingsRepository::get_model_config(pool)
         .await
         .map_err(|error| format!("Could not read the local model configuration: {error}"))?
-        .ok_or_else(|| "Configure a local Ollama model before asking meetings.".to_string())?;
-    if config.provider != "ollama" {
-        return Err("Ask Meetings only uses a local Ollama model. Choose Ollama in Settings to continue.".to_string());
+        .ok_or_else(|| "Configure Built-in AI or Ollama before asking meetings.".to_string())?;
+    let provider = LLMProvider::from_str(&config.provider)
+        .map_err(|_| "Ask Meetings requires Built-in AI or Ollama in Settings.".to_string())?;
+    if provider != LLMProvider::Ollama && provider != LLMProvider::BuiltInAI {
+        return Err("Ask Meetings requires Built-in AI or Ollama in Settings.".to_string());
     }
-    if !is_loopback_ollama_endpoint(config.ollama_endpoint.as_deref()) {
+    if provider == LLMProvider::Ollama
+        && !is_loopback_ollama_endpoint(config.ollama_endpoint.as_deref())
+    {
         return Err("Ask Meetings only permits an Ollama server on this device. Use localhost in Settings to continue.".to_string());
     }
     if config.model.trim().is_empty() {
         return Err("Choose a local Ollama model before asking meetings.".to_string());
     }
 
-    let matches = TranscriptsRepository::search_transcripts(pool, question)
-        .await
-        .map_err(|error| format!("Could not search local meeting transcripts: {error}"))?;
+    let is_meeting_scoped = meeting_id.is_some();
+    let matches = match meeting_id.as_deref() {
+        Some(meeting_id) => {
+            TranscriptsRepository::get_meeting_transcripts_for_recall(pool, meeting_id).await
+        }
+        None => TranscriptsRepository::search_transcripts(pool, question).await,
+    }
+    .map_err(|error| format!("Could not read local meeting transcripts: {error}"))?;
     if matches.is_empty() {
         return Err("No saved local transcript matched that question.".to_string());
     }
 
     // Bound context and sources so a broad query cannot turn into an
     // unbounded local-model request. All text comes from the local database.
-    let sources = matches.into_iter().take(8).map(|item| LocalRecallSource {
-        meeting_id: item.id,
-        title: item.title,
-        match_context: item.match_context,
-        timestamp: item.timestamp,
-    }).collect::<Vec<_>>();
-    let context = sources.iter().enumerate().map(|(index, source)| {
-        format!("[Source {} | {} | {}]\n{}", index + 1, source.title, source.timestamp, source.match_context)
-    }).collect::<Vec<_>>().join("\n\n");
+    let sources = if is_meeting_scoped {
+        build_meeting_recall_sources(matches)
+    } else {
+        build_global_recall_sources(matches)
+    };
+    let context = build_local_recall_context(&sources);
     let system_prompt = "You answer only from the supplied local meeting excerpts. If the excerpts do not answer the question, say so plainly. Do not claim access to any other meeting data, do not invent facts, and do not invent citations.";
     let user_prompt = format!("Question: {question}\n\nLocal meeting excerpts:\n{context}");
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(60))
         .build()
-        .map_err(|error| format!("Could not start the local Ollama request: {error}"))?;
+        .map_err(|error| format!("Could not start the local model request: {error}"))?;
+    let app_data_dir = app.path().app_data_dir().ok();
     let answer = generate_summary(
         &client,
-        &LLMProvider::Ollama,
+        &provider,
         &config.model,
         "",
         system_prompt,
@@ -493,16 +666,24 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
         None,
         None,
         None,
+        app_data_dir.as_ref(),
         None,
-        None,
-    ).await.map_err(|error| format!("Local Ollama could not answer from your saved meetings: {error}"))?;
+    )
+    .await
+    .map_err(|error| {
+        format!("The local model could not answer from your saved meetings: {error}")
+    })?;
 
     Ok(LocalRecallResponse { answer, sources })
 }
 
 #[cfg(test)]
 mod local_recall_tests {
-    use super::is_loopback_ollama_endpoint;
+    use super::{
+        build_global_recall_sources, build_local_recall_context, build_meeting_recall_sources,
+        is_loopback_ollama_endpoint, summary_markdown, LocalRecallSource, TranscriptSearchResult,
+        MAX_MEETING_RECALL_SOURCE_CHARS,
+    };
 
     #[test]
     fn recall_allows_only_loopback_ollama_endpoints() {
@@ -510,16 +691,125 @@ mod local_recall_tests {
         assert!(is_loopback_ollama_endpoint(Some("http://localhost:11434")));
         assert!(is_loopback_ollama_endpoint(Some("http://127.0.0.1:11434")));
         assert!(is_loopback_ollama_endpoint(Some("http://[::1]:11434")));
-        assert!(!is_loopback_ollama_endpoint(Some("https://ollama.example.com")));
-        assert!(!is_loopback_ollama_endpoint(Some("http://localhost.example.com:11434")));
+        assert!(!is_loopback_ollama_endpoint(Some(
+            "https://ollama.example.com"
+        )));
+        assert!(!is_loopback_ollama_endpoint(Some(
+            "http://localhost.example.com:11434"
+        )));
         assert!(!is_loopback_ollama_endpoint(Some("not a url")));
     }
 
     #[test]
     fn recall_refuses_product_scope_outside_saved_meetings() {
-        assert!(super::is_unsupported_recall_question("Search the internet for this"));
-        assert!(super::is_unsupported_recall_question("What is on my calendar?"));
-        assert!(!super::is_unsupported_recall_question("What decision did we make?"));
+        assert!(super::is_unsupported_recall_question(
+            "Search the internet for this"
+        ));
+        assert!(super::is_unsupported_recall_question(
+            "What is on my calendar?"
+        ));
+        assert!(!super::is_unsupported_recall_question(
+            "What decision did we make?"
+        ));
+    }
+
+    #[test]
+    fn meeting_recall_context_keeps_the_start_and_conclusion() {
+        let long_segment = format!(
+            "Henry opened the meeting. {} The action items are keep it simple, test real inputs, and trace claims to evidence.",
+            "middle ".repeat(2_000)
+        );
+        let sources = build_meeting_recall_sources(vec![TranscriptSearchResult {
+            id: "meeting-1".to_string(),
+            title: "AI meeting".to_string(),
+            match_context: long_segment,
+            timestamp: "00:00".to_string(),
+            meeting_date: Some("2026-07-13".to_string()),
+            summary: None,
+        }]);
+
+        assert_eq!(sources.len(), 1);
+        assert!(sources[0]
+            .match_context
+            .starts_with("Henry opened the meeting."));
+        assert!(sources[0]
+            .match_context
+            .contains("The action items are keep it simple"));
+        assert!(sources[0].match_context.chars().count() <= MAX_MEETING_RECALL_SOURCE_CHARS + 3);
+    }
+
+    #[test]
+    fn recall_context_includes_real_date_summary_and_transcript_once_per_meeting() {
+        let raw_summary = r###"{"markdown":"## Decisions\nKeep recall local."}"###;
+        assert_eq!(
+            summary_markdown(raw_summary).as_deref(),
+            Some("## Decisions\nKeep recall local.")
+        );
+        assert_eq!(
+            summary_markdown("Legacy plain-text summary").as_deref(),
+            Some("Legacy plain-text summary")
+        );
+        let sources = vec![
+            LocalRecallSource {
+                meeting_id: "meeting-1".to_string(),
+                title: "AI review".to_string(),
+                match_context: "Henry opened the review.".to_string(),
+                timestamp: "00:05".to_string(),
+                meeting_date: Some("2026-07-13T10:00:00Z".to_string()),
+                summary: summary_markdown(raw_summary),
+            },
+            LocalRecallSource {
+                meeting_id: "meeting-1".to_string(),
+                title: "AI review".to_string(),
+                match_context: "Trent confirmed the decision.".to_string(),
+                timestamp: "00:30".to_string(),
+                meeting_date: Some("2026-07-13T10:00:00Z".to_string()),
+                summary: summary_markdown(raw_summary),
+            },
+        ];
+
+        let context = build_local_recall_context(&sources);
+        assert!(context.contains("meeting date 2026-07-13T10:00:00Z"));
+        assert!(context.contains("Saved summary:\n## Decisions"));
+        assert!(context.contains("Transcript excerpt:\nHenry opened"));
+        assert_eq!(context.matches("Saved summary:").count(), 1);
+    }
+
+    #[test]
+    fn global_recall_returns_one_source_per_meeting_with_bounded_excerpts() {
+        let matches = vec![
+            TranscriptSearchResult {
+                id: "meeting-1".to_string(),
+                title: "AI review".to_string(),
+                match_context: "First matching segment.".to_string(),
+                timestamp: "00:05".to_string(),
+                meeting_date: Some("2026-07-13".to_string()),
+                summary: Some(r###"{"markdown":"Saved decision."}"###.to_string()),
+            },
+            TranscriptSearchResult {
+                id: "meeting-1".to_string(),
+                title: "AI review".to_string(),
+                match_context: "Second matching segment.".to_string(),
+                timestamp: "00:30".to_string(),
+                meeting_date: Some("2026-07-13".to_string()),
+                summary: None,
+            },
+            TranscriptSearchResult {
+                id: "meeting-2".to_string(),
+                title: "Other review".to_string(),
+                match_context: "Another meeting.".to_string(),
+                timestamp: "00:10".to_string(),
+                meeting_date: Some("2026-07-12".to_string()),
+                summary: None,
+            },
+        ];
+
+        let sources = build_global_recall_sources(matches);
+        assert_eq!(sources.len(), 2);
+        assert_eq!(sources[0].meeting_id, "meeting-1");
+        assert!(sources[0].match_context.contains("First matching segment"));
+        assert!(sources[0].match_context.contains("Second matching segment"));
+        assert_eq!(sources[0].summary.as_deref(), Some("Saved decision."));
     }
 }
 
@@ -881,9 +1171,115 @@ pub async fn api_delete_api_key<R: Runtime>(
     }
 }
 
+fn remove_owned_meeting_folder(
+    folder_path: &Path,
+    allowed_recordings_roots: &[PathBuf],
+) -> Result<Option<PathBuf>, String> {
+    if !folder_path.is_absolute() {
+        return Err("Refusing to delete a meeting folder with a relative path".to_string());
+    }
+    if !folder_path.exists() {
+        return Ok(None);
+    }
+
+    let canonical_folder = folder_path
+        .canonicalize()
+        .map_err(|error| format!("Could not resolve the meeting folder: {error}"))?;
+    if !canonical_folder.is_dir() {
+        return Err("Refusing to delete a meeting folder path that is not a directory".to_string());
+    }
+
+    let is_owned_folder = allowed_recordings_roots.iter().any(|root| {
+        root.canonicalize().ok().is_some_and(|canonical_root| {
+            canonical_folder.parent() == Some(canonical_root.as_path())
+        })
+    });
+    if !is_owned_folder {
+        return Err(format!(
+            "Refusing to delete a folder outside Meetily's configured recordings root: {}",
+            canonical_folder.display()
+        ));
+    }
+
+    std::fs::remove_dir_all(&canonical_folder).map_err(|error| {
+        format!("Could not delete the meeting's local recording folder: {error}")
+    })?;
+    Ok(Some(canonical_folder))
+}
+
+#[cfg(test)]
+mod local_meeting_folder_cleanup_tests {
+    use super::remove_owned_meeting_folder;
+    use std::{
+        fs,
+        path::PathBuf,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    fn test_directory(label: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time must be after the Unix epoch")
+            .as_nanos();
+        std::env::temp_dir().join(format!("meetily-{label}-{}-{nonce}", std::process::id()))
+    }
+
+    #[test]
+    fn removes_a_direct_child_of_the_recordings_root() {
+        let base = test_directory("owned-folder");
+        let recordings_root = base.join("recordings");
+        let meeting_folder = recordings_root.join("meeting-1");
+        fs::create_dir_all(&meeting_folder).unwrap();
+        fs::write(meeting_folder.join("audio.mp4"), b"local audio").unwrap();
+
+        let removed =
+            remove_owned_meeting_folder(&meeting_folder, std::slice::from_ref(&recordings_root))
+                .unwrap();
+
+        assert!(removed.is_some());
+        assert!(!meeting_folder.exists());
+        assert!(recordings_root.exists());
+        let _ = fs::remove_dir_all(base);
+    }
+
+    #[test]
+    fn treats_an_already_missing_meeting_folder_as_clean() {
+        let base = test_directory("missing-folder");
+        let recordings_root = base.join("recordings");
+        fs::create_dir_all(&recordings_root).unwrap();
+        let missing_folder = recordings_root.join("meeting-missing");
+
+        let removed =
+            remove_owned_meeting_folder(&missing_folder, std::slice::from_ref(&recordings_root))
+                .unwrap();
+
+        assert!(removed.is_none());
+        assert!(recordings_root.exists());
+        let _ = fs::remove_dir_all(base);
+    }
+
+    #[test]
+    fn refuses_a_folder_outside_the_recordings_root() {
+        let base = test_directory("unsafe-folder");
+        let recordings_root = base.join("recordings");
+        let outside_folder = base.join("not-owned");
+        fs::create_dir_all(&recordings_root).unwrap();
+        fs::create_dir_all(&outside_folder).unwrap();
+        fs::write(outside_folder.join("keep.txt"), b"must remain").unwrap();
+
+        let error =
+            remove_owned_meeting_folder(&outside_folder, std::slice::from_ref(&recordings_root))
+                .unwrap_err();
+
+        assert!(error.contains("outside Meetily's configured recordings root"));
+        assert!(outside_folder.join("keep.txt").exists());
+        let _ = fs::remove_dir_all(base);
+    }
+}
+
 #[tauri::command]
 pub async fn api_delete_meeting<R: Runtime>(
-    _app: AppHandle<R>,
+    app: AppHandle<R>,
     state: tauri::State<'_, AppState>,
     meeting_id: String,
     auth_token: Option<String>,
@@ -895,6 +1291,35 @@ pub async fn api_delete_meeting<R: Runtime>(
     );
 
     let pool = state.db_manager.pool();
+    let stored_folder: Option<(Option<String>,)> =
+        sqlx::query_as("SELECT folder_path FROM meetings WHERE id = ?")
+            .bind(&meeting_id)
+            .fetch_optional(pool)
+            .await
+            .map_err(|error| format!("Failed to read the meeting's local folder: {error}"))?;
+
+    if let Some(folder_path) = stored_folder
+        .and_then(|(folder_path,)| folder_path)
+        .filter(|folder_path| !folder_path.trim().is_empty())
+    {
+        let preferences = load_recording_preferences(&app)
+            .await
+            .map_err(|error| format!("Failed to read the recordings folder preference: {error}"))?;
+        let allowed_roots = vec![preferences.save_folder, get_default_recordings_folder()];
+        let folder_path = PathBuf::from(folder_path);
+        let removed_folder = tokio::task::spawn_blocking(move || {
+            remove_owned_meeting_folder(&folder_path, &allowed_roots)
+        })
+        .await
+        .map_err(|error| format!("Meeting folder cleanup task failed: {error}"))??;
+        if let Some(removed_folder) = removed_folder {
+            log_info!(
+                "Deleted owned local meeting folder {} before removing meeting {}",
+                removed_folder.display(),
+                meeting_id
+            );
+        }
+    }
 
     match MeetingsRepository::delete_meeting(pool, &meeting_id).await {
         Ok(true) => {
@@ -956,7 +1381,10 @@ pub async fn api_get_meeting_metadata<R: Runtime>(
     meeting_id: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<MeetingMetadata, String> {
-    log_info!("api_get_meeting_metadata called for meeting_id: {}", meeting_id);
+    log_info!(
+        "api_get_meeting_metadata called for meeting_id: {}",
+        meeting_id
+    );
 
     let pool = state.db_manager.pool();
 
@@ -1000,7 +1428,9 @@ pub async fn api_get_meeting_transcripts<R: Runtime>(
 
     let pool = state.db_manager.pool();
 
-    match MeetingsRepository::get_meeting_transcripts_paginated(pool, &meeting_id, limit, offset).await {
+    match MeetingsRepository::get_meeting_transcripts_paginated(pool, &meeting_id, limit, offset)
+        .await
+    {
         Ok((transcripts, total_count)) => {
             log_info!(
                 "Successfully retrieved {} transcripts for meeting {} (total: {})",
@@ -1031,7 +1461,11 @@ pub async fn api_get_meeting_transcripts<R: Runtime>(
             })
         }
         Err(e) => {
-            log_error!("Error retrieving transcripts for meeting {}: {}", meeting_id, e);
+            log_error!(
+                "Error retrieving transcripts for meeting {}: {}",
+                meeting_id,
+                e
+            );
             Err(format!("Failed to retrieve transcripts: {}", e))
         }
     }
@@ -1099,7 +1533,10 @@ pub async fn api_save_transcript<R: Runtime>(
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| {
             log_error!("Failed to parse transcript segments: {}", e);
-            format!("Invalid transcript data format: {}. Please check the data structure.", e)
+            format!(
+                "Invalid transcript data format: {}. Please check the data structure.",
+                e
+            )
         })?;
 
     // Log parsed segments count and first segment details
@@ -1215,6 +1652,28 @@ pub async fn open_meeting_folder<R: Runtime>(
     }
 }
 
+fn build_local_meeting_export(
+    title: &str,
+    created_at: &str,
+    updated_at: &str,
+    summary: Option<&str>,
+    transcripts: &[(String, String)],
+) -> String {
+    let summary_section = summary
+        .map(str::trim)
+        .filter(|summary| !summary.is_empty())
+        .map(|summary| format!("\n\n## Summary\n\n{summary}"))
+        .unwrap_or_default();
+    let transcript = transcripts
+        .iter()
+        .map(|(timestamp, text)| format!("- {timestamp} {text}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    format!(
+        "# {title}\n\nCreated: {created_at}\nUpdated: {updated_at}{summary_section}\n\n## Transcript\n\n{transcript}\n"
+    )
+}
+
 /// Exports only persisted local meeting fields after the user chooses a destination.
 #[tauri::command]
 pub async fn api_export_meeting_locally<R: Runtime>(
@@ -1241,24 +1700,75 @@ pub async fn api_export_meeting_locally<R: Runtime>(
     .fetch_all(pool)
     .await
     .map_err(|error| format!("Could not read local transcripts: {error}"))?;
+    let saved_summary: Option<(Option<String>,)> = sqlx::query_as(
+        "SELECT result FROM summary_processes WHERE meeting_id = ? AND status = 'completed'",
+    )
+    .bind(&meeting_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|error| format!("Could not read the local meeting summary: {error}"))?;
+    let summary = saved_summary
+        .and_then(|(result,)| result)
+        .as_deref()
+        .and_then(summary_markdown);
 
     let filename = format!("{}.md", meeting.title.replace(['/', ':'], "-"));
-    let Some(path) = app.dialog().file().set_file_name(&filename).blocking_save_file() else {
+    let Some(path) = app
+        .dialog()
+        .file()
+        .set_file_name(&filename)
+        .blocking_save_file()
+    else {
         return Ok(LocalExportResult { saved: false });
     };
-    let transcript = transcripts
-        .iter()
-        .map(|(timestamp, text)| format!("- {timestamp} {text}"))
-        .collect::<Vec<_>>()
-        .join("\n");
-    let contents = format!(
-        "# {}\n\nCreated: {}\nUpdated: {}\n\n## Transcript\n\n{}\n",
-        meeting.title, meeting.created_at.0.to_rfc3339(), meeting.updated_at.0.to_rfc3339(), transcript
+    let contents = build_local_meeting_export(
+        &meeting.title,
+        &meeting.created_at.0.to_rfc3339(),
+        &meeting.updated_at.0.to_rfc3339(),
+        summary.as_deref(),
+        &transcripts,
     );
-    let path = path.as_path().ok_or_else(|| "The selected export destination is not a local path".to_string())?;
+    let path = path
+        .as_path()
+        .ok_or_else(|| "The selected export destination is not a local path".to_string())?;
     std::fs::write(path, contents)
         .map_err(|error| format!("Could not write the local export: {error}"))?;
     Ok(LocalExportResult { saved: true })
+}
+
+#[cfg(test)]
+mod local_export_tests {
+    use super::build_local_meeting_export;
+
+    #[test]
+    fn local_export_includes_saved_summary_and_transcript() {
+        let transcripts = vec![("00:10".to_string(), "Real spoken text.".to_string())];
+        let export = build_local_meeting_export(
+            "Strategy review",
+            "2026-07-13T10:00:00Z",
+            "2026-07-13T10:30:00Z",
+            Some("**Summary**\nPreserve the exact record."),
+            &transcripts,
+        );
+
+        assert!(export.contains("## Summary\n\n**Summary**"));
+        assert!(export.contains("## Transcript\n\n- 00:10 Real spoken text."));
+    }
+
+    #[test]
+    fn local_export_without_a_summary_remains_transcript_only() {
+        let transcripts = vec![("00:10".to_string(), "Real spoken text.".to_string())];
+        let export = build_local_meeting_export(
+            "Strategy review",
+            "2026-07-13T10:00:00Z",
+            "2026-07-13T10:30:00Z",
+            None,
+            &transcripts,
+        );
+
+        assert!(!export.contains("## Summary"));
+        assert!(export.contains("## Transcript\n\n- 00:10 Real spoken text."));
+    }
 }
 
 // Simple test command to check backend connectivity
@@ -1415,7 +1925,10 @@ pub async fn api_save_custom_openai_config<R: Runtime>(
 
     match SettingsRepository::save_custom_openai_config(pool, &config).await {
         Ok(()) => {
-            log_info!("✅ Successfully saved custom OpenAI config for endpoint: {}", config.endpoint);
+            log_info!(
+                "✅ Successfully saved custom OpenAI config for endpoint: {}",
+                config.endpoint
+            );
             Ok(serde_json::json!({
                 "status": "success",
                 "message": "Custom OpenAI configuration saved successfully"
@@ -1441,8 +1954,11 @@ pub async fn api_get_custom_openai_config<R: Runtime>(
     match SettingsRepository::get_custom_openai_config(pool).await {
         Ok(config) => {
             if let Some(ref c) = config {
-                log_info!("✅ Found custom OpenAI config: endpoint='{}', model='{}'",
-                    c.endpoint, c.model);
+                log_info!(
+                    "✅ Found custom OpenAI config: endpoint='{}', model='{}'",
+                    c.endpoint,
+                    c.model
+                );
             } else {
                 log_info!("No custom OpenAI config found");
             }
@@ -1525,7 +2041,7 @@ pub async fn api_test_custom_openai_connection<R: Runtime>(
                                             .get("message")
                                             .and_then(|m| {
                                                 m.get("content")
-                                                .or_else(|| m.get("reasoning_content"))
+                                                    .or_else(|| m.get("reasoning_content"))
                                             })
                                             .is_some();
 
@@ -1543,17 +2059,33 @@ pub async fn api_test_custom_openai_connection<R: Runtime>(
                         }
 
                         // Response was 200 but doesn't match OpenAI format
-                        log_warn!("⚠️ Endpoint returned 200 but response doesn't match OpenAI format: {}", response_text);
+                        log_warn!(
+                            "⚠️ Endpoint returned 200 but response doesn't match OpenAI format: {}",
+                            response_text
+                        );
                         Err("Endpoint is reachable but doesn't appear to be OpenAI-compatible. Response is missing 'choices' array or 'message.content' / 'message.reasoning_content' field.".to_string())
                     }
                     Err(e) => {
-                        log_warn!("⚠️ Endpoint returned 200 but response is not valid JSON: {}", e);
-                        Err(format!("Endpoint is reachable but returned invalid JSON: {}. Response: {}", e, response_text))
+                        log_warn!(
+                            "⚠️ Endpoint returned 200 but response is not valid JSON: {}",
+                            e
+                        );
+                        Err(format!(
+                            "Endpoint is reachable but returned invalid JSON: {}. Response: {}",
+                            e, response_text
+                        ))
                     }
                 }
             } else {
-                log_warn!("⚠️ Custom OpenAI connection test failed with status {}: {}", status, response_text);
-                Err(format!("Connection failed with status {}: {}", status, response_text))
+                log_warn!(
+                    "⚠️ Custom OpenAI connection test failed with status {}: {}",
+                    status,
+                    response_text
+                );
+                Err(format!(
+                    "Connection failed with status {}: {}",
+                    status, response_text
+                ))
             }
         }
         Err(e) => {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { Switch } from "./ui/switch"
-import { FolderOpen } from "lucide-react"
+import { FolderOpenIcon } from "@heroicons/react/24/outline"
 import { invoke } from "@tauri-apps/api/core"
 import Analytics from "@/lib/analytics"
 import AnalyticsConsentSwitch from "./AnalyticsConsentSwitch"
@@ -179,7 +179,7 @@ export function PreferenceSettings() {
               onClick={() => handleOpenFolder('database')}
               className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
             >
-              <FolderOpen className="w-4 h-4" />
+              <FolderOpenIcon className="h-4 w-4" />
               Open Folder
             </button>
           </div> */}
@@ -194,7 +194,7 @@ export function PreferenceSettings() {
               onClick={() => handleOpenFolder('models')}
               className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
             >
-              <FolderOpen className="w-4 h-4" />
+              <FolderOpenIcon className="h-4 w-4" />
               Open Folder
             </button>
           </div> */}
@@ -209,7 +209,7 @@ export function PreferenceSettings() {
               onClick={() => handleOpenFolder('recordings')}
               className="flex items-center gap-2 rounded-[3px] border border-input bg-card px-3 py-2 text-sm transition-colors hover:bg-secondary"
             >
-              <FolderOpen className="w-4 h-4" />
+              <FolderOpenIcon className="h-4 w-4" />
               Open Folder
             </button>
           </div>

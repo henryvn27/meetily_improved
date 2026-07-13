@@ -1,7 +1,7 @@
 "use client"
 
 import { Switch } from "./ui/switch"
-import { FlaskConical, AlertCircle } from "lucide-react"
+import { BeakerIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline"
 import { useConfig } from "@/contexts/ConfigContext"
 import {
   BetaFeatureKey,
@@ -19,7 +19,7 @@ export function BetaSettings() {
     <div className="space-y-6">
       {/* Yellow Warning Banner */}
       <div className="flex items-start gap-3 rounded-[3px] border border-[hsl(var(--warning)/0.25)] bg-[hsl(var(--warning)/0.08)] p-4">
-        <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+        <ExclamationCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-[hsl(var(--warning))]" />
         <div className="text-sm text-yellow-800">
           <p className="font-medium">Beta Features</p>
           <p className="mt-1">
@@ -37,7 +37,7 @@ export function BetaSettings() {
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <FlaskConical className="h-5 w-5 text-muted-foreground" />
+                <BeakerIcon className="h-5 w-5 text-muted-foreground" />
                 <h3 className="text-lg font-semibold tracking-[-0.03em]">
                   {BETA_FEATURE_NAMES[featureKey]}
                 </h3>

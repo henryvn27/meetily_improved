@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
-import { Database, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowPathIcon, CheckCircleIcon, CircleStackIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 interface HomebrewDatabaseDetectorProps {
   onImportSuccess: () => void;
@@ -92,10 +92,10 @@ export function HomebrewDatabaseDetector({ onImportSuccess, onDecline }: Homebre
   return (
     <div className="mb-4 border border-accent/30 bg-accent/10 p-4">
       <div className="flex items-start gap-3">
-        <Database className="mt-0.5 h-6 w-6 shrink-0 text-accent" />
+        <CircleStackIcon className="mt-0.5 h-6 w-6 shrink-0 text-accent" />
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <AlertCircle className="h-4 w-4 text-accent" />
+            <ExclamationCircleIcon className="h-4 w-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">
               Previous Meetily Installation Detected!
             </h3>
@@ -124,12 +124,12 @@ export function HomebrewDatabaseDetector({ onImportSuccess, onDecline }: Homebre
             >
               {isImporting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <ArrowPathIcon className="h-4 w-4 animate-spin motion-reduce:animate-none" />
                   <span>Importing...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircleIcon className="h-4 w-4" />
                   <span>Yes, Import</span>
                 </>
               )}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LANGUAGE_OPTIONS } from "@/lib/summary-languages";
 import { useRecentLanguages } from "@/hooks/useRecentLanguages";
+import { CheckIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 interface LanguagePickerPopoverProps {
   value: string | null;
@@ -86,7 +87,7 @@ export function LanguagePickerPopover({
       aria-label="Pick summary language"
     >
       <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
-        <span className="text-muted-foreground text-sm">⌕</span>
+        <MagnifyingGlassIcon className="size-4 text-muted-foreground" aria-hidden="true" />
         <input
           ref={inputRef}
           type="text"
@@ -117,7 +118,7 @@ export function LanguagePickerPopover({
                   {opt.label}{" "}
                   <span className="text-xs text-muted-foreground">({opt.code})</span>
                 </span>
-                {value === opt.code && <span className="text-accent" aria-hidden="true">✓</span>}
+                {value === opt.code && <CheckIcon className="size-4 text-accent" aria-hidden="true" />}
               </button>
             ))}
             <div className="my-1 h-px bg-border" />
@@ -139,7 +140,7 @@ export function LanguagePickerPopover({
                 <span className="text-xs font-normal text-muted-foreground">{autoSubtitle}</span>
               )}
             </span>
-            {value === null && <span className="text-accent" aria-hidden="true">✓</span>}
+            {value === null && <CheckIcon className="size-4 text-accent" aria-hidden="true" />}
           </button>
         )}
 
@@ -163,7 +164,7 @@ export function LanguagePickerPopover({
               {opt.label}{" "}
               <span className="text-xs text-muted-foreground">({opt.code})</span>
             </span>
-            {value === opt.code && <span className="text-accent" aria-hidden="true">✓</span>}
+            {value === opt.code && <CheckIcon className="size-4 text-accent" aria-hidden="true" />}
           </button>
         ))}
 

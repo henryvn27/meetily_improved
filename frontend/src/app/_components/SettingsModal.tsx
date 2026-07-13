@@ -7,6 +7,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useConfig } from "@/contexts/ConfigContext";
 import { useRecordingState } from "@/contexts/RecordingStateContext";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useEffect } from "react";
 
 type modalType = "modelSettings" | "deviceSettings" | "languageSettings" | "modelSelector" | "errorAlert" | "chunkDropWarning";
 
@@ -58,22 +60,31 @@ export function SettingsModals({
 
   const { isRecording } = useRecordingState();
 
+  const activeModal = (Object.entries(modals).find(([, open]) => open)?.[0] ?? null) as modalType | null;
+  useEffect(() => {
+    if (!activeModal) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose(activeModal);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [activeModal, onClose]);
+
   return <>
     {/* Legacy Settings Modal */}
     {modals.modelSettings && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
-        <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+        <div role="dialog" aria-modal="true" aria-labelledby="preferences-dialog-title" className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[10px] border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border p-6">
-            <h3 className="app-display text-xl">Preferences</h3>
+            <h3 id="preferences-dialog-title" className="app-display text-xl">Preferences</h3>
             <button
               onClick={() => onClose("modelSettings")
               }
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Close preferences"
+              className="grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="size-5" />
             </button>
           </div>
 
@@ -92,7 +103,7 @@ export function SettingsModals({
                   </label>
                   <div className="flex space-x-2">
                     <select
-                      className="rounded-[3px] border border-input bg-card px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
+                      className="h-9 rounded-md border border-input bg-card px-3 text-sm shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
                       value={modelConfig.provider}
                       onChange={(e) => {
                         const provider = e.target.value as ModelConfig['provider'];
@@ -112,7 +123,7 @@ export function SettingsModals({
                     </select>
 
                     <select
-                      className="flex-1 rounded-[3px] border border-input bg-card px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
+                      className="h-9 flex-1 rounded-md border border-input bg-card px-3 text-sm shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
                       value={modelConfig.model}
                       onChange={(e) => setModelConfig((prev: ModelConfig) => ({ ...prev, model: e.target.value }))}
                     >
@@ -156,7 +167,7 @@ export function SettingsModals({
           <div className="flex justify-end border-t border-border p-6">
             <button
               onClick={() => onClose('modelSettings')}
-              className="rounded-[3px] bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
+              className="h-9 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/88"
             >
               Done
             </button>
@@ -168,16 +179,15 @@ export function SettingsModals({
     {/* Device Settings Modal */}
     {modals.deviceSettings && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
-        <div className="mx-4 w-full max-w-md border border-border bg-card p-6 shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+        <div role="dialog" aria-modal="true" aria-labelledby="device-settings-dialog-title" className="mx-4 w-full max-w-md rounded-[10px] border border-border bg-card p-6 shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">Audio Device Settings</h3>
+            <h3 id="device-settings-dialog-title" className="text-lg font-semibold text-foreground">Audio device settings</h3>
             <button
               onClick={() => onClose('deviceSettings')}
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Close audio device settings"
+              className="grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="size-5" />
             </button>
           </div>
 
@@ -197,7 +207,7 @@ export function SettingsModals({
                 });
                 onClose('deviceSettings');
               }}
-              className="rounded-[3px] bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
+              className="h-9 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/88"
             >
               Done
             </button>
@@ -209,16 +219,15 @@ export function SettingsModals({
     {/* Language Settings Modal */}
     {modals.languageSettings && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
-        <div className="mx-4 w-full max-w-md border border-border bg-card p-6 shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+        <div role="dialog" aria-modal="true" aria-labelledby="language-settings-dialog-title" className="mx-4 w-full max-w-md rounded-[10px] border border-border bg-card p-6 shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">Language Settings</h3>
+            <h3 id="language-settings-dialog-title" className="text-lg font-semibold text-foreground">Language settings</h3>
             <button
               onClick={() => onClose('languageSettings')}
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Close language settings"
+              className="grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="size-5" />
             </button>
           </div>
 
@@ -232,7 +241,7 @@ export function SettingsModals({
           <div className="mt-6 flex justify-end">
             <button
               onClick={() => onClose('languageSettings')}
-              className="rounded-[3px] bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
+              className="h-9 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/88"
             >
               Done
             </button>
@@ -244,19 +253,18 @@ export function SettingsModals({
     {/* Model Selection Modal */}
     {modals.modelSelector && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 p-4 backdrop-blur-sm">
-        <div className="mx-4 flex max-h-[90vh] w-full max-w-4xl flex-col border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
+        <div role="dialog" aria-modal="true" aria-labelledby="model-selector-dialog-title" className="mx-4 flex max-h-[90vh] w-full max-w-4xl flex-col rounded-[10px] border border-border bg-card shadow-[0_24px_80px_hsl(var(--shadow-color)/0.28)]">
           {/* Fixed Header */}
           <div className="flex items-center justify-between border-b border-border p-6 pb-4">
-            <h3 className="text-lg font-semibold text-foreground">
+            <h3 id="model-selector-dialog-title" className="text-lg font-semibold text-foreground">
               {messages.modelSelector ? 'Speech Recognition Setup Required' : 'Transcription Model Settings'}
             </h3>
             <button
               onClick={() => onClose('modelSelector')}
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Close transcription model settings"
+              className="grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="size-5" />
             </button>
           </div>
 
@@ -290,7 +298,7 @@ export function SettingsModals({
 
             <button
               onClick={() => onClose('modelSelector')}
-              className="rounded-[3px] bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+              className="h-9 rounded-md border border-input bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
               {messages.modelSelector ? 'Cancel' : 'Done'}
             </button>

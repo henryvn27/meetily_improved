@@ -1,18 +1,17 @@
 'use client';
 
 import {
-  AlertCircle,
-  ArrowRight,
-  Check,
-  CircleDashed,
-  Headphones,
-  LoaderCircle,
-  Mic,
-  RefreshCw,
-  Settings2,
-  ShieldCheck,
-  Sparkles,
-} from 'lucide-react';
+  ArrowPathIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  Cog6ToothIcon,
+  EllipsisHorizontalCircleIcon,
+  ExclamationCircleIcon,
+  MicrophoneIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  SpeakerWaveIcon,
+} from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { AppState } from '@/components/app-shell/AppState';
 import { PageHeader } from '@/components/app-shell/PageHeader';
@@ -34,17 +33,17 @@ interface PreRecordingWorkspaceProps {
 }
 
 const statusMeta = {
-  checking: { label: 'Checking', icon: LoaderCircle },
-  ready: { label: 'Ready', icon: Check },
-  optional: { label: 'Optional', icon: CircleDashed },
-  blocked: { label: 'Blocked', icon: AlertCircle },
-  error: { label: 'Unavailable', icon: AlertCircle },
+  checking: { label: 'Checking', icon: ArrowPathIcon },
+  ready: { label: 'Ready', icon: CheckIcon },
+  optional: { label: 'Optional', icon: EllipsisHorizontalCircleIcon },
+  blocked: { label: 'Blocked', icon: ExclamationCircleIcon },
+  error: { label: 'Unavailable', icon: ExclamationCircleIcon },
 } as const;
 
 const itemIcons = {
-  microphone: Mic,
-  'system-audio': Headphones,
-  transcription: Sparkles,
+  microphone: MicrophoneIcon,
+  'system-audio': SpeakerWaveIcon,
+  transcription: SparklesIcon,
 };
 
 function ReadinessRow({ item }: { item: RecordingReadinessItem }) {
@@ -114,7 +113,7 @@ export function PreRecordingWorkspace({
         description="Confirm local capture and transcription, then start. Meetily creates the meeting title when recording begins."
         actions={
           <Button variant="outline" onClick={() => router.push('/settings')}>
-            <Settings2 aria-hidden="true" />
+            <Cog6ToothIcon aria-hidden="true" />
             Recording settings
           </Button>
         }
@@ -126,7 +125,7 @@ export function PreRecordingWorkspace({
             <div className="flex min-h-[22rem] flex-col justify-between p-6 sm:p-8">
               <div className="flex items-start gap-4">
                 <span className="grid size-10 shrink-0 place-items-center rounded-md bg-[hsl(var(--accent-soft))] text-accent">
-                  <Mic className="size-[1.1rem]" aria-hidden="true" />
+                  <MicrophoneIcon className="size-[1.1rem]" aria-hidden="true" />
                 </span>
                 <div>
                   <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Capture locally</p>
@@ -139,9 +138,9 @@ export function PreRecordingWorkspace({
 
               <div className="mt-8 border-t border-border pt-4">
                 <Button variant="recording" size="lg" onClick={() => void handleStart()} disabled={!canStart} className="min-w-44">
-                  {isStarting ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Mic aria-hidden="true" />}
+                  {isStarting ? <ArrowPathIcon className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <MicrophoneIcon aria-hidden="true" />}
                   {isStarting ? 'Starting recording...' : 'Start recording'}
-                  {!isStarting && <ArrowRight aria-hidden="true" />}
+                  {!isStarting && <ArrowRightIcon aria-hidden="true" />}
                 </Button>
                 <p className="mt-3 text-sm text-muted-foreground" role="status">
                   {isStarting
@@ -159,7 +158,7 @@ export function PreRecordingWorkspace({
                   <p className="text-xs font-semibold tracking-[0.02em] text-muted-foreground">Readiness</p>
                   <h2 className="mt-1.5 text-base font-semibold">Before you record</h2>
                 </div>
-                <ShieldCheck className="size-4 text-muted-foreground" aria-hidden="true" />
+                <ShieldCheckIcon className="size-4 text-muted-foreground" aria-hidden="true" />
               </div>
 
               <ul className="mt-4" aria-label="Recording readiness checks">
@@ -168,7 +167,7 @@ export function PreRecordingWorkspace({
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => void readiness.refresh()} disabled={readiness.isChecking}>
-                  <RefreshCw className={readiness.isChecking ? 'animate-spin' : ''} aria-hidden="true" />
+                  <ArrowPathIcon className={readiness.isChecking ? 'animate-spin motion-reduce:animate-none' : ''} aria-hidden="true" />
                   Recheck
                 </Button>
                 {!readiness.canStart && !readiness.isChecking && (

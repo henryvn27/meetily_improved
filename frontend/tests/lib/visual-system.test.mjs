@@ -37,10 +37,13 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /animation-duration: 0\.01ms !important/);
   assert.match(css, /transition-duration: 0\.01ms !important/);
-  assert.match(mainContent, /h-11 shrink-0/);
+  assert.match(mainContent, /h-8 shrink-0/);
   assert.match(mainContent, /h-dvh min-w-0 overflow-hidden/);
   assert.match(mainContent, /w-\[calc\(100%-4\.5rem\)\]/);
-  assert.match(mainContent, /w-\[calc\(100%-17\.5rem\)\]/);
+  assert.match(mainContent, /w-\[calc\(100%-15rem\)\]/);
+  assert.doesNotMatch(mainContent, /ThemeControl/);
+  assert.doesNotMatch(sidebar, /meeting-search|Search saved meetings/);
+  assert.match(sidebar, /w-\[15rem\]/);
   assert.match(pageHeader, /xl:flex-row/);
   assert.match(homePage, /xl:grid-cols-\[minmax\(0,1fr\)_20rem\]/);
   assert.match(themeContext, /meetily-theme-preference/);
@@ -57,7 +60,8 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(meetingTranscript, /Local transcription:/);
   assert.doesNotMatch(meetingTranscript, /from ['"]@\/components\/TranscriptView['"]/);
   assert.match(meetingSummary, /summaryResponse &&/);
-  assert.match(meetingSummary, /border-t border-border bg-card/);
+  assert.match(meetingSummary, /mb-6 border border-border bg-secondary\/40/);
+  assert.doesNotMatch(meetingSummary, /fixed bottom-0 left-0 right-0/);
   assert.doesNotMatch(meetingSummary, /bg-white/);
   assert.doesNotMatch(preRecording, /rounded-lg/);
   assert.match(preRecording, /xl:grid-cols-\[minmax\(0,1fr\)_22rem\]/);

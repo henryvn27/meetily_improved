@@ -15,7 +15,6 @@
   </p>
 
   <p>
-    <a href="https://github.com/henryvn27/meetily_improved/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/henryvn27/meetily_improved/actions/workflows/ci.yml/badge.svg" /></a>
     <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-1b1b1f.svg" /></a>
     <img alt="macOS, Windows, and Linux" src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-1b1b1f.svg" />
     <img alt="Local-first" src="https://img.shields.io/badge/privacy-local--first-f36b2b.svg" />

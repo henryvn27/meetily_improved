@@ -352,13 +352,18 @@ pub async fn start_recording_with_devices_and_meeting<R: Runtime>(
     }
     info!("✅ Transcription model validation passed");
 
-    // Parse devices
+    // Resolve devices. Frontend device selectors use null for "Default", not
+    // "disabled", so the custom-device command must still open the default
+    // microphone/system streams when names are omitted.
     let mic_device = if let Some(ref name) = mic_device_name {
         Some(Arc::new(parse_audio_device(name).map_err(|e| {
             format!("Invalid microphone device '{}': {}", name, e)
         })?))
     } else {
-        None
+        info!("🎤 No microphone name provided to custom recording command, using system default");
+        Some(Arc::new(default_input_device().map_err(|e| {
+            format!("No microphone device available: {}", e)
+        })?))
     };
 
     let system_device = if let Some(ref name) = system_device_name {
@@ -366,7 +371,15 @@ pub async fn start_recording_with_devices_and_meeting<R: Runtime>(
             format!("Invalid system device '{}': {}", name, e)
         })?))
     } else {
-        None
+        info!("🔊 No system audio name provided to custom recording command, using system default");
+        match default_output_device() {
+            Ok(device) => Some(Arc::new(device)),
+            Err(e) => {
+                warn!("⚠️ No default system audio available: {}", e);
+                warn!("   Recording will continue with microphone only");
+                None
+            }
+        }
     };
 
     // Async-first approach for custom devices - no more blocking operations!

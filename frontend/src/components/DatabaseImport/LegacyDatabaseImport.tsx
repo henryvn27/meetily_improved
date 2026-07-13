@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Loader2, FolderOpen, Database, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowPathIcon, CheckCircleIcon, CircleStackIcon, FolderOpenIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { HomebrewDatabaseDetector } from './HomebrewDatabaseDetector';
 
 interface LegacyDatabaseImportProps {
@@ -145,12 +145,12 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
             >
               {importState === 'selecting' || importState === 'detecting' ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <ArrowPathIcon className="h-5 w-5 animate-spin motion-reduce:animate-none" />
                   <span>{importState === 'selecting' ? 'Selecting...' : 'Detecting database...'}</span>
                 </>
               ) : (
                 <>
-                  <FolderOpen className="h-5 w-5" />
+                  <FolderOpenIcon className="h-5 w-5" />
                   <span>Browse for Database</span>
                 </>
               )}
@@ -161,7 +161,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
           {detectedPath && (
             <div className="border border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.10)] p-3">
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--success))]" />
+                <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--success))]" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">Database found!</p>
                   <p className="mt-1 break-all text-xs text-muted-foreground">{detectedPath}</p>
@@ -174,7 +174,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
           {importState === 'error' && errorMessage && (
             <div className="border border-destructive/25 bg-destructive/10 p-3">
               <div className="flex items-start gap-2">
-                <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+                <XCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
                 <div className="flex-1">
                   <p className="text-sm text-foreground">{errorMessage}</p>
                 </div>
@@ -191,17 +191,17 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
             >
               {importState === 'importing' ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <ArrowPathIcon className="h-5 w-5 animate-spin motion-reduce:animate-none" />
                   <span>Importing...</span>
                 </>
               ) : importState === 'success' ? (
                 <>
-                  <CheckCircle2 className="h-5 w-5" />
+                  <CheckCircleIcon className="h-5 w-5" />
                   <span>Success!</span>
                 </>
               ) : (
                 <>
-                  <Database className="h-5 w-5" />
+                  <CircleStackIcon className="h-5 w-5" />
                   <span>Import Database</span>
                 </>
               )}

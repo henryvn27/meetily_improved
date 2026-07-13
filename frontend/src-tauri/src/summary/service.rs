@@ -55,6 +55,35 @@ fn strip_title_if_present(markdown: &str) -> String {
 
 const ENGLISH_CACHE_FIELD: &str = "english_cache";
 
+fn is_automatic_meeting_title(title: &str) -> bool {
+    let title = title.trim();
+    if matches!(title, "New Meeting" | "+ New Call") {
+        return true;
+    }
+
+    let Some(timestamp) = title.strip_prefix("Meeting ") else {
+        return false;
+    };
+
+    let separators_match = match timestamp.len() {
+        // Frontend default: DD_MM_YY_HH_MM_SS
+        17 => [2, 5, 8, 11, 14]
+            .into_iter()
+            .all(|index| timestamp.as_bytes()[index] == b'_'),
+        // Native fallback: YYYY-MM-DD_HH-MM-SS
+        19 => [(4, b'-'), (7, b'-'), (10, b'_'), (13, b'-'), (16, b'-')]
+            .into_iter()
+            .all(|(index, separator)| timestamp.as_bytes()[index] == separator),
+        _ => false,
+    };
+
+    separators_match
+        && timestamp
+            .bytes()
+            .filter(|byte| byte.is_ascii_alphanumeric())
+            .all(|byte| byte.is_ascii_digit())
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct SummaryCacheSource {
     transcript_fingerprint: String,
@@ -541,16 +570,31 @@ impl SummaryService {
                 );
                 info!("Final markdown generated ({} chars)", final_markdown.len());
 
-                if let Some(name) = extract_meeting_name_from_markdown(&final_markdown)
-                    .filter(|n| !n.is_empty())
+                if let Some(name) =
+                    extract_meeting_name_from_markdown(&final_markdown).filter(|n| !n.is_empty())
                 {
-                    info!("Extracted meeting name from summary: '{}'", name);
-                    if let Err(e) =
-                        MeetingsRepository::update_meeting_name(&pool, &meeting_id, &name).await
-                    {
-                        error!("Failed to update meeting name for {}: {}", meeting_id, e);
-                    } else {
-                        info!("Successfully updated meeting name for {}", meeting_id);
+                    match MeetingsRepository::get_meeting_metadata(&pool, &meeting_id).await {
+                        Ok(Some(meeting)) if is_automatic_meeting_title(&meeting.title) => {
+                            info!("Applying generated meeting name: '{}'", name);
+                            if let Err(e) =
+                                MeetingsRepository::update_meeting_name(&pool, &meeting_id, &name)
+                                    .await
+                            {
+                                error!("Failed to update meeting name for {}: {}", meeting_id, e);
+                            }
+                        }
+                        Ok(Some(meeting)) => info!(
+                            "Preserving explicit meeting title '{}' during summary generation",
+                            meeting.title
+                        ),
+                        Ok(None) => warn!(
+                            "Meeting {} disappeared before generated title could be applied",
+                            meeting_id
+                        ),
+                        Err(e) => warn!(
+                            "Could not verify title provenance for {}; preserving title: {}",
+                            meeting_id, e
+                        ),
                     }
                 }
 
@@ -700,6 +744,21 @@ mod tests {
             strip_title_if_present("  # Title\n## Section\nbody"),
             "## Section\nbody"
         );
+    }
+
+    #[test]
+    fn automatic_meeting_titles_are_eligible_for_summary_rename() {
+        assert!(is_automatic_meeting_title("Meeting 12_07_26_14_03_59"));
+        assert!(is_automatic_meeting_title("Meeting 2026-07-12_14-03-59"));
+        assert!(is_automatic_meeting_title("New Meeting"));
+        assert!(is_automatic_meeting_title("+ New Call"));
+    }
+
+    #[test]
+    fn explicit_meeting_titles_are_preserved() {
+        assert!(!is_automatic_meeting_title("Synthetic QA — Henry + Trent"));
+        assert!(!is_automatic_meeting_title("Meeting with Trent"));
+        assert!(!is_automatic_meeting_title("Meeting 12_07_26_14_03"));
     }
 
     fn sample_cache_source() -> SummaryCacheSource {

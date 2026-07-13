@@ -1,6 +1,6 @@
-# Building Meetily from Source
+# Building Meetily Improved from Source
 
-This guide provides detailed instructions for building Meetily from source on different operating systems.
+This guide provides detailed instructions for building Meetily Improved from source on different operating systems. Clone the public fork from `https://github.com/henryvn27/meetily_improved.git`; the supported application is the Tauri desktop app under `frontend/`.
 
 <details>
 <summary>Linux</summary>
@@ -281,14 +281,21 @@ brew install cmake node pnpm
 ### 2. Build and Run
 
 ```bash
-# Development mode (with hot reload)
-pnpm tauri:dev
+# From the repository root, build and stage the required Apple Silicon sidecar
+cargo build --release -p llama-helper --features metal
+mkdir -p frontend/src-tauri/binaries
+cp target/release/llama-helper frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
 
-# Production build
-pnpm tauri:build
+# Install the locked frontend dependencies and run the desktop app
+cd frontend
+pnpm install --frozen-lockfile
+pnpm run tauri:dev
+
+# Production package build (requires release signing credentials for public distribution)
+pnpm run tauri:build
 ```
 
-The application will be built with Metal GPU acceleration automatically.
+The application uses Metal GPU acceleration on Apple Silicon. A local or ad-hoc-signed bundle is suitable for development only; public macOS distribution also requires Developer ID signing, notarization, stapling, and updater signing.
 
 </details>
 

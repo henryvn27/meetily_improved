@@ -25,7 +25,8 @@ import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
 import { ThemeProvider } from '@/contexts/ThemeContext'
-import { bypassOnboardingForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
+import AnalyticsDataModal from '@/components/AnalyticsDataModal'
+import { bypassOnboardingForNativeQa, nativeQaRoute, nativeQaTheme, openAnalyticsDetailsForNativeQa, openImportDialogForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
 
 
 // Module-level component — stable reference across RootLayout re-renders.
@@ -45,13 +46,13 @@ function ConditionalImportDialog({
   const isPostProcessing = isStopping || isProcessing || isSaving;
 
   useEffect(() => {
-    if (isPostProcessing && showImportDialog) {
+    if (isPostProcessing && showImportDialog && !openImportDialogForNativeQa) {
       handleImportDialogClose(false);
     }
   }, [handleImportDialogClose, isPostProcessing, showImportDialog]);
 
   // Only mount ImportAudioDialog (and its hooks/listeners) when feature is enabled
-  if (!betaFeatures.importAndRetranscribe || isPostProcessing) {
+  if ((!betaFeatures.importAndRetranscribe || isPostProcessing) && !openImportDialogForNativeQa) {
     return null;
   }
 
@@ -81,10 +82,28 @@ export default function RootLayout({
 
   // Import audio state
   const [showDropOverlay, setShowDropOverlay] = useState(false)
-  const [showImportDialog, setShowImportDialog] = useState(false)
+  const [showImportDialog, setShowImportDialog] = useState(openImportDialogForNativeQa)
   const [importFilePath, setImportFilePath] = useState<string | null>(null)
 
   useEffect(() => {
+    const openSettingsFromKeyboard = (event: KeyboardEvent) => {
+      if (event.metaKey && event.key === ',') {
+        event.preventDefault()
+        window.openSettings?.()
+      }
+    }
+
+    window.addEventListener('keydown', openSettingsFromKeyboard)
+    return () => window.removeEventListener('keydown', openSettingsFromKeyboard)
+  }, [])
+
+  useEffect(() => {
+    const currentRoute = `${window.location.pathname}${window.location.search}`;
+    if (nativeQaRoute && currentRoute !== nativeQaRoute) {
+      window.location.assign(nativeQaRoute)
+      return
+    }
+
     if (openMeetingErrorForNativeQa) {
       window.location.replace('/meeting-details')
       return
@@ -106,6 +125,7 @@ export default function RootLayout({
           setShowOnboarding(true)
         } else {
           console.log('[Layout] Onboarding completed, showing main app')
+          setShowOnboarding(false)
         }
       })
       .catch((error) => {
@@ -241,15 +261,13 @@ export default function RootLayout({
   }, []);
 
   const handleOnboardingComplete = () => {
-    console.log('[Layout] Onboarding completed, reloading app')
+    console.log('[Layout] Onboarding completed')
     setShowOnboarding(false)
     setOnboardingCompleted(true)
-    // Optionally reload the window to ensure all state is fresh
-    window.location.reload()
   }
 
   return (
-    <html lang="en">
+    <html lang="en" className={nativeQaTheme === 'dark' ? 'dark' : undefined} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <a href="#main-content" className="skip-link">Skip to main content</a>
         <ThemeProvider>
@@ -298,6 +316,13 @@ export default function RootLayout({
         </ThemeProvider>
 
         <Toaster position="bottom-center" richColors closeButton />
+        {openAnalyticsDetailsForNativeQa && (
+          <AnalyticsDataModal
+            isOpen
+            onClose={() => {}}
+            onConfirmDisable={() => {}}
+          />
+        )}
       </body>
     </html>
   )

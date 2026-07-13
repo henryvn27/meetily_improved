@@ -18,7 +18,7 @@ import { useCopyOperations } from '@/hooks/meeting-details/useCopyOperations';
 import { useMeetingOperations } from '@/hooks/meeting-details/useMeetingOperations';
 import { useConfig } from '@/contexts/ConfigContext';
 import { Button } from '@/components/ui/button';
-import { PanelRightOpen } from 'lucide-react';
+import { ViewColumnsIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 
 export default function PageContent({
@@ -61,6 +61,19 @@ export default function PageContent({
   const [isRecording] = useState(false);
   const [summaryResponse] = useState<SummaryResponse | null>(null);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isInspectorOpen) return;
+
+    const closeInspectorOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsInspectorOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', closeInspectorOnEscape);
+    return () => window.removeEventListener('keydown', closeInspectorOnEscape);
+  }, [isInspectorOpen]);
 
   // Ref to store the modal open function from SummaryGeneratorButtonGroup
   const openModelSettingsRef = useRef<(() => void) | null>(null);
@@ -181,7 +194,11 @@ export default function PageContent({
           onTitleChange={meetingData.handleTitleChange}
           isEditingTitle={meetingData.isEditingTitle}
           onStartEditTitle={() => meetingData.setIsEditingTitle(true)}
-          onFinishEditTitle={() => meetingData.setIsEditingTitle(false)}
+          onFinishEditTitle={async () => {
+            if (!meetingData.isTitleDirty || await meetingData.handleSaveMeetingTitle()) {
+              meetingData.setIsEditingTitle(false);
+            }
+          }}
           isTitleDirty={meetingData.isTitleDirty}
           summaryRef={meetingData.blockNoteSummaryRef}
           isSaving={meetingData.isSaving}
@@ -197,6 +214,7 @@ export default function PageContent({
           onGenerateSummary={summaryGeneration.handleGenerateSummary}
           onStopGeneration={summaryGeneration.handleStopGeneration}
           customPrompt={customPrompt}
+          onPromptChange={setCustomPrompt}
           summaryResponse={summaryResponse}
           onSaveSummary={meetingData.handleSaveSummary}
           onSummaryChange={meetingData.handleSummaryChange}
@@ -217,15 +235,13 @@ export default function PageContent({
               className="shrink-0 xl:hidden"
               onClick={() => setIsInspectorOpen(true)}
             >
-              <PanelRightOpen className="size-4" aria-hidden="true" />
+              <ViewColumnsIcon className="size-4" aria-hidden="true" />
               Transcript
             </Button>
           }
         />
         <TranscriptPanel
           transcripts={meetingData.transcripts}
-          customPrompt={customPrompt}
-          onPromptChange={setCustomPrompt}
           onCopyTranscript={copyOperations.handleCopyTranscript}
           onOpenMeetingFolder={meetingOperations.handleOpenMeetingFolder}
           onExportMeeting={meetingOperations.handleExportMeeting}

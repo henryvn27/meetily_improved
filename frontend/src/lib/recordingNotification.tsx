@@ -1,5 +1,4 @@
 import { toast } from 'sonner';
-import { Circle } from 'lucide-react';
 import { useState } from 'react';
 import Analytics from '@/lib/analytics';
 
@@ -29,7 +28,7 @@ function RecordingConsentToast({ toastId }: { toastId: string | number }) {
     <div className="w-[min(340px,calc(100vw-2rem))] rounded-[10px] border border-border bg-card p-4 text-card-foreground shadow-[0_24px_64px_hsl(var(--shadow-color)/0.18)]">
       <div className="flex gap-3">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent" aria-hidden="true">
-          <Circle className="size-3.5 fill-current" strokeWidth={2.4} />
+          <span className="size-3.5 rounded-full bg-current" aria-hidden="true" />
         </span>
         <div className="min-w-0 space-y-1">
           <p className="text-xs font-semibold text-accent">Recording is live</p>

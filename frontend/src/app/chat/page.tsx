@@ -3,12 +3,14 @@
 import { FormEvent, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useRouter } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { AppState } from '@/components/app-shell/AppState';
 import { MeetilyGlyph } from '@/components/app-shell/MeetilyGlyph';
 import { PageHeader } from '@/components/app-shell/PageHeader';
 import { Button } from '@/components/ui/button';
 
-type RecallSource = { meeting_id: string; title: string; matchContext: string; timestamp: string };
+type RecallSource = { meeting_id: string; title: string; matchContext: string; timestamp: string; meetingDate?: string | null; summary?: string | null };
 type RecallResponse = { answer: string; sources: RecallSource[] };
 
 export default function ChatPage() {
@@ -36,7 +38,7 @@ export default function ChatPage() {
 
   return (
     <div className="app-page">
-      <PageHeader eyebrow="Local meeting recall" title="Ask meetings" description="Questions and excerpts stay on this device and use only your configured local Ollama model." />
+      <PageHeader eyebrow="Local meeting recall" title="Ask meetings" description="Questions and excerpts stay on this device and use only your configured local model." />
       <form className="mt-8 pb-6" onSubmit={ask}>
         <label className="app-eyebrow" htmlFor="meeting-question">Question</label>
         <div className="mt-2 flex border-b border-border pb-4">
@@ -44,11 +46,11 @@ export default function ChatPage() {
           <Button type="submit" disabled={!question.trim() || isAsking}>{isAsking ? 'Asking locally…' : 'Ask locally'}</Button>
         </div>
       </form>
-      {isAsking && <AppState className="mt-6" kind="loading" title="Searching local meeting excerpts" description="Meetily is sending matching local excerpts to your configured Ollama model." />}
+      {isAsking && <AppState className="mt-6" kind="loading" title="Searching local meeting excerpts" description="Meetily is sending matching local excerpts to your configured local model." />}
       {error && <AppState className="mt-6" kind="model" title="Local recall is unavailable" description={error} action={<Button variant="outline" onClick={() => router.push('/settings')}><MeetilyGlyph name="settings" className="size-4" />Review local model settings</Button>} />}
       {result && <section className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
-        <article aria-label="Local meeting answer" className="min-w-0 text-[0.975rem] leading-7 whitespace-pre-wrap">{result.answer}</article>
-        <aside aria-label="Answer sources" className="border-l border-border pl-5"><p className="app-eyebrow">Local sources</p><div className="mt-3 space-y-4">{result.sources.map((source) => <button key={`${source.meeting_id}-${source.timestamp}`} type="button" onClick={() => router.push(`/meeting-details?id=${source.meeting_id}`)} className="block w-full text-left"><p className="text-sm font-medium">{source.title}</p><p className="mt-1 line-clamp-3 text-xs leading-5 text-muted-foreground">{source.matchContext}</p></button>)}</div></aside>
+        <article aria-label="Local meeting answer" className="prose prose-neutral min-w-0 max-w-none text-[0.975rem] leading-7 dark:prose-invert prose-headings:font-semibold prose-headings:tracking-[-0.02em] prose-p:leading-7 prose-li:my-1 prose-strong:font-semibold"><ReactMarkdown remarkPlugins={[remarkGfm]}>{result.answer}</ReactMarkdown></article>
+        <aside aria-label="Answer sources" className="border-l border-border pl-5"><p className="app-eyebrow">Local sources</p><div className="mt-3 space-y-4">{result.sources.map((source) => <button key={`${source.meeting_id}-${source.timestamp}`} type="button" onClick={() => router.push(`/meeting-details?id=${source.meeting_id}`)} className="block w-full text-left"><p className="text-sm font-medium">{source.title}</p>{source.meetingDate && <p className="mt-0.5 text-[0.7rem] text-muted-foreground">{new Date(source.meetingDate).toLocaleDateString()}</p>}<p className="mt-1 line-clamp-3 text-xs leading-5 text-muted-foreground">{source.matchContext}</p></button>)}</div></aside>
       </section>}
     </div>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowPathIcon, CheckCircleIcon, ClockIcon, ExclamationCircleIcon, PauseIcon, PlayIcon, StopIcon } from '@heroicons/react/24/outline';
 
 export interface ChunkStatus {
   chunk_id: number;
@@ -62,14 +63,14 @@ export function ChunkProgressDisplay({
   const getChunkStatusIcon = (status: ChunkStatus['status']) => {
     switch (status) {
       case 'completed':
-        return '✅';
+        return <CheckCircleIcon className="size-4" aria-hidden="true" />;
       case 'processing':
-        return '⚡';
+        return <ArrowPathIcon className="size-4 animate-spin" aria-hidden="true" />;
       case 'failed':
-        return '❌';
+        return <ExclamationCircleIcon className="size-4" aria-hidden="true" />;
       case 'pending':
       default:
-        return '⏳';
+        return <ClockIcon className="size-4" aria-hidden="true" />;
     }
   };
 
@@ -88,7 +89,7 @@ export function ChunkProgressDisplay({
   };
 
   return (
-    <div className={`border border-border bg-card p-4 ${className}`}>
+    <section aria-label="Transcription processing progress" className={`rounded-[10px] border border-border bg-card p-4 ${className}`}>
       {/* Progress Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
@@ -106,25 +107,25 @@ export function ChunkProgressDisplay({
           {!isPaused ? (
             <button
               onClick={onPause}
-              className="bg-accent px-3 py-1 text-sm text-accent-foreground transition-colors hover:bg-accent/90"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-45"
               disabled={progress.processing_chunks === 0 && progress.completed_chunks === progress.total_chunks}
             >
-              Pause
+              <PauseIcon className="size-3.5" /> Pause
             </button>
           ) : (
             <button
               onClick={onResume}
-              className="bg-accent px-3 py-1 text-sm text-accent-foreground transition-colors hover:bg-accent/90"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-xs font-medium text-accent-foreground transition-colors hover:bg-accent/88"
             >
-              Resume
+              <PlayIcon className="size-3.5" /> Resume
             </button>
           )}
 
           <button
             onClick={onCancel}
-            className="bg-destructive px-3 py-1 text-sm text-destructive-foreground transition-colors hover:bg-destructive/90"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-destructive/30 bg-card px-3 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
           >
-            Cancel
+            <StopIcon className="size-3.5" /> Cancel
           </button>
         </div>
       </div>
@@ -140,9 +141,9 @@ export function ChunkProgressDisplay({
           </span>
         </div>
 
-        <div className="h-2 w-full bg-muted">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completionPercentage}>
           <div
-            className="h-2 bg-accent transition-all duration-300 ease-out"
+            className="h-full rounded-full bg-accent transition-[width] duration-300 ease-out"
             style={{ width: `${completionPercentage}%` }}
           />
         </div>
@@ -183,7 +184,7 @@ export function ChunkProgressDisplay({
       {progress.estimated_remaining_ms && progress.estimated_remaining_ms > 0 && (
         <div className="mb-4 border border-accent/25 bg-accent/10 p-3">
           <div className="flex items-center space-x-2">
-            <span className="text-accent">⏱️</span>
+            <ClockIcon className="size-4 text-accent" aria-hidden="true" />
             <span className="text-sm text-foreground">
               Estimated time remaining: {formatTimeRemaining(progress.estimated_remaining_ms)}
             </span>
@@ -204,7 +205,7 @@ export function ChunkProgressDisplay({
             .map((chunk) => (
               <div
                 key={chunk.chunk_id}
-                className={`text-xs p-2 rounded border ${getChunkStatusColor(chunk.status)}`}
+                className={`rounded-md border p-2 text-xs ${getChunkStatusColor(chunk.status)}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -221,7 +222,7 @@ export function ChunkProgressDisplay({
 
                   {chunk.status === 'processing' && (
                     <div className="flex items-center space-x-1">
-                      <div className="size-3 animate-spin border border-accent border-t-transparent"></div>
+                      <ArrowPathIcon className="size-3 animate-spin text-accent" aria-label="Processing" />
                     </div>
                   )}
                 </div>
@@ -246,14 +247,14 @@ export function ChunkProgressDisplay({
       {progress.completed_chunks === progress.total_chunks && progress.total_chunks > 0 && (
         <div className="mt-4 border border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.10)] p-3">
           <div className="flex items-center space-x-2">
-            <span className="text-[hsl(var(--success))]">🎉</span>
+            <CheckCircleIcon className="size-4 text-[hsl(var(--success))]" aria-hidden="true" />
             <span className="text-sm font-medium text-foreground">
-              Processing completed! All {progress.total_chunks} chunks have been transcribed.
+              Processing complete. All {progress.total_chunks} chunks have been transcribed.
             </span>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

@@ -2,6 +2,7 @@
 
 import React, { useEffect, ReactNode, useRef, useState, createContext } from 'react';
 import Analytics from '@/lib/analytics';
+import { APP_VERSION } from '@/lib/app-version';
 import { load } from '@tauri-apps/plugin-store';
 
 const ANALYTICS_DEFAULT_OFF_MIGRATION_KEY = 'analyticsDefaultOffMigrationV1';
@@ -93,7 +94,7 @@ export default function AnalyticsProvider({ children }: AnalyticsProviderProps) 
 
       // Identify user with enhanced properties immediately after init
       await Analytics.identify(userId, {
-        app_version: '0.4.0',
+        app_version: APP_VERSION,
         platform: deviceInfo.platform,
         os_version: deviceInfo.os_version,
         architecture: deviceInfo.architecture,

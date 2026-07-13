@@ -252,6 +252,22 @@
 
   .bn-default-styles {
     max-width: none !important;
+    font-family: inherit !important;
+  }
+
+  .bn-container,
+  .bn-editor,
+  .bn-default-styles {
+    background: transparent !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* BlockNote's shadcn theme has a more specific editor background rule. */
+  .bn-container.bn-shadcn,
+  .bn-container .bn-shadcn,
+  .bn-shadcn.dark,
+  .bn-shadcn .bn-editor {
+    background-color: transparent !important;
   }
 
   /* Disable scrolling on any BlockNote wrapper elements */
@@ -282,7 +298,7 @@
   }
 
   .app-display {
-    @apply text-[2.25rem] font-semibold leading-[1.06] tracking-[-0.04em] text-balance;
+    @apply text-[2rem] font-semibold leading-[1.08] tracking-[-0.04em] text-balance;
   }
 
   .app-rail-scrollbar::-webkit-scrollbar-thumb {

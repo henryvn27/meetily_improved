@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, Pin } from 'lucide-react';
+import { BookmarkIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { LanguagePickerPopover } from '@/components/LanguagePickerPopover';
 import { useRecentLanguages } from '@/hooks/useRecentLanguages';
@@ -18,7 +18,7 @@ export function SummaryLanguageSettings() {
   return (
     <section className="settings-card relative">
       <div className="mb-2 flex items-center gap-2">
-        <Globe size={18} className="text-muted-foreground" />
+        <GlobeAltIcon className="size-[18px] text-muted-foreground" />
         <h3 className="text-lg font-semibold tracking-[-0.03em]">Summary language</h3>
       </div>
       <p className="mb-4 text-sm text-muted-foreground">
@@ -48,9 +48,10 @@ export function SummaryLanguageSettings() {
                   'text-foreground'
                 }`}
               >
-                <Pin
-                  size={14}
+                <BookmarkIcon
                   className={isPinned ? 'text-accent' : 'text-muted-foreground'}
+                  width={14}
+                  height={14}
                   fill={isPinned ? 'currentColor' : 'none'}
                 />
                 {labelForCode(code)}

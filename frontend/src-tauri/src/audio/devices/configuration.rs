@@ -124,6 +124,19 @@ pub async fn get_device_and_config(
 
         match audio_device.device_type {
             DeviceType::Input => {
+                // Prefer the direct default-device lookup. On macOS, asking CPAL for
+                // `input_devices()` probes every Core Audio device's stream config;
+                // a stale or virtual device can block that probe indefinitely even
+                // when the selected device is the healthy system default.
+                if let Some(device) = host.default_input_device() {
+                    if device.name().ok().as_deref() == Some(audio_device.name.as_str()) {
+                        let default_config = device
+                            .default_input_config()
+                            .map_err(|e| anyhow!("Failed to get default input config: {}", e))?;
+                        return Ok((device, default_config));
+                    }
+                }
+
                 for device in host.input_devices()? {
                     if let Ok(name) = device.name() {
                         if name == audio_device.name {

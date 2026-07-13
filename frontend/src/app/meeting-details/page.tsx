@@ -24,7 +24,7 @@ function MeetingDetailsContent() {
   const searchParams = useSearchParams();
   const meetingId = searchParams.get('id');
   const source = searchParams.get('source'); // Check if navigated from recording
-  const { setCurrentMeeting, refetchMeetings, stopSummaryPolling } = useSidebar();
+  const { currentMeeting, setCurrentMeeting, refetchMeetings, stopSummaryPolling } = useSidebar();
   const { isAutoSummary } = useConfig(); // Get auto-summary toggle state
   const router = useRouter();
   const [meetingDetails, setMeetingDetails] = useState<MeetingDetailsResponse | null>(null);
@@ -130,7 +130,7 @@ function MeetingDetailsContent() {
       // Build meeting details from metadata and paginated transcripts
       setMeetingDetails({
         id: metadata.id,
-        title: metadata.title,
+        title: currentMeeting?.id === metadata.id ? currentMeeting.title : metadata.title,
         created_at: metadata.created_at,
         updated_at: metadata.updated_at,
         transcripts: transcripts, // Paginated transcripts from hook
@@ -138,9 +138,11 @@ function MeetingDetailsContent() {
       });
 
       // Sync with sidebar context
-      setCurrentMeeting({ id: metadata.id, title: metadata.title });
+      if (currentMeeting?.id !== metadata.id) {
+        setCurrentMeeting({ id: metadata.id, title: metadata.title });
+      }
     }
-  }, [metadata, transcripts, meetingId, setCurrentMeeting]);
+  }, [currentMeeting, metadata, transcripts, meetingId, setCurrentMeeting]);
 
   // Handle transcript loading errors
   useEffect(() => {

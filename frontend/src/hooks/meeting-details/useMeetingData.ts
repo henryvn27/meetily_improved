@@ -27,13 +27,22 @@ export function useMeetingData({ meeting, summaryData, onMeetingUpdated }: UseMe
   const blockNoteSummaryRef = useRef<BlockNoteSummaryViewRef>(null);
 
   // Sidebar context
-  const { setCurrentMeeting, setMeetings, meetings: sidebarMeetings } = useSidebar();
+  const { currentMeeting, setCurrentMeeting, setMeetings, meetings: sidebarMeetings } = useSidebar();
 
   // Sync aiSummary state when summaryData prop changes (fixes display of fetched summaries)
   useEffect(() => {
     console.log('[useMeetingData] Syncing summary data from prop:', summaryData ? 'present' : 'null');
     setAiSummary(summaryData);
   }, [summaryData]); // Only trigger when parent prop changes, not when aiSummary changes
+
+  // Sidebar renames are persisted outside this hook. Keep the open document title in
+  // sync without overwriting an in-progress edit in the reading workspace.
+  useEffect(() => {
+    if (!currentMeeting || isTitleDirty || currentMeeting.id !== meeting.id) return;
+    if (currentMeeting.title !== meetingTitle) {
+      setMeetingTitle(currentMeeting.title);
+    }
+  }, [currentMeeting, isTitleDirty, meeting.id, meetingTitle]);
 
   // Handlers
   const handleTitleChange = useCallback((newTitle: string) => {
@@ -46,10 +55,16 @@ export function useMeetingData({ meeting, summaryData, onMeetingUpdated }: UseMe
   }, []);
 
   const handleSaveMeetingTitle = useCallback(async () => {
+    const title = meetingTitle.trim();
+    if (!title) {
+      toast.error('Meeting title cannot be empty');
+      return false;
+    }
+
     try {
       await invokeTauri('api_save_meeting_title', {
         meetingId: meeting.id,
-        title: meetingTitle,
+        title,
       });
 
       console.log('Save meeting title success');
@@ -57,10 +72,11 @@ export function useMeetingData({ meeting, summaryData, onMeetingUpdated }: UseMe
 
       // Update meetings with new title
       const updatedMeetings = sidebarMeetings.map((m: CurrentMeeting) =>
-        m.id === meeting.id ? { id: m.id, title: meetingTitle } : m
+        m.id === meeting.id ? { id: m.id, title } : m
       );
       setMeetings(updatedMeetings);
-      setCurrentMeeting({ id: meeting.id, title: meetingTitle });
+      setMeetingTitle(title);
+      setCurrentMeeting({ id: meeting.id, title });
       return true;
     } catch (error) {
       console.error('Failed to save meeting title:', error);

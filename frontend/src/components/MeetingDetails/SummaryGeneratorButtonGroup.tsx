@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sparkles, Settings, Loader2, FileText, Check, Square } from 'lucide-react';
+import { ArrowPathIcon, CheckIcon, Cog6ToothIcon, DocumentTextIcon, PencilSquareIcon, SparklesIcon, StopIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
@@ -32,6 +32,7 @@ interface SummaryGeneratorButtonGroupProps {
   onGenerateSummary: (customPrompt: string) => Promise<void>;
   onStopGeneration: () => void;
   customPrompt: string;
+  onPromptChange: (value: string) => void;
   summaryStatus: 'idle' | 'processing' | 'summarizing' | 'regenerating' | 'completed' | 'error';
   availableTemplates: Array<{ id: string, name: string, description: string }>;
   selectedTemplate: string;
@@ -49,6 +50,7 @@ export function SummaryGeneratorButtonGroup({
   onGenerateSummary,
   onStopGeneration,
   customPrompt,
+  onPromptChange,
   summaryStatus,
   availableTemplates,
   selectedTemplate,
@@ -256,8 +258,8 @@ export function SummaryGeneratorButtonGroup({
           }}
           title="Stop summary generation"
         >
-          <Square className="xl:mr-2" size={18} fill="currentColor" />
-          <span className="hidden lg:inline xl:inline">Stop</span>
+          <StopIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
+          <span className="hidden xl:inline">Stop</span>
         </Button>
       ) : (
         <Button
@@ -279,19 +281,42 @@ export function SummaryGeneratorButtonGroup({
         >
           {isCheckingModels || isModelConfigLoading ? (
             <>
-              <Loader2 className="animate-spin xl:mr-2" size={18} />
+              <ArrowPathIcon className="size-[18px] animate-spin xl:mr-2" aria-hidden="true" />
               <span className="hidden xl:inline">Processing...</span>
             </>
           ) : (
             <>
-              <Sparkles className="xl:mr-2" size={18} />
-              <span className="hidden lg:inline xl:inline">{hasSummary ? 'Regenerate Summary' : 'Generate Summary'}</span>
+              <SparklesIcon className="size-[18px] xl:mr-2" aria-hidden="true" />
+              <span className="hidden xl:inline">{hasSummary ? 'Regenerate Summary' : 'Generate Summary'}</span>
             </>
           )}
         </Button>
       )}
 
       {languageSlot}
+
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" title="Optional summary instructions">
+            <PencilSquareIcon className="size-4" aria-hidden="true" />
+            <span className="hidden 2xl:inline">Instructions</span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent aria-describedby="summary-instructions-description">
+          <DialogTitle>Summary instructions</DialogTitle>
+          <p id="summary-instructions-description" className="text-sm leading-6 text-muted-foreground">
+            Add optional context or priorities for the next summary. These instructions stay on this device.
+          </p>
+          <label htmlFor="summary-instructions" className="app-eyebrow">Instructions</label>
+          <textarea
+            id="summary-instructions"
+            value={customPrompt}
+            onChange={(event) => onPromptChange(event.target.value)}
+            placeholder="For example: emphasize decisions, open questions, and owners."
+            className="min-h-28 w-full resize-y rounded-md border border-input bg-card px-3 py-2.5 text-sm leading-6 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Settings button */}
       <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
@@ -301,8 +326,8 @@ export function SummaryGeneratorButtonGroup({
             size="sm"
             title="Summary Settings"
           >
-            <Settings />
-            <span className="hidden lg:inline">AI Model</span>
+            <Cog6ToothIcon className="size-4" aria-hidden="true" />
+            <span className="hidden 2xl:inline">AI Model</span>
           </Button>
         </DialogTrigger>
         <DialogContent
@@ -333,8 +358,8 @@ export function SummaryGeneratorButtonGroup({
               size="sm"
               title="Select summary template"
             >
-              <FileText />
-              <span className="hidden lg:inline">Template</span>
+              <DocumentTextIcon className="size-4" aria-hidden="true" />
+              <span className="hidden 2xl:inline">Template</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -347,7 +372,7 @@ export function SummaryGeneratorButtonGroup({
               >
                 <span>{template.name}</span>
                 {selectedTemplate === template.id && (
-                  <Check className="h-4 w-4 text-success" />
+                  <CheckIcon className="size-4 text-success" aria-hidden="true" />
                 )}
               </DropdownMenuItem>
             ))}

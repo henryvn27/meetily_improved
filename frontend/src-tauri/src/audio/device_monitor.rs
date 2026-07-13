@@ -8,6 +8,8 @@ use log::{debug, info, warn, error};
 
 use super::devices::{AudioDevice, list_audio_devices};
 
+const MONITOR_SHUTDOWN_TIMEOUT: Duration = Duration::from_millis(250);
+
 /// Device monitoring events
 #[derive(Debug, Clone)]
 pub enum DeviceEvent {
@@ -152,8 +154,17 @@ impl AudioDeviceMonitor {
         info!("Stopping device monitor");
         self.stop_signal.notify_one();
 
-        if let Some(handle) = self.monitor_handle.take() {
-            let _ = handle.await;
+        if let Some(mut handle) = self.monitor_handle.take() {
+            match tokio::time::timeout(MONITOR_SHUTDOWN_TIMEOUT, &mut handle).await {
+                Ok(_) => {}
+                Err(_) => {
+                    warn!(
+                        "Device monitor did not stop within {:?}; aborting the optional monitor task",
+                        MONITOR_SHUTDOWN_TIMEOUT
+                    );
+                    handle.abort();
+                }
+            }
         }
 
         info!("Device monitor stopped");
@@ -268,6 +279,16 @@ impl Drop for AudioDeviceMonitor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::time::Instant;
+
+    struct AbortGuard(Arc<AtomicBool>);
+
+    impl Drop for AbortGuard {
+        fn drop(&mut self) {
+            self.0.store(true, Ordering::SeqCst);
+        }
+    }
 
     #[test]
     fn test_bluetooth_detection() {
@@ -293,5 +314,26 @@ mod tests {
 
         // Stop should be safe even if not started
         monitor.stop_monitoring().await;
+    }
+
+    #[tokio::test]
+    async fn stop_monitoring_aborts_an_unresponsive_enumeration_task() {
+        let (mut monitor, _events) = AudioDeviceMonitor::new();
+        let was_aborted = Arc::new(AtomicBool::new(false));
+        let guard_flag = was_aborted.clone();
+
+        monitor.monitor_handle = Some(tokio::spawn(async move {
+            let _guard = AbortGuard(guard_flag);
+            std::future::pending::<()>().await;
+        }));
+
+        tokio::task::yield_now().await;
+        let started = Instant::now();
+        monitor.stop_monitoring().await;
+        tokio::task::yield_now().await;
+
+        assert!(started.elapsed() < Duration::from_secs(1));
+        assert!(was_aborted.load(Ordering::SeqCst));
+        assert!(monitor.monitor_handle.is_none());
     }
 }

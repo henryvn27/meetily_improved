@@ -106,6 +106,8 @@ export function useRecordingStart(
   }, []);
 
   const ensureAudioDeviceReady = useCallback(async (): Promise<boolean> => {
+    if (!selectedDevices.micDevice && !selectedDevices.systemDevice) return true;
+
     try {
       const devices = await withTimeout(
         invoke<Array<{ device_type: 'Input' | 'Output' }>>('get_audio_devices'),
@@ -121,7 +123,7 @@ export function useRecordingStart(
       duration: 7000,
     });
     return false;
-  }, []);
+  }, [selectedDevices.micDevice, selectedDevices.systemDevice]);
 
   // Handle manual recording start (from button click)
   const handleRecordingStart = useCallback(async () => {

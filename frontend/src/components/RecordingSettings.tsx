@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { FolderOpen } from 'lucide-react';
+import { FolderOpenIcon } from '@heroicons/react/24/outline';
 import { invoke } from '@tauri-apps/api/core';
 import { DeviceSelection, SelectedDevices } from '@/components/DeviceSelection';
 import Analytics from '@/lib/analytics';
@@ -189,7 +189,7 @@ export function RecordingSettings({ onSave }: RecordingSettingsProps) {
               onClick={handleOpenFolder}
               className="flex items-center gap-2 rounded-[3px] border border-input bg-card px-3 py-2 text-sm transition-colors hover:bg-secondary"
             >
-              <FolderOpen className="w-4 h-4" />
+              <FolderOpenIcon className="h-4 w-4" />
               Open Folder
             </button>
           </div>

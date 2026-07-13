@@ -45,9 +45,14 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
   const refresh = useCallback(async () => {
     setSnapshot(initialSnapshot);
 
+    const usesDefaultDevices = !selectedDevices.micDevice && !selectedDevices.systemDevice;
+    const audioOperation = usesDefaultDevices
+      ? Promise.resolve([{ name: 'Default microphone', device_type: 'Input' as const }])
+      : invoke<AudioDevice[]>('get_audio_devices');
+
     const [audioResult, modelResult] = await Promise.allSettled([
       withTimeout(
-        invoke<AudioDevice[]>('get_audio_devices'),
+        audioOperation,
         'Audio-device check timed out. Check macOS audio permissions, then try again.',
       ),
       withTimeout((async () => {
@@ -86,7 +91,7 @@ export function useRecordingReadiness(selectedDevices: SelectedDevices) {
       modelState,
       modelError,
     });
-  }, []);
+  }, [selectedDevices.micDevice, selectedDevices.systemDevice]);
 
   useEffect(() => {
     void refresh();

@@ -1,6 +1,6 @@
 'use client';
 
-import { AudioLines, Copy, FileLock2, GlobeIcon, PauseCircle } from 'lucide-react';
+import { ClipboardDocumentIcon, GlobeAltIcon, LockClosedIcon, PauseCircleIcon, SignalIcon } from '@heroicons/react/24/outline';
 import { RecordingControls } from '@/components/RecordingControls';
 import { AppState } from '@/components/app-shell/AppState';
 import { Surface } from '@/components/app-shell/Surface';
@@ -73,7 +73,7 @@ export function ActiveRecordingWorkspace({
             isPaused ? 'bg-[hsl(var(--warning)/0.14)] text-[hsl(var(--warning))]' : 'bg-[hsl(var(--accent-soft))] text-accent',
           )}>
             {isPaused ? (
-              <PauseCircle className="size-5" aria-hidden="true" />
+              <PauseCircleIcon className="size-5" aria-hidden="true" />
             ) : (
               <span className="size-3 rounded-full bg-current" aria-hidden="true" />
             )}
@@ -130,25 +130,25 @@ export function ActiveRecordingWorkspace({
                         : 'border-border bg-secondary text-muted-foreground',
                   )}
                 >
-                  <AudioLines className="size-3" aria-hidden="true" />
+                  <SignalIcon className="size-3" aria-hidden="true" />
                   {isPaused ? 'Paused' : speechDetected ? 'Speech detected' : 'Listening'}
                 </span>
               </div>
               <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <FileLock2 className="size-3.5" aria-hidden="true" />
+                <LockClosedIcon className="size-3.5" aria-hidden="true" />
                 Transcript recovery data stays on this device until the meeting is saved.
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {transcripts.length > 0 && (
                 <Button variant="outline" size="sm" onClick={copyTranscript}>
-                  <Copy aria-hidden="true" />
+                  <ClipboardDocumentIcon aria-hidden="true" />
                   Copy
                 </Button>
               )}
               {transcriptModelConfig.provider === 'localWhisper' && (
                 <Button variant="outline" size="sm" onClick={() => showModal('languageSettings')}>
-                  <GlobeIcon aria-hidden="true" />
+                  <GlobeAltIcon aria-hidden="true" />
                   Language
                 </Button>
               )}

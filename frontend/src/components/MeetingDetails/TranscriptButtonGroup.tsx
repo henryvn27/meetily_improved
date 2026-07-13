@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { Copy, Download, FolderOpen, RefreshCw } from 'lucide-react';
+import { ArrowDownTrayIcon, ArrowPathIcon, DocumentDuplicateIcon, FolderOpenIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 import { RetranscribeDialog } from './RetranscribeDialog';
 import { useConfig } from '@/contexts/ConfigContext';
@@ -40,54 +40,54 @@ export function TranscriptButtonGroup({
   }, [onRefetchTranscripts]);
 
   return (
-    <div className="flex items-center justify-center w-full gap-2">
+    <div className="flex w-full items-center gap-2">
       <ButtonGroup>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
+          className="size-8"
           onClick={() => {
             Analytics.trackButtonClick('copy_transcript', 'meeting_details');
             onCopyTranscript();
           }}
           disabled={transcriptCount === 0}
           title={transcriptCount === 0 ? 'No transcript available' : 'Copy Transcript'}
+          aria-label="Copy transcript"
         >
-          <Copy />
-          <span className="hidden lg:inline">Copy</span>
+          <DocumentDuplicateIcon className="size-4" aria-hidden="true" />
         </Button>
 
-        <Button size="sm" variant="outline" onClick={onExportMeeting} title="Export local meeting as Markdown">
-          <Download className="xl:mr-2" size={18} />
-          <span className="hidden lg:inline">Export</span>
+        <Button size="icon" className="size-8" variant="outline" onClick={onExportMeeting} title="Export local meeting as Markdown" aria-label="Export meeting">
+          <ArrowDownTrayIcon className="size-[18px]" aria-hidden="true" />
         </Button>
 
         <Button
-          size="sm"
+          size="icon"
           variant="outline"
-          className="xl:px-4"
+          className="size-8"
           onClick={() => {
             Analytics.trackButtonClick('open_recording_folder', 'meeting_details');
             onOpenMeetingFolder();
           }}
           title="Open Recording Folder"
+          aria-label="Open recording folder"
         >
-          <FolderOpen className="xl:mr-2" size={18} />
-          <span className="hidden lg:inline">Recording</span>
+          <FolderOpenIcon className="size-[18px]" aria-hidden="true" />
         </Button>
 
         {betaFeatures.importAndRetranscribe && meetingId && meetingFolderPath && (
           <Button
-            size="sm"
+            size="icon"
             variant="outline"
-            className="border-accent/30 bg-[hsl(var(--accent-soft))] hover:bg-[hsl(var(--accent-soft))] xl:px-4"
+            className="size-8 border-accent/30 bg-[hsl(var(--accent-soft))] hover:bg-[hsl(var(--accent-soft))]"
             onClick={() => {
               Analytics.trackButtonClick('enhance_transcript', 'meeting_details');
               setShowRetranscribeDialog(true);
             }}
             title="Retranscribe to enhance your recorded audio"
+            aria-label="Enhance transcript"
           >
-            <RefreshCw className="xl:mr-2" size={18} />
-            <span className="hidden lg:inline">Enhance</span>
+            <ArrowPathIcon className="size-[18px]" aria-hidden="true" />
           </Button>
         )}
       </ButtonGroup>

@@ -3,15 +3,14 @@
 import { Transcript, TranscriptSegmentData } from '@/types';
 import { VirtualizedTranscriptView } from '@/components/VirtualizedTranscriptView';
 import { TranscriptButtonGroup } from './TranscriptButtonGroup';
-import { useMemo } from 'react';
-import { PanelRightClose } from 'lucide-react';
+import { FormEvent, useMemo, useState } from 'react';
+import { ArrowUpIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
+import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface TranscriptPanelProps {
   transcripts: Transcript[];
-  customPrompt: string;
-  onPromptChange: (value: string) => void;
   onCopyTranscript: () => void;
   onOpenMeetingFolder: () => Promise<void>;
   onExportMeeting: () => Promise<void>;
@@ -38,8 +37,6 @@ interface TranscriptPanelProps {
 
 export function TranscriptPanel({
   transcripts,
-  customPrompt,
-  onPromptChange,
   onCopyTranscript,
   onOpenMeetingFolder,
   onExportMeeting,
@@ -59,6 +56,31 @@ export function TranscriptPanel({
   className,
   onCloseInspector,
 }: TranscriptPanelProps) {
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [askError, setAskError] = useState<string | null>(null);
+  const [isAsking, setIsAsking] = useState(false);
+
+  const askMeeting = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = question.trim();
+    if (!trimmed || !meetingId || isAsking) return;
+    setIsAsking(true);
+    setAskError(null);
+    try {
+      const result = await invoke<{ answer: string }>('api_answer_meetings_locally', {
+        question: trimmed,
+        meetingId,
+      });
+      setAnswer(result.answer);
+    } catch (reason) {
+      setAskError(reason instanceof Error ? reason.message : String(reason));
+      setAnswer(null);
+    } finally {
+      setIsAsking(false);
+    }
+  };
+
   // Convert transcripts to segments if pagination is not used but we want virtualization
   const convertedSegments = useMemo(() => {
     if (usePagination && segments) {
@@ -76,12 +98,49 @@ export function TranscriptPanel({
 
   return (
     <aside
-      aria-label="Meeting transcript inspector"
+      aria-label="Meeting assistant inspector"
       className={cn(
-        'min-w-0 shrink-0 flex-col border-l border-border bg-secondary/35',
+        'min-w-0 shrink-0 flex-col border-l border-border bg-card xl:bg-secondary/35',
         className,
       )}
     >
+      <section aria-labelledby="meeting-assistant-title" className="border-b border-border bg-card px-4 py-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="app-eyebrow">Local assistant</p>
+            <h2 id="meeting-assistant-title" className="mt-1 text-base font-semibold tracking-[-0.03em]">Ask this meeting</h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">Uses only this meeting&apos;s transcript and your local model.</p>
+          </div>
+          {onCloseInspector && (
+            <Button type="button" variant="ghost" size="icon" className="xl:hidden" onClick={onCloseInspector} aria-label="Close meeting assistant">
+              <RectangleGroupIcon className="size-4" aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+        {(answer || askError || isAsking) && (
+          <div aria-live="polite" className="mt-4 max-h-36 overflow-y-auto border-l border-border pl-3 text-sm leading-6">
+            {isAsking ? <p className="text-muted-foreground">Reading this meeting…</p> : null}
+            {askError ? <p className="text-destructive">{askError}</p> : null}
+            {answer ? <p>{answer}</p> : null}
+          </div>
+        )}
+        <form className="mt-4 flex items-end gap-2 border-b border-border pb-2 focus-within:border-accent" onSubmit={askMeeting}>
+          <label htmlFor="meeting-assistant-question" className="sr-only">Ask a question about this meeting</label>
+          <textarea
+            id="meeting-assistant-question"
+            rows={2}
+            maxLength={1000}
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder="Ask about a decision, topic, or follow-up…"
+            className="min-h-10 min-w-0 flex-1 resize-none bg-transparent text-sm leading-5 outline-none placeholder:text-muted-foreground"
+          />
+          <Button type="submit" size="icon" disabled={!question.trim() || !meetingId || isAsking} aria-label="Ask this meeting">
+            <ArrowUpIcon className="size-4" aria-hidden="true" />
+          </Button>
+        </form>
+      </section>
+
       <div className="border-b border-border px-4 py-4">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
@@ -92,18 +151,6 @@ export function TranscriptPanel({
             <span className="font-mono text-[0.6875rem] text-muted-foreground">
               {usePagination ? (totalCount ?? convertedSegments.length) : convertedSegments.length} segments
             </span>
-            {onCloseInspector && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="xl:hidden"
-                onClick={onCloseInspector}
-                aria-label="Close transcript inspector"
-              >
-                <PanelRightClose className="size-4" aria-hidden="true" />
-              </Button>
-            )}
           </div>
         </div>
         <TranscriptButtonGroup
@@ -146,19 +193,6 @@ export function TranscriptPanel({
         />
       </div>
 
-      {/* Custom prompt input at bottom of transcript section */}
-      {!isRecording && convertedSegments.length > 0 && (
-        <div className="border-t border-border p-3">
-          <label htmlFor="summary-context" className="app-eyebrow mb-2 block">Summary context</label>
-          <textarea
-            id="summary-context"
-            placeholder="Add context for AI summary. For example people involved, meeting overview, objective etc..."
-            className="min-h-[6rem] w-full resize-y rounded-[3px] border border-input bg-card px-3 py-2.5 text-sm leading-5 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/25"
-            value={customPrompt}
-            onChange={(e) => onPromptChange(e.target.value)}
-          />
-        </div>
-      )}
     </aside>
   );
 }

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Speaker, X } from 'lucide-react';
+import { SpeakerWaveIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 
 interface AudioOutputInfo {
@@ -68,7 +68,7 @@ export function BluetoothPlaybackWarning({
       role="alert"
       aria-live="polite"
     >
-      <Speaker className="h-4 w-4 text-yellow-600" />
+      <SpeakerWaveIcon className="h-4 w-4 text-[hsl(var(--warning))]" />
       <div className="flex items-start justify-between w-full">
         <div className="flex-1">
           <AlertTitle className="text-yellow-900 font-semibold">
@@ -97,7 +97,7 @@ export function BluetoothPlaybackWarning({
           className="ml-4 h-6 w-6 text-yellow-700 hover:text-yellow-900 hover:bg-yellow-100"
           aria-label="Dismiss warning"
         >
-          <X className="h-4 w-4" />
+          <XMarkIcon className="h-4 w-4" />
         </Button>
       </div>
     </Alert>

@@ -5,7 +5,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import type { PermissionStatus, OnboardingPermissions } from '@/types/onboarding';
 import { resolveOnboardingSummaryModelStatus } from '@/lib/onboarding-summary-model';
-import { isNativeQaMode } from '@/lib/native-qa-mode';
+import { isNativeQaMode, nativeQaOnboardingStep } from '@/lib/native-qa-mode';
+import { withTimeout } from '@/lib/with-timeout';
 
 const PARAKEET_MODEL = 'parakeet-tdt-0.6b-v3-int8';
 
@@ -75,7 +76,7 @@ interface StartBackgroundDownloadsOptions {
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(nativeQaOnboardingStep ?? 1);
   const [completed, setCompleted] = useState(false);
   const [parakeetDownloaded, setParakeetDownloaded] = useState(false);
   const [parakeetProgress, setParakeetProgress] = useState(0);
@@ -359,7 +360,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         console.log('[OnboardingContext] Loaded saved status:', status);
 
         if (status.completed) {
-          setCurrentStep(status.current_step);
+          setCurrentStep(nativeQaOnboardingStep ?? status.current_step);
           setCompleted(true);
           setParakeetDownloaded(status.model_status.parakeet === 'downloaded');
           setSummaryModelDownloaded(status.model_status.summary === 'downloaded');
@@ -373,7 +374,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         // Don't trust saved status - verify actual model status on disk
         const verifiedStatus = await verifyModelStatus(status);
 
-        setCurrentStep(verifiedStatus.currentStep);
+        setCurrentStep(nativeQaOnboardingStep ?? verifiedStatus.currentStep);
         setCompleted(verifiedStatus.completed);
         setParakeetDownloaded(verifiedStatus.parakeetDownloaded);
         setSummaryModelDownloaded(verifiedStatus.summaryModelDownloaded);
@@ -498,21 +499,40 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         setSelectedSummaryModel(modelToSave);
       }
 
-      const selectedModelReady = await invoke<boolean>('builtin_ai_is_model_ready', {
-        modelName: modelToSave,
-        refresh: true,
-      });
-      setSummaryModelDownloaded(selectedModelReady);
-      if (!selectedModelReady) {
-        requestSummaryModelDownload(modelToSave);
-      }
-
       // Onboarding always uses builtin-ai with selected model
-      await invoke('complete_onboarding', {
-        model: modelToSave,
-      });
+      await withTimeout(
+        invoke('complete_onboarding', {
+          model: modelToSave,
+        }),
+        'Meetily could not save setup. Please try again.',
+        8_000,
+      );
       setCompleted(true);
       console.log('[OnboardingContext] Onboarding completed with model:', modelToSave);
+
+      if (isNativeQaMode) {
+        console.info('[OnboardingContext] Native QA completion: skipping model readiness and download preparation');
+        isCompletingRef.current = false;
+        return;
+      }
+
+      // Starting the local model runtime can be slow. Once setup is safely
+      // recorded, inspect and prepare the model without blocking the workspace.
+      void withTimeout(
+        invoke<boolean>('builtin_ai_is_model_ready', {
+          modelName: modelToSave,
+          refresh: true,
+        }),
+        'Local model check timed out.',
+        4_000,
+      ).then((selectedModelReady) => {
+        setSummaryModelDownloaded(selectedModelReady);
+        if (!selectedModelReady) {
+          requestSummaryModelDownload(modelToSave);
+        }
+      }).catch((error) => {
+        console.warn('[OnboardingContext] Model readiness check deferred:', error);
+      });
 
       // Reset the flag so subsequent state updates can be saved
       isCompletingRef.current = false;

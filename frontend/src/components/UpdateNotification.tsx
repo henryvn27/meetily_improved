@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download } from 'lucide-react';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { UpdateInfo } from '@/services/updateService';
 
@@ -21,7 +21,7 @@ export function showUpdateNotification(updateInfo: UpdateInfo, onUpdateClick?: (
   toast.info(
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2">
-        <Download className="h-4 w-4" />
+        <ArrowDownTrayIcon className="h-4 w-4" />
         <div>
           <p className="font-medium">Update Available</p>
           <p className="text-sm text-muted-foreground">

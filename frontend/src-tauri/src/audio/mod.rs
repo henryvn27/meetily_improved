@@ -53,10 +53,14 @@ pub mod import;
 
 pub use devices::{
     default_input_device, default_output_device, get_device_and_config, list_audio_devices,
-    parse_audio_device, trigger_audio_permission,
+    parse_audio_device,
     AudioDevice, AudioTranscriptionEngine, DeviceControl, DeviceType,
     LAST_AUDIO_CAPTURE,
 };
+#[cfg(target_os = "macos")]
+pub use devices::request_audio_permission_on_main;
+#[cfg(not(target_os = "macos"))]
+pub use devices::trigger_audio_permission;
 
 // Export system audio capture functionality
 pub use capture::{
@@ -118,4 +122,3 @@ pub use decoder::{decode_audio_file, DecodedAudio};
 
 // Export audio constants
 pub use constants::AUDIO_EXTENSIONS;
-

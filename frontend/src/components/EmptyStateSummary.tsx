@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FileQuestion, Sparkles } from 'lucide-react';
+import { DocumentMagnifyingGlassIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -24,7 +24,7 @@ export function EmptyStateSummary({ onGenerate, hasModel, isGenerating = false }
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className="flex h-full flex-col items-center justify-center p-8 text-center"
     >
-      <FileQuestion className="mb-4 h-16 w-16 text-muted-foreground/35" />
+      <DocumentMagnifyingGlassIcon className="mb-4 h-16 w-16 text-muted-foreground/35" />
       <h3 className="mb-2 text-lg font-semibold text-foreground">
         No Summary Generated Yet
       </h3>
@@ -41,7 +41,7 @@ export function EmptyStateSummary({ onGenerate, hasModel, isGenerating = false }
                 disabled={!hasModel || isGenerating}
                 className="gap-2"
               >
-                <Sparkles className="w-4 h-4" />
+                <SparklesIcon className="h-4 w-4" />
                 {isGenerating ? 'Generating...' : 'Generate Summary'}
               </Button>
             </div>

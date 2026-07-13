@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
-import { AlertTriangle, CheckCircle, X } from 'lucide-react';
+import { CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface ComplianceNotificationProps {
   isOpen: boolean;
@@ -75,7 +75,7 @@ export const ComplianceNotification: React.FC<ComplianceNotificationProps> = ({
         {/* Header with close button */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-1">
-            <AlertTriangle className="h-3 w-3 flex-shrink-0 text-[hsl(var(--warning))]" />
+            <ExclamationTriangleIcon className="h-3 w-3 flex-shrink-0 text-[hsl(var(--warning))]" />
             <h3 className="text-xs font-semibold text-foreground">
               Recording Notice
             </h3>
@@ -84,7 +84,7 @@ export const ComplianceNotification: React.FC<ComplianceNotificationProps> = ({
             onClick={handleClose}
             className="rounded-[3px] p-0.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
-            <X className="h-3 w-3" />
+            <XMarkIcon className="h-3 w-3" />
           </button>
         </div>
 
@@ -115,7 +115,7 @@ export const ComplianceNotification: React.FC<ComplianceNotificationProps> = ({
             onClick={handleAcknowledge}
             className="h-6 flex-1 bg-accent px-2 py-0.5 text-xs text-accent-foreground hover:bg-accent/90"
           >
-            <CheckCircle className="h-2 w-2 mr-1" />
+            <CheckCircleIcon className="mr-1 h-2 w-2" />
             Done
           </Button>
         </div>

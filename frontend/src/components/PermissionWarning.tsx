@@ -1,4 +1,4 @@
-import { Mic, RefreshCw, Speaker } from 'lucide-react';
+import { ArrowPathIcon, MicrophoneIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { invoke } from '@tauri-apps/api/core';
 import { AppState } from '@/components/app-shell/AppState';
 import { Button } from '@/components/ui/button';
@@ -49,13 +49,13 @@ export function PermissionWarning({
       action={
         <div className="flex flex-wrap gap-2">
           {isMacOS && !hasMicrophone && (
-            <Button size="sm" onClick={openMicrophoneSettings}><Mic />Open microphone settings</Button>
+            <Button size="sm" onClick={openMicrophoneSettings}><MicrophoneIcon />Open microphone settings</Button>
           )}
           {isMacOS && !hasSystemAudio && (
-            <Button size="sm" variant="outline" onClick={openSystemAudioSettings}><Speaker />Open system audio settings</Button>
+            <Button size="sm" variant="outline" onClick={openSystemAudioSettings}><SpeakerWaveIcon />Open system audio settings</Button>
           )}
           <Button size="sm" variant="ghost" onClick={onRecheck} disabled={isRechecking}>
-            <RefreshCw className={isRechecking ? 'animate-spin' : ''} />
+            <ArrowPathIcon className={isRechecking ? 'animate-spin motion-reduce:animate-none' : ''} />
             Recheck
           </Button>
         </div>

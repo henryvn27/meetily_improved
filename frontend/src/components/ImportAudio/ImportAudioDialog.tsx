@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  Upload,
-  Globe,
-  LoaderCircle,
-  AlertTriangle,
-  CheckCircle2,
-  X,
-  Cpu,
-  FileAudio2,
-  Clock,
-  HardDrive,
-  ChevronDown,
-  ChevronUp,
-  ShieldCheck,
-  FolderOpen,
-} from 'lucide-react';
+  ArrowPathIcon,
+  ArrowUpTrayIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CircleStackIcon,
+  ClockIcon,
+  CpuChipIcon,
+  ExclamationTriangleIcon,
+  FolderOpenIcon,
+  LanguageIcon,
+  MusicalNoteIcon,
+  ShieldCheckIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import {
   Dialog,
   DialogContent,
@@ -226,8 +226,8 @@ export function ImportAudioDialog({
         <div className="border-b border-border/70 bg-secondary/35 px-6 py-5 sm:px-7">
           <DialogHeader className="text-left">
             <div className="flex items-start gap-4">
-              <span className="grid size-11 shrink-0 place-items-center rounded-[3px] bg-secondary text-foreground">
-                {isProcessing ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : error ? <AlertTriangle className="size-5 text-destructive" aria-hidden="true" /> : status === 'complete' ? <CheckCircle2 className="size-5 text-[hsl(var(--success))]" aria-hidden="true" /> : <FileAudio2 className="size-5" aria-hidden="true" />}
+              <span className="grid size-11 shrink-0 place-items-center rounded-md bg-secondary text-foreground">
+                {isProcessing ? <ArrowPathIcon className="size-5 animate-spin" aria-hidden="true" /> : error ? <ExclamationTriangleIcon className="size-5 text-destructive" aria-hidden="true" /> : status === 'complete' ? <CheckCircleIcon className="size-5 text-[hsl(var(--success))]" aria-hidden="true" /> : <MusicalNoteIcon className="size-5" aria-hidden="true" />}
               </span>
               <div className="min-w-0">
                 <p className="app-eyebrow">Local audio import</p>
@@ -246,15 +246,15 @@ export function ImportAudioDialog({
           {!isProcessing && !error && (
             fileInfo ? (
               <>
-                <div className="rounded-[3px] border border-border/80 bg-card p-4">
+                <div className="rounded-md border border-border/80 bg-card p-4">
                   <div className="flex items-start gap-3">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-[3px] bg-secondary"><FileAudio2 className="size-5" aria-hidden="true" /></span>
+                    <span className="grid size-10 shrink-0 place-items-center rounded-md bg-secondary"><MusicalNoteIcon className="size-5" aria-hidden="true" /></span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-foreground">{fileInfo.filename}</p>
                       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1.5"><Clock className="size-3.5" aria-hidden="true" />{formatImportDuration(fileInfo.duration_seconds)}</span>
-                        <span className="flex items-center gap-1.5"><HardDrive className="size-3.5" aria-hidden="true" />{formatImportFileSize(fileInfo.size_bytes)}</span>
-                        <span className="rounded-[3px] bg-secondary px-2 py-0.5 font-mono text-[0.6875rem] text-foreground">{fileInfo.format}</span>
+                        <span className="flex items-center gap-1.5"><ClockIcon className="size-3.5" aria-hidden="true" />{formatImportDuration(fileInfo.duration_seconds)}</span>
+                        <span className="flex items-center gap-1.5"><CircleStackIcon className="size-3.5" aria-hidden="true" />{formatImportFileSize(fileInfo.size_bytes)}</span>
+                        <span className="rounded-md bg-secondary px-2 py-0.5 font-mono text-[0.6875rem] text-foreground">{fileInfo.format}</span>
                       </div>
                     </div>
                   </div>
@@ -262,25 +262,25 @@ export function ImportAudioDialog({
                     <label htmlFor="import-meeting-title" className="text-sm font-medium">Meeting title</label>
                     <Input id="import-meeting-title" value={title} onChange={(event) => { setTitle(event.target.value); setTitleModifiedByUser(true); }} placeholder="Enter meeting title" />
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleSelectFile} className="mt-3 w-full"><FolderOpen className="mr-2 size-4" aria-hidden="true" />Choose a different file</Button>
+                  <Button variant="outline" size="sm" onClick={handleSelectFile} className="mt-3 w-full"><FolderOpenIcon className="mr-2 size-4" aria-hidden="true" />Choose a different file</Button>
                 </div>
 
-                <div className="overflow-hidden rounded-[3px] border border-border/80">
+                <div className="overflow-hidden rounded-md border border-border/80">
                   <button type="button" onClick={() => setShowAdvanced(!showAdvanced)} aria-expanded={showAdvanced} className="flex min-h-11 w-full items-center justify-between px-4 text-sm font-medium hover:bg-secondary/55">
                     <span>Transcription options</span>
-                    {showAdvanced ? <ChevronUp className="size-4" aria-hidden="true" /> : <ChevronDown className="size-4" aria-hidden="true" />}
+                    {showAdvanced ? <ChevronUpIcon className="size-4" aria-hidden="true" /> : <ChevronDownIcon className="size-4" aria-hidden="true" />}
                   </button>
                   {showAdvanced && (
                     <div className="grid gap-4 border-t border-border/70 p-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium"><Globe className="size-4 text-muted-foreground" aria-hidden="true" />Language</div>
+                        <div className="flex items-center gap-2 text-sm font-medium"><LanguageIcon className="size-4 text-muted-foreground" aria-hidden="true" />Language</div>
                         {!isParakeetModel ? (
                           <Select value={selectedLang} onValueChange={setSelectedLang}><SelectTrigger><SelectValue placeholder="Select language" /></SelectTrigger><SelectContent className="max-h-60">{LANGUAGES.map((lang) => <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>)}</SelectContent></Select>
                         ) : <p className="text-xs leading-5 text-muted-foreground">Parakeet uses automatic language detection.</p>}
                       </div>
                       {availableModels.length > 0 && (
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm font-medium"><Cpu className="size-4 text-muted-foreground" aria-hidden="true" />Local model</div>
+                          <div className="flex items-center gap-2 text-sm font-medium"><CpuChipIcon className="size-4 text-muted-foreground" aria-hidden="true" />Local model</div>
                           <Select value={selectedModelKey} onValueChange={setSelectedModelKey} disabled={loadingModels}><SelectTrigger><SelectValue placeholder={loadingModels ? 'Loading models…' : 'Select model'} /></SelectTrigger><SelectContent>{availableModels.map((model) => <SelectItem key={`${model.provider}:${model.name}`} value={`${model.provider}:${model.name}`}>{model.displayName} ({Math.round(model.size_mb)} MB)</SelectItem>)}</SelectContent></Select>
                         </div>
                       )}
@@ -289,12 +289,12 @@ export function ImportAudioDialog({
                 </div>
               </>
             ) : (
-              <div className="rounded-[3px] border border-dashed border-border bg-secondary/25 px-6 py-9 text-center">
-                <span className="mx-auto grid size-12 place-items-center rounded-[3px] bg-card"><Upload className="size-5" aria-hidden="true" /></span>
+              <div className="rounded-md border border-dashed border-border bg-secondary/25 px-6 py-9 text-center">
+                <span className="mx-auto grid size-12 place-items-center rounded-md bg-card"><ArrowUpTrayIcon className="size-5" aria-hidden="true" /></span>
                 <h2 className="mt-4 font-semibold">Choose a recording</h2>
                 <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-muted-foreground">Drag one file anywhere into Meetily, or open the native file picker.</p>
                 <Button onClick={handleSelectFile} disabled={status === 'validating'} className="mt-4">
-                  {status === 'validating' ? <><LoaderCircle className="mr-2 size-4 animate-spin" aria-hidden="true" />Validating locally…</> : <><FolderOpen className="mr-2 size-4" aria-hidden="true" />Choose audio file</>}
+                  {status === 'validating' ? <><ArrowPathIcon className="mr-2 size-4 animate-spin" aria-hidden="true" />Validating locally…</> : <><FolderOpenIcon className="mr-2 size-4" aria-hidden="true" />Choose audio file</>}
                 </Button>
                 <p className="mt-4 text-xs leading-5 text-muted-foreground">Supported: {getAudioFormatsDisplayList()}</p>
               </div>
@@ -302,7 +302,7 @@ export function ImportAudioDialog({
           )}
 
           {isProcessing && (
-            <div className="space-y-4 rounded-[3px] border border-border/80 bg-card p-5">
+            <div className="space-y-4 rounded-md border border-border/80 bg-card p-5">
               {progressPresentation ? (
                 <>
                   <div className="flex items-center justify-between gap-4 text-sm"><span className="font-semibold">{progressPresentation.label}</span><span className="tabular-nums text-muted-foreground">{progressPresentation.percentage}%</span></div>
@@ -310,24 +310,24 @@ export function ImportAudioDialog({
                   <p className="text-sm leading-6 text-muted-foreground">{progressPresentation.message}</p>
                 </>
               ) : (
-                <div className="flex items-center gap-3 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" aria-hidden="true" />Waiting for the native importer…</div>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground"><ArrowPathIcon className="size-4 animate-spin" aria-hidden="true" />Waiting for the native importer…</div>
               )}
-              <div className="flex items-start gap-3 border-t border-border/70 pt-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><p>Keep Meetily open while the local transcript and meeting record are created.</p></div>
+              <div className="flex items-start gap-3 border-t border-border/70 pt-4 text-sm leading-6 text-muted-foreground"><ShieldCheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><p>Keep Meetily open while the local transcript and meeting record are created.</p></div>
             </div>
           )}
 
           {error && (
-            <div role="alert" className="rounded-[3px] border border-destructive/25 bg-destructive/5 p-4">
-              <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" /><div><p className="text-sm font-semibold text-foreground">{isProcessing ? 'Cancellation did not complete' : 'Local import failed'}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{error}</p></div></div>
+            <div role="alert" className="rounded-md border border-destructive/25 bg-destructive/5 p-4">
+              <div className="flex items-start gap-3"><ExclamationTriangleIcon className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" /><div><p className="text-sm font-semibold text-foreground">{isProcessing ? 'Cancellation did not complete' : 'Local import failed'}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{error}</p></div></div>
             </div>
           )}
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-border/70 bg-secondary/25 px-6 py-4 sm:px-7">
-          <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"><ShieldCheck className="size-4" aria-hidden="true" />Audio stays on this device.</div>
+          <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"><ShieldCheckIcon className="size-4" aria-hidden="true" />Audio stays on this device.</div>
           <DialogFooter className="ml-auto flex-row gap-2 sm:space-x-0">
-            {!isProcessing && !error && <><Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={handleStartImport} disabled={!fileInfo || !title.trim()}><Upload className="mr-2 size-4" aria-hidden="true" />Import meeting</Button></>}
-            {isProcessing && <Button variant="outline" onClick={handleCancel}><X className="mr-2 size-4" aria-hidden="true" />Cancel import</Button>}
+            {!isProcessing && !error && <><Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button><Button onClick={handleStartImport} disabled={!fileInfo || !title.trim()}><ArrowUpTrayIcon className="mr-2 size-4" aria-hidden="true" />Import meeting</Button></>}
+            {isProcessing && <Button variant="outline" onClick={handleCancel}><XMarkIcon className="mr-2 size-4" aria-hidden="true" />Cancel import</Button>}
             {error && !isProcessing && <><Button variant="ghost" onClick={() => onOpenChange(false)}>Close</Button><Button onClick={reset} variant="outline">Choose another file</Button></>}
           </DialogFooter>
         </div>

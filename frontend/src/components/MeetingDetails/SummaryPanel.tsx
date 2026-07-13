@@ -9,7 +9,7 @@ import { SummaryUpdaterButtonGroup } from './SummaryUpdaterButtonGroup';
 import Analytics from '@/lib/analytics';
 import { useEffect, useRef, useState, RefObject, ReactNode } from 'react';
 import { toast } from 'sonner';
-import { Languages, ChevronDown } from 'lucide-react';
+import { ChevronDownIcon, LanguageIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { LanguagePickerPopover } from '@/components/LanguagePickerPopover';
@@ -31,7 +31,7 @@ interface SummaryPanelProps {
   onTitleChange: (title: string) => void;
   isEditingTitle: boolean;
   onStartEditTitle: () => void;
-  onFinishEditTitle: () => void;
+  onFinishEditTitle: () => void | Promise<void>;
   isTitleDirty: boolean;
   summaryRef: RefObject<BlockNoteSummaryViewRef>;
   isSaving: boolean;
@@ -47,6 +47,7 @@ interface SummaryPanelProps {
   onGenerateSummary: (customPrompt: string) => Promise<void>;
   onStopGeneration: () => void;
   customPrompt: string;
+  onPromptChange: (value: string) => void;
   summaryResponse: SummaryResponse | null;
   onSaveSummary: (summary: Summary | { markdown?: string; summary_json?: any[] }) => Promise<void>;
   onSummaryChange: (summary: Summary) => void;
@@ -84,6 +85,7 @@ export function SummaryPanel({
   onGenerateSummary,
   onStopGeneration,
   customPrompt,
+  onPromptChange,
   summaryResponse,
   onSaveSummary,
   onSummaryChange,
@@ -224,6 +226,10 @@ export function SummaryPanel({
   };
 
   const isSummaryLoading = summaryStatus === 'processing' || summaryStatus === 'summarizing' || summaryStatus === 'regenerating';
+  const meetingDate = new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(meeting.created_at));
 
   const languageSlot = (
     <Popover open={langPickerOpen} onOpenChange={setLangPickerOpen}>
@@ -234,9 +240,9 @@ export function SummaryPanel({
           title={`Summary language: ${effectiveLangLabel}${isLocalFallbackLanguage ? ' (saved on this device)' : ''}`}
           aria-label="Set summary language"
         >
-          <Languages size={18} />
+          <LanguageIcon className="size-[18px]" aria-hidden="true" />
           <span className="hidden lg:inline">{effectiveLangLabel}</span>
-          <ChevronDown size={14} className="text-muted-foreground" />
+          <ChevronDownIcon className="size-3.5 text-muted-foreground" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -255,18 +261,48 @@ export function SummaryPanel({
 
   return (
     <section aria-label="Meeting summary" className="flex min-w-0 flex-1 flex-col overflow-hidden bg-card">
-      <div className="border-b border-border px-6 py-5 sm:px-8">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div className="min-w-0">
-            <p className="app-eyebrow">Meeting note</p>
-            <div className="mt-2 flex items-start justify-between gap-3">
-              <h1 className="truncate text-[1.625rem] font-semibold leading-tight tracking-[-0.045em]">{meetingTitle}</h1>
-              {inspectorControl}
+      <div className="border-b border-border px-6 pb-4 pt-5 sm:px-8">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2.5">
+              <p className="app-eyebrow">Meeting note</p>
+              <span className="text-border" aria-hidden="true">/</span>
+              <time className="truncate text-[0.6875rem] text-muted-foreground" dateTime={meeting.created_at}>{meetingDate}</time>
+            </div>
+            <div className="mt-2 min-w-0">
+              {isEditingTitle ? (
+                <input
+                  autoFocus
+                  value={meetingTitle}
+                  onChange={(event) => onTitleChange(event.target.value)}
+                  onBlur={() => void onFinishEditTitle()}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      event.currentTarget.blur();
+                    }
+                  }}
+                  aria-label="Meeting title"
+                  className="w-full border-0 border-b border-accent bg-transparent pb-1 text-[1.625rem] font-semibold leading-tight tracking-[-0.045em] outline-none"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={onStartEditTitle}
+                  className="group/title flex max-w-full items-center gap-2 rounded-sm text-left"
+                  aria-label={`Rename ${meetingTitle}`}
+                >
+                  <h1 className="truncate text-[1.625rem] font-semibold leading-tight tracking-[-0.045em]">{meetingTitle}</h1>
+                  <PencilIcon className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/title:opacity-100 group-focus-visible/title:opacity-100" aria-hidden="true" />
+                </button>
+              )}
             </div>
           </div>
+          {inspectorControl}
+        </div>
         {aiSummary && !isSummaryLoading && (
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="shrink-0">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-3">
+            <div className="min-w-0 shrink-0">
               <SummaryGeneratorButtonGroup
                 modelConfig={modelConfig}
                 setModelConfig={setModelConfig}
@@ -274,6 +310,7 @@ export function SummaryPanel({
                 onGenerateSummary={onGenerateSummary}
                 onStopGeneration={onStopGeneration}
                 customPrompt={customPrompt}
+                onPromptChange={onPromptChange}
                 summaryStatus={summaryStatus}
                 availableTemplates={availableTemplates}
                 selectedTemplate={selectedTemplate}
@@ -286,7 +323,7 @@ export function SummaryPanel({
               />
             </div>
 
-            <div className="shrink-0">
+            <div className="ml-auto shrink-0">
               <SummaryUpdaterButtonGroup
                 isSaving={isSaving}
                 isDirty={isTitleDirty || (summaryRef.current?.isDirty || false)}
@@ -302,7 +339,6 @@ export function SummaryPanel({
             </div>
           </div>
         )}
-        </div>
       </div>
 
       {isSummaryLoading ? (
@@ -316,6 +352,7 @@ export function SummaryPanel({
               onGenerateSummary={onGenerateSummary}
               onStopGeneration={onStopGeneration}
               customPrompt={customPrompt}
+              onPromptChange={onPromptChange}
               summaryStatus={summaryStatus}
               availableTemplates={availableTemplates}
               selectedTemplate={selectedTemplate}
@@ -344,6 +381,7 @@ export function SummaryPanel({
               onGenerateSummary={onGenerateSummary}
               onStopGeneration={onStopGeneration}
               customPrompt={customPrompt}
+              onPromptChange={onPromptChange}
               summaryStatus={summaryStatus}
               availableTemplates={availableTemplates}
               selectedTemplate={selectedTemplate}
@@ -365,10 +403,10 @@ export function SummaryPanel({
       ) : transcripts?.length > 0 && (
         <div className="flex-1 overflow-y-auto min-h-0">
           {summaryResponse && (
-            <div className="fixed bottom-0 left-0 right-0 max-h-1/3 overflow-y-auto border-t border-border bg-card p-4 shadow-[0_-12px_32px_hsl(var(--foreground)/0.08)]">
+            <div className="mb-6 border border-border bg-secondary/40 p-4">
               <h3 className="text-lg font-semibold mb-2">Meeting Summary</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-[3px] border border-border bg-secondary p-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Key Points</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.key_points.blocks.map((block, i) => (
@@ -376,7 +414,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
+                <div className="mt-4 rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Action Items</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.action_items.blocks.map((block, i) => (
@@ -384,7 +422,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
+                <div className="mt-4 rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Decisions</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.decisions.blocks.map((block, i) => (
@@ -392,7 +430,7 @@ export function SummaryPanel({
                     ))}
                   </ul>
                 </div>
-                <div className="mt-4 rounded-[3px] border border-border bg-secondary p-4">
+                <div className="mt-4 rounded-md border border-border bg-secondary p-4">
                   <h4 className="font-medium mb-1">Main Topics</h4>
                   <ul className="list-disc pl-4">
                     {summaryResponse.summary.main_topics.blocks.map((block, i) => (
@@ -430,7 +468,7 @@ export function SummaryPanel({
             />
           </div>
           {summaryStatus !== 'idle' && (
-            <div className={`mx-6 mb-6 rounded-[3px] border p-4 text-sm sm:mx-8 ${summaryStatus === 'error' ? 'border-destructive/25 bg-destructive/5 text-destructive' :
+            <div className={`mx-6 mb-6 rounded-md border p-4 text-sm sm:mx-8 ${summaryStatus === 'error' ? 'border-destructive/25 bg-destructive/5 text-destructive' :
               summaryStatus === 'completed' ? 'border-[hsl(var(--success)/0.25)] bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))]' :
                 'border-accent/25 bg-[hsl(var(--accent-soft))] text-foreground'
               }`}>
