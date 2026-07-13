@@ -99,6 +99,37 @@ impl TranscriptsRepository {
         Self::search_transcripts_scoped(pool, query, Some(meeting_id)).await
     }
 
+    /// Returns the selected meeting's transcript in chronological order for
+    /// the persistent meeting inspector. Unlike global recall search, this is
+    /// intentionally not keyword-filtered: questions about summaries, action
+    /// items, or conclusions may depend on text far from the first match.
+    pub async fn get_meeting_transcripts_for_recall(
+        pool: &SqlitePool,
+        meeting_id: &str,
+    ) -> Result<Vec<TranscriptSearchResult>, SqlxError> {
+        sqlx::query_as::<_, (String, String, String, String)>(
+            "SELECT m.id, m.title, t.transcript, t.timestamp FROM meetings m \
+             JOIN transcripts t ON m.id = t.meeting_id \
+             WHERE m.id = ? \
+             ORDER BY t.audio_start_time ASC, t.timestamp ASC",
+        )
+        .bind(meeting_id)
+        .fetch_all(pool)
+        .await
+        .map(|rows| {
+            rows.into_iter()
+                .map(
+                    |(id, title, transcript, timestamp)| TranscriptSearchResult {
+                        id,
+                        title,
+                        match_context: transcript,
+                        timestamp,
+                    },
+                )
+                .collect()
+        })
+    }
+
     async fn search_transcripts_scoped(
         pool: &SqlitePool,
         query: &str,
@@ -285,6 +316,40 @@ mod tests {
 
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].id, "open");
+    }
+
+    #[tokio::test]
+    async fn meeting_inspector_recall_returns_complete_chronological_segments() {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE meetings (id TEXT PRIMARY KEY, title TEXT, created_at TEXT)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("CREATE TABLE transcripts (meeting_id TEXT, transcript TEXT, timestamp TEXT, audio_start_time REAL)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO meetings VALUES ('open', 'Open meeting', '2026-07-12')")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO transcripts VALUES ('open', 'The conclusion and action items are at the end.', '00:40', 40), ('open', 'Henry opened the discussion.', '00:05', 5)")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let results = TranscriptsRepository::get_meeting_transcripts_for_recall(&pool, "open")
+            .await
+            .unwrap();
+
+        assert_eq!(results.len(), 2);
+        assert_eq!(results[0].match_context, "Henry opened the discussion.");
+        assert!(results[1]
+            .match_context
+            .contains("action items are at the end"));
     }
 
     #[tokio::test]
