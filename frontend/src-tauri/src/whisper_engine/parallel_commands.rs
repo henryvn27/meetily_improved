@@ -1,17 +1,22 @@
-use tauri::State;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 use anyhow::Result;
+use std::sync::Arc;
+use tauri::State;
+use tokio::sync::RwLock;
 
 use crate::whisper_engine::{
-    ParallelProcessor, ParallelConfig, SystemMonitor,
-    AudioChunk, ProcessingStatus
+    AudioChunk, ParallelConfig, ParallelProcessor, ProcessingStatus, SystemMonitor,
 };
 
 // Global state for parallel processor
 pub struct ParallelProcessorState {
     pub processor: Arc<RwLock<Option<ParallelProcessor>>>,
     pub system_monitor: Arc<SystemMonitor>,
+}
+
+impl Default for ParallelProcessorState {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ParallelProcessorState {
@@ -40,22 +45,24 @@ pub async fn initialize_parallel_processor(
     }
 
     // Calculate safe worker count based on system resources
-    let safe_workers = state.system_monitor
+    let safe_workers = state
+        .system_monitor
         .calculate_safe_worker_count()
         .await
         .map_err(|e| format!("Failed to calculate safe worker count: {}", e))?;
 
     config.max_workers = std::cmp::min(config.max_workers, safe_workers);
 
-    let (processor, _event_receiver) = ParallelProcessor::new(
-        config.clone(),
-        state.system_monitor.clone()
-    ).map_err(|e| format!("Failed to create parallel processor: {}", e))?;
+    let (processor, _event_receiver) =
+        ParallelProcessor::new(config.clone(), state.system_monitor.clone())
+            .map_err(|e| format!("Failed to create parallel processor: {}", e))?;
 
     *state.processor.write().await = Some(processor);
 
-    Ok(format!("Parallel processor initialized with {} workers, {}MB memory per worker",
-               config.max_workers, config.memory_budget_mb))
+    Ok(format!(
+        "Parallel processor initialized with {} workers, {}MB memory per worker",
+        config.max_workers, config.memory_budget_mb
+    ))
 }
 
 #[tauri::command]
@@ -66,20 +73,25 @@ pub async fn start_parallel_processing(
 ) -> Result<String, String> {
     let chunks: Vec<AudioChunk> = audio_chunks
         .into_iter()
-        .map(|v| serde_json::from_value(v))
+        .map(serde_json::from_value)
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| format!("Failed to parse audio chunks: {}", e))?;
 
     let mut processor_guard = state.processor.write().await;
-    let processor = processor_guard.as_mut()
+    let processor = processor_guard
+        .as_mut()
         .ok_or_else(|| "Parallel processor not initialized".to_string())?;
 
-    processor.start_processing(chunks.clone(), model_name.clone())
+    processor
+        .start_processing(chunks.clone(), model_name.clone())
         .await
         .map_err(|e| format!("Failed to start parallel processing: {}", e))?;
 
-    Ok(format!("Started parallel processing of {} chunks with model {}",
-               chunks.len(), model_name))
+    Ok(format!(
+        "Started parallel processing of {} chunks with model {}",
+        chunks.len(),
+        model_name
+    ))
 }
 
 #[tauri::command]
@@ -87,7 +99,8 @@ pub async fn pause_parallel_processing(
     state: State<'_, ParallelProcessorState>,
 ) -> Result<String, String> {
     let processor_guard = state.processor.read().await;
-    let processor = processor_guard.as_ref()
+    let processor = processor_guard
+        .as_ref()
         .ok_or_else(|| "Parallel processor not initialized".to_string())?;
 
     processor.pause_processing().await;
@@ -99,7 +112,8 @@ pub async fn resume_parallel_processing(
     state: State<'_, ParallelProcessorState>,
 ) -> Result<String, String> {
     let processor_guard = state.processor.read().await;
-    let processor = processor_guard.as_ref()
+    let processor = processor_guard
+        .as_ref()
         .ok_or_else(|| "Parallel processor not initialized".to_string())?;
 
     processor.resume_processing().await;
@@ -111,7 +125,8 @@ pub async fn stop_parallel_processing(
     state: State<'_, ParallelProcessorState>,
 ) -> Result<String, String> {
     let mut processor_guard = state.processor.write().await;
-    let processor = processor_guard.as_mut()
+    let processor = processor_guard
+        .as_mut()
         .ok_or_else(|| "Parallel processor not initialized".to_string())?;
 
     processor.stop_processing().await;
@@ -123,7 +138,8 @@ pub async fn get_parallel_processing_status(
     state: State<'_, ParallelProcessorState>,
 ) -> Result<ProcessingStatus, String> {
     let processor_guard = state.processor.read().await;
-    let processor = processor_guard.as_ref()
+    let processor = processor_guard
+        .as_ref()
         .ok_or_else(|| "Parallel processor not initialized".to_string())?;
 
     let status = processor.get_processing_status().await;
@@ -134,35 +150,41 @@ pub async fn get_parallel_processing_status(
 pub async fn get_system_resources(
     state: State<'_, ParallelProcessorState>,
 ) -> Result<serde_json::Value, String> {
-    state.system_monitor.refresh_system_info()
+    state
+        .system_monitor
+        .refresh_system_info()
         .await
         .map_err(|e| format!("Failed to refresh system info: {}", e))?;
 
-    let resources = state.system_monitor.get_current_resources()
+    let resources = state
+        .system_monitor
+        .get_current_resources()
         .await
         .map_err(|e| format!("Failed to get system resources: {}", e))?;
 
-    serde_json::to_value(resources)
-        .map_err(|e| format!("Failed to serialize resources: {}", e))
+    serde_json::to_value(resources).map_err(|e| format!("Failed to serialize resources: {}", e))
 }
 
 #[tauri::command]
 pub async fn check_resource_constraints(
     state: State<'_, ParallelProcessorState>,
 ) -> Result<serde_json::Value, String> {
-    let status = state.system_monitor.check_resource_constraints()
+    let status = state
+        .system_monitor
+        .check_resource_constraints()
         .await
         .map_err(|e| format!("Failed to check resource constraints: {}", e))?;
 
-    serde_json::to_value(status)
-        .map_err(|e| format!("Failed to serialize resource status: {}", e))
+    serde_json::to_value(status).map_err(|e| format!("Failed to serialize resource status: {}", e))
 }
 
 #[tauri::command]
 pub async fn calculate_optimal_workers(
     state: State<'_, ParallelProcessorState>,
 ) -> Result<usize, String> {
-    state.system_monitor.calculate_safe_worker_count()
+    state
+        .system_monitor
+        .calculate_safe_worker_count()
         .await
         .map_err(|e| format!("Failed to calculate optimal workers: {}", e))
 }
@@ -178,14 +200,12 @@ pub async fn prepare_audio_chunks(
     let samples_per_chunk = ((sample_rate as f64 * duration_ms) / 1000.0) as usize;
 
     let mut chunks = Vec::new();
-    let mut chunk_id = 0;
-
     for (i, chunk_samples) in audio_data.chunks(samples_per_chunk).enumerate() {
         let start_time_ms = i as f64 * duration_ms;
         let actual_duration_ms = (chunk_samples.len() as f64 / sample_rate as f64) * 1000.0;
 
         let chunk = AudioChunk {
-            id: chunk_id,
+            id: i as u32,
             data: chunk_samples.to_vec(),
             sample_rate,
             start_time_ms,
@@ -193,7 +213,6 @@ pub async fn prepare_audio_chunks(
         };
 
         chunks.push(chunk);
-        chunk_id += 1;
     }
 
     Ok(chunks)
@@ -211,9 +230,7 @@ pub async fn test_parallel_processing_setup(
         Ok(resources) => {
             report.push_str(&format!(
                 "✅ System Resources: {:.1}% CPU, {:.1}% Memory, {} cores\n",
-                resources.cpu_usage_percent,
-                resources.memory_used_percent,
-                resources.cpu_cores
+                resources.cpu_usage_percent, resources.memory_used_percent, resources.cpu_cores
             ));
         }
         Err(e) => {
@@ -229,7 +246,9 @@ pub async fn test_parallel_processing_setup(
             } else {
                 report.push_str(&format!(
                     "⚠️ Resource constraints: {}\n",
-                    status.get_primary_constraint().unwrap_or("Unknown constraint".to_string())
+                    status
+                        .get_primary_constraint()
+                        .unwrap_or("Unknown constraint".to_string())
                 ));
             }
         }
@@ -255,7 +274,10 @@ pub async fn test_parallel_processing_setup(
             report.push_str("✅ Parallel processor: Can be initialized\n");
         }
         Err(e) => {
-            report.push_str(&format!("❌ Parallel processor initialization failed: {}\n", e));
+            report.push_str(&format!(
+                "❌ Parallel processor initialization failed: {}\n",
+                e
+            ));
         }
     }
 

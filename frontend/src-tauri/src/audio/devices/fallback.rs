@@ -81,7 +81,10 @@ pub fn get_safe_recording_devices_macos() -> Result<(Option<AudioDevice>, Option
             // Try to find built-in microphone as fallback
             match find_builtin_input_device()? {
                 Some(builtin_mic) => {
-                    info!("→ ✅ Overriding to stable built-in microphone: '{}'", builtin_mic.name);
+                    info!(
+                        "→ ✅ Overriding to stable built-in microphone: '{}'",
+                        builtin_mic.name
+                    );
                     info!("   Built-in provides consistent sample rates for reliable mixing");
                     Some(builtin_mic)
                 }
@@ -94,7 +97,10 @@ pub fn get_safe_recording_devices_macos() -> Result<(Option<AudioDevice>, Option
             }
         } else {
             // Not Bluetooth - use as-is
-            info!("✅ Using wired/built-in microphone: '{}' (device type: {:?})", mic.name, device_kind);
+            info!(
+                "✅ Using wired/built-in microphone: '{}' (device type: {:?})",
+                mic.name, device_kind
+            );
             Some(mic.clone())
         }
     } else {
@@ -121,7 +127,10 @@ pub fn get_safe_recording_devices_macos() -> Result<(Option<AudioDevice>, Option
             info!("   Keeping Bluetooth speaker - captures from active output (pristine quality)");
             Some(speaker.clone())
         } else {
-            info!("✅ Using wired/built-in speaker: '{}' (device type: {:?})", speaker.name, device_kind);
+            info!(
+                "✅ Using wired/built-in speaker: '{}' (device type: {:?})",
+                speaker.name, device_kind
+            );
             Some(speaker.clone())
         }
     } else {
@@ -142,7 +151,10 @@ pub fn get_safe_recording_devices_macos() -> Result<(Option<AudioDevice>, Option
         }
         (None, Some(speaker)) => {
             warn!("📋 [macOS] Recording device selection complete:");
-            warn!("   System Audio: '{}' (microphone unavailable)", speaker.name);
+            warn!(
+                "   System Audio: '{}' (microphone unavailable)",
+                speaker.name
+            );
         }
         (None, None) => {
             warn!("❌ No recording devices available - cannot start recording");
@@ -161,26 +173,4 @@ pub fn get_safe_recording_devices() -> Result<(Option<AudioDevice>, Option<Audio
     let speaker = default_output_device().ok();
 
     Ok((mic, speaker))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[cfg(target_os = "macos")]
-    fn test_bluetooth_override_logic() {
-        // This test verifies the logic but requires actual audio devices
-        // Run manually on macOS development machines to verify behavior
-
-        // Expected behavior when AirPods connected as default:
-        // - Should detect Bluetooth via Core Audio API or name heuristics
-        // - Should find built-in MacBook microphone
-        // - Should override to built-in for recording
-        // - Each device (mic and speaker) evaluated independently
-
-        // Expected behavior when built-in mic is default:
-        // - Should detect as Wired via Core Audio
-        // - Should use built-in directly (no override needed)
-    }
 }

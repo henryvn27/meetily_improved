@@ -7,7 +7,6 @@ use std::sync::Arc;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
-use encoding_rs;
 use llama_cpp_2::context::params::LlamaContextParams;
 use llama_cpp_2::llama_backend::LlamaBackend;
 use llama_cpp_2::llama_batch::LlamaBatch;
@@ -44,10 +43,16 @@ enum Request {
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum Response {
-    Response { text: String, error: Option<String> },
+    #[serde(rename = "response")]
+    Generation {
+        text: String,
+        error: Option<String>,
+    },
     Pong,
     Goodbye,
-    Error { message: String },
+    Error {
+        message: String,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -147,7 +152,7 @@ fn detect_vram_gb() -> f32 {
         }
     }
 
-    /// TODO: Vulkan VRAM detection
+    // TODO: Vulkan VRAM detection
 
     eprintln!("VRAM detection not available, using conservative estimate");
     4.0 // Conservative fallback
@@ -387,7 +392,7 @@ impl ModelState {
         let mut batch = LlamaBatch::new(batch_size, 1);
 
         let last_index: i32 = (tokens_list.len() - 1) as i32;
-        for (i, token) in (0_i32..).zip(tokens_list.into_iter()) {
+        for (i, token) in (0_i32..).zip(tokens_list) {
             let is_last = i == last_index;
             batch
                 .add(token, i, &[0], is_last)
@@ -619,7 +624,7 @@ fn main() -> Result<()> {
                         if let Some(path_str) = model_path {
                             let path = PathBuf::from(path_str);
                             if let Err(e) = state.load_model_if_needed(path, context_size) {
-                                send_response(&Response::Response {
+                                send_response(&Response::Generation {
                                     text: String::new(),
                                     error: Some(format!("Failed to load model: {}", e)),
                                 })?;
@@ -628,17 +633,12 @@ fn main() -> Result<()> {
                         }
 
                         // Generate response with sampling parameters
-                        match state.generate(
-                            prompt,
-                            max_tokens,
-                            sampling,
-                            stop_tokens,
-                        ) {
+                        match state.generate(prompt, max_tokens, sampling, stop_tokens) {
                             Ok(text) => {
-                                send_response(&Response::Response { text, error: None })?;
+                                send_response(&Response::Generation { text, error: None })?;
                             }
                             Err(e) => {
-                                send_response(&Response::Response {
+                                send_response(&Response::Generation {
                                     text: String::new(),
                                     error: Some(format!("Generation failed: {}", e)),
                                 })?;
@@ -679,7 +679,8 @@ mod tests {
 
     #[test]
     fn generate_request_defaults_penalties_when_omitted() {
-        let json = r#"{"type":"generate","prompt":"summarize","temperature":0.5,"top_k":20,"top_p":0.8}"#;
+        let json =
+            r#"{"type":"generate","prompt":"summarize","temperature":0.5,"top_k":20,"top_p":0.8}"#;
         let request: Request = serde_json::from_str(json).unwrap();
         let Request::Generate {
             temperature,
@@ -690,7 +691,8 @@ mod tests {
             repeat_penalty,
             penalty_last_n,
             ..
-        } = request else {
+        } = request
+        else {
             panic!("expected generate request");
         };
 
@@ -724,7 +726,8 @@ mod tests {
             repeat_penalty,
             penalty_last_n,
             ..
-        } = request else {
+        } = request
+        else {
             panic!("expected generate request");
         };
 
@@ -746,5 +749,18 @@ mod tests {
         assert_eq!(sampling.repeat_penalty, 1.05);
         assert_eq!(sampling.penalty_last_n, 256);
         assert!(sampling.uses_penalties());
+    }
+
+    #[test]
+    fn generation_response_preserves_the_sidecar_wire_protocol() {
+        let json = serde_json::to_value(Response::Generation {
+            text: "ok".to_string(),
+            error: None,
+        })
+        .expect("response should serialize");
+
+        assert_eq!(json["type"], "response");
+        assert_eq!(json["text"], "ok");
+        assert!(json["error"].is_null());
     }
 }

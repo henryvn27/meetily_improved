@@ -213,7 +213,7 @@ impl TranscriptsRepository {
                 },
             )
             .collect::<Vec<_>>();
-        results.sort_by(|left, right| right.0.cmp(&left.0));
+        results.sort_by_key(|(score, _)| std::cmp::Reverse(*score));
 
         Ok(results.into_iter().map(|(_, result)| result).collect())
     }

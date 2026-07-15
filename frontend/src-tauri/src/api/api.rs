@@ -261,9 +261,11 @@ fn build_local_recall_context(sources: &[LocalRecallSource]) -> String {
                 .filter(|_| summaries_included.insert(source.meeting_id.as_str()))
                 .map(|summary| format!("\nSaved summary:\n{summary}"))
                 .unwrap_or_default();
-            let transcript = (!source.match_context.trim().is_empty())
-                .then(|| format!("\nTranscript excerpt:\n{}", source.match_context))
-                .unwrap_or_default();
+            let transcript = if !source.match_context.trim().is_empty() {
+                format!("\nTranscript excerpt:\n{}", source.match_context)
+            } else {
+                Default::default()
+            };
             format!(
                 "[Source {} | {} | meeting date {} | transcript time {}]{}{}",
                 index + 1,
@@ -647,7 +649,9 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
         .await
         .map_err(|error| format!("Could not read the local model configuration: {error}"))?
         .ok_or_else(|| "Configure Built-in AI or Ollama before asking meetings.".to_string())?;
-    let provider = LLMProvider::from_str(&config.provider)
+    let provider = config
+        .provider
+        .parse::<LLMProvider>()
         .map_err(|_| "Ask Meetings requires Built-in AI or Ollama in Settings.".to_string())?;
     if provider != LLMProvider::Ollama && provider != LLMProvider::BuiltInAI {
         return Err("Ask Meetings requires Built-in AI or Ollama in Settings.".to_string());
@@ -686,9 +690,11 @@ pub async fn api_answer_meetings_locally<R: Runtime>(
     };
     let context = build_local_recall_context(&sources);
     let system_prompt = "You answer only from the supplied local meeting excerpts. If the excerpts do not answer the question, say so plainly. Do not claim access to any other meeting data, do not invent facts, and do not invent citations.";
-    let prior_conversation = (!history.is_empty())
-        .then(|| format!("Earlier conversation (context only; meeting sources remain authoritative):\n{history}\n\n"))
-        .unwrap_or_default();
+    let prior_conversation = if !history.is_empty() {
+        format!("Earlier conversation (context only; meeting sources remain authoritative):\n{history}\n\n")
+    } else {
+        Default::default()
+    };
     let user_prompt = format!(
         "{prior_conversation}Question: {question}\n\nAuthoritative local meeting sources:\n{context}"
     );
@@ -1015,6 +1021,7 @@ pub async fn api_get_model_config<R: Runtime>(
     }
 }
 
+#[allow(clippy::too_many_arguments)] // Parameters are the stable Tauri IPC payload.
 #[tauri::command]
 pub async fn api_save_model_config<R: Runtime>(
     _app: AppHandle<R>,
@@ -1083,7 +1090,7 @@ pub async fn api_get_api_key<R: Runtime>(
         "api_get_api_key called (native) for provider '{}'",
         &provider
     );
-    match SettingsRepository::get_api_key(&state.db_manager.pool(), &provider).await {
+    match SettingsRepository::get_api_key(state.db_manager.pool(), &provider).await {
         Ok(key) => {
             log_info!(
                 "Successfully retrieved API key for provider '{}'.",
@@ -1196,7 +1203,7 @@ pub async fn api_get_transcript_api_key<R: Runtime>(
         "api_get_transcript_api_key called (native) for provider '{}'",
         &provider
     );
-    match SettingsRepository::get_transcript_api_key(&state.db_manager.pool(), &provider).await {
+    match SettingsRepository::get_transcript_api_key(state.db_manager.pool(), &provider).await {
         Ok(key) => {
             log_info!(
                 "Successfully retrieved transcript API key for provider '{}'.",
@@ -1226,7 +1233,7 @@ pub async fn api_delete_api_key<R: Runtime>(
         "log_api_delete_api_key called (native) for provider '{}'",
         &provider
     );
-    match SettingsRepository::delete_api_key(&state.db_manager.pool(), &provider).await {
+    match SettingsRepository::delete_api_key(state.db_manager.pool(), &provider).await {
         Ok(_) => {
             log_info!("Successfully deleted API key for provider '{}'.", &provider);
             Ok(())
@@ -1855,7 +1862,7 @@ pub async fn test_backend_connection<R: Runtime>(
 
     log_debug!("Testing connection to: {}", server_url);
 
-    let mut request = client.get(&format!("{}/docs", server_url));
+    let mut request = client.get(format!("{}/docs", server_url));
 
     if let Some(token) = auth_token {
         request = request.header("Authorization", format!("Bearer {}", token));
@@ -1918,7 +1925,7 @@ pub async fn open_external_url(url: String) -> Result<(), String> {
     use std::process::Command;
 
     let result = if cfg!(target_os = "windows") {
-        Command::new("cmd").args(&["/C", "start", &url]).output()
+        Command::new("cmd").args(["/C", "start", &url]).output()
     } else if cfg!(target_os = "macos") {
         Command::new("open").arg(&url).output()
     } else {
@@ -1936,6 +1943,7 @@ pub async fn open_external_url(url: String) -> Result<(), String> {
 
 /// Saves the custom OpenAI configuration
 /// This configuration is stored as JSON and includes endpoint, apiKey, model, and optional parameters
+#[allow(clippy::too_many_arguments)] // Parameters are the stable Tauri IPC payload.
 #[tauri::command]
 pub async fn api_save_custom_openai_config<R: Runtime>(
     _app: AppHandle<R>,
@@ -2106,7 +2114,7 @@ pub async fn api_test_custom_openai_connection<R: Runtime>(
                             if let Some(choices_array) = choices.as_array() {
                                 if !choices_array.is_empty() {
                                     // Verify the first choice has the required message structure
-                                    if let Some(first_choice) = choices_array.get(0) {
+                                    if let Some(first_choice) = choices_array.first() {
                                         // Check if message.content field exists (can be empty string)
                                         let has_message_structure = first_choice
                                             .get("message")

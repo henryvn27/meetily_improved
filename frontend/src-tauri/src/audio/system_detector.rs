@@ -72,17 +72,9 @@ impl Drop for BackgroundTask {
 
 /// Detects system audio usage on macOS
 #[cfg(target_os = "macos")]
+#[derive(Default)]
 pub struct MacOSSystemAudioDetector {
     background: BackgroundTask,
-}
-
-#[cfg(target_os = "macos")]
-impl Default for MacOSSystemAudioDetector {
-    fn default() -> Self {
-        Self {
-            background: BackgroundTask::default(),
-        }
-    }
 }
 
 #[cfg(target_os = "macos")]
@@ -245,8 +237,8 @@ impl MacOSSystemAudioDetector {
                                             *device_guard = Some(new_device);
 
                                             if let Ok(mut state_guard) = state.lock() {
-                                                if state_guard.should_trigger(system_audio_active) {
-                                                    if system_audio_active {
+                                                if state_guard.should_trigger(system_audio_active)
+                                                    && system_audio_active {
                                                         let cb = data.0.clone();
                                                         std::thread::spawn(move || {
                                                             let apps = list_system_audio_using_apps();
@@ -257,7 +249,6 @@ impl MacOSSystemAudioDetector {
                                                             }
                                                         });
                                                     }
-                                                }
                                             }
                                         }
                                     }
@@ -425,12 +416,26 @@ mod tests {
     #[tokio::test]
     #[ignore] // Only run manually as it requires audio hardware
     async fn test_system_audio_detector() {
+        let (event_sender, mut event_receiver) = tokio::sync::mpsc::unbounded_channel();
         let mut detector = SystemAudioDetector::new();
-        detector.start(new_system_audio_callback(|event| {
+        detector.start(new_system_audio_callback(move |event| {
             println!("System audio event: {:?}", event);
+            let _ = event_sender.send(event);
         }));
 
-        tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
+        let apps = tokio::time::timeout(tokio::time::Duration::from_secs(30), async {
+            loop {
+                match event_receiver.recv().await {
+                    Some(SystemAudioEvent::SystemAudioStarted(apps)) => break apps,
+                    Some(SystemAudioEvent::SystemAudioStopped) => continue,
+                    None => panic!("System audio detector stopped before emitting an event"),
+                }
+            }
+        })
+        .await
+        .expect("No system-audio-started event; begin playback after the test starts");
         detector.stop();
+
+        println!("Detected system audio from apps: {:?}", apps);
     }
 }
