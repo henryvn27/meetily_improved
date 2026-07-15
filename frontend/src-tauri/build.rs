@@ -1,5 +1,7 @@
 #[path = "build/ffmpeg.rs"]
 mod ffmpeg;
+#[path = "build/webview_commands.rs"]
+mod webview_commands;
 
 fn main() {
     // GPU Acceleration Detection and Build Guidance
@@ -18,7 +20,12 @@ fn main() {
     // Download and bundle FFmpeg binary at build-time
     ffmpeg::ensure_ffmpeg_binary();
 
-    tauri_build::build()
+    tauri_build::try_build(
+        tauri_build::Attributes::new().app_manifest(
+            tauri_build::AppManifest::new().commands(webview_commands::WEBVIEW_COMMANDS),
+        ),
+    )
+    .expect("failed to build Tauri application manifest")
 }
 
 /// Detects GPU acceleration capabilities and provides build guidance
