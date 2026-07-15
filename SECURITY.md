@@ -27,3 +27,5 @@ Reports are especially useful for:
 - unsafe Tauri command boundaries or arbitrary file access;
 - update, signing, packaging, or dependency-chain vulnerabilities;
 - remote endpoints being used when a feature promises loopback-only or local-only behavior.
+
+The required dependency audit and every upstream-constrained informational warning are documented in [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md). Warnings remain visible in CI until their upstream removal condition is available.

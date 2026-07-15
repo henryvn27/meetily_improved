@@ -93,8 +93,9 @@ bytemuck = "1.16.1"
 # EBU R128 loudness normalization (professional broadcast standard)
 ebur128 = "0.1"
 
-# Noise suppression - RNNoise-based neural network noise reduction
-nnnoiseless = "0.5"
+# Noise suppression - RNNoise-based neural network noise reduction.
+# The default feature set builds nnnoiseless's unused CLI and pulls clap 3/atty.
+nnnoiseless = { version = "0.5", default-features = false }
 
 # Speech recognition and async utilities
 # NOTE: whisper-rs is declared in platform-specific sections below (macOS/Windows/Linux)

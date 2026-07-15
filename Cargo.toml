@@ -16,3 +16,9 @@ anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.32.0", features = ["full"] }
+
+[patch.crates-io]
+# notify-rust PR #288 is a one-line, cross-platform-CI-green update to
+# tauri-winrt-notification 0.8, which removes the vulnerable quick-xml parser.
+# Pin the audited upstream commit until the maintainer publishes it to crates.io.
+notify-rust = { git = "https://github.com/hoodie/notify-rust", rev = "a733009b2c52c6605443b287ae5348a6c4879a3e" }

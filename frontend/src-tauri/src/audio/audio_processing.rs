@@ -765,3 +765,49 @@ pub fn write_transcript_json_to_file(
 
     Ok(file_path.to_string_lossy().to_string())
 }
+
+#[cfg(test)]
+mod noise_suppression_tests {
+    use super::NoiseSuppressionProcessor;
+
+    #[test]
+    fn rejects_non_rnnoise_sample_rates() {
+        let error = NoiseSuppressionProcessor::new(44_100)
+            .err()
+            .expect("44.1kHz must be rejected");
+
+        assert_eq!(
+            error.to_string(),
+            "Noise suppression requires 48kHz sample rate, got 44100Hz"
+        );
+    }
+
+    #[test]
+    fn buffers_partial_frames_then_emits_finite_audio() {
+        let mut processor =
+            NoiseSuppressionProcessor::new(48_000).expect("48kHz must be supported");
+
+        let first_half = processor.process(&vec![0.0; 240]);
+        assert!(first_half.is_empty());
+        assert_eq!(processor.buffered_samples(), 240);
+
+        let completed_frame = processor.process(&vec![0.0; 240]);
+        assert_eq!(completed_frame.len(), 480);
+        assert!(completed_frame.iter().all(|sample| sample.is_finite()));
+        assert_eq!(processor.buffered_samples(), 0);
+    }
+
+    #[test]
+    fn flush_preserves_partial_frame_length() {
+        let mut processor =
+            NoiseSuppressionProcessor::new(48_000).expect("48kHz must be supported");
+
+        assert!(processor.process(&vec![0.0; 137]).is_empty());
+        let flushed = processor.flush();
+
+        assert_eq!(flushed.len(), 137);
+        assert!(flushed.iter().all(|sample| sample.is_finite()));
+        assert_eq!(processor.buffered_samples(), 0);
+        assert!(processor.flush().is_empty());
+    }
+}
