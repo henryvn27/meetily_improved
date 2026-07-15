@@ -47,7 +47,14 @@ execFileSync(actool, [
   source,
 ], { stdio: 'inherit' });
 
-await Promise.all([
-  access(path.join(output, 'Assets.car')),
-  access(path.join(output, 'MeetilyImproved.icns')),
-]);
+try {
+  await Promise.all([
+    access(path.join(output, 'Assets.car')),
+    access(path.join(output, 'MeetilyImproved.icns')),
+  ]);
+} catch (cause) {
+  throw new Error(
+    'Xcode actool did not compile the adaptive Icon Composer asset. Meetily macOS packaging requires Xcode 26 or newer.',
+    { cause },
+  );
+}

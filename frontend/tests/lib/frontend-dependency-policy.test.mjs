@@ -51,6 +51,10 @@ test('CI installs the frozen graph before enforcing the production audit', () =>
   assert.ok(installIndex >= 0);
   assert.ok(auditIndex > installIndex);
   assert.ok(testIndex > auditIndex);
+  assert.match(ciText, /actions\/checkout@v7/);
+  assert.match(ciText, /actions\/setup-node@v7/);
+  assert.match(ciText, /pnpm\/action-setup@v6/);
+  assert.match(ciText, /actions\/upload-artifact@v7/);
 });
 
 test('the scoped uuid upgrade preserves the v4 API BlockNote uses', () => {

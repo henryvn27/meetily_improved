@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -65,7 +65,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check advisories, licenses, and sources
         uses: EmbarkStudios/cargo-deny-action@v2
@@ -83,15 +83,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 11.7.0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.18.0
           cache: pnpm
@@ -118,22 +118,22 @@ jobs:
   native-qa-macos:
     name: Native macOS QA bundle
     needs: [rust-core, rust-dependencies, frontend]
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 45
     env:
       CARGO_TERM_COLOR: always
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 11.7.0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.18.0
           cache: pnpm
@@ -141,6 +141,14 @@ jobs:
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify adaptive icon toolchain
+        shell: bash
+        run: |
+          xcodebuild -version
+          xcrun actool --version
+          XCODE_MAJOR=$(xcodebuild -version | awk 'NR == 1 { split($2, version, "."); print version[1] }')
+          test "$XCODE_MAJOR" -ge 26
 
       - name: Restore Rust build cache
         uses: Swatinem/rust-cache@v2
@@ -181,7 +189,7 @@ jobs:
           echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
 
       - name: Upload isolated native QA app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: meetily-improved-qa-routes-${{ github.sha }}
           path: ${{ steps.bundle.outputs.archive }}
