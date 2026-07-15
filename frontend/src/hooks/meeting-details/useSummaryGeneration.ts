@@ -396,6 +396,7 @@ export function useSummaryGeneration({
     setAiSummary,
     updateMeetingTitle,
     onMeetingUpdated,
+    onOpenModelSettings,
   ]);
 
   // Helper function to fetch ALL transcripts for summary generation
@@ -614,7 +615,7 @@ export function useSummaryGeneration({
       ...summaryPayload,
       customPrompt,
     });
-  }, [meeting.id, fetchAllTranscripts, buildSummaryTranscriptPayload, processSummary, modelConfig, isModelConfigLoading, selectedTemplate]);
+  }, [meeting.id, fetchAllTranscripts, buildSummaryTranscriptPayload, processSummary, modelConfig, isModelConfigLoading, selectedTemplate, onOpenModelSettings]);
 
   // Public API: Regenerate summary from the current saved transcript
   const handleRegenerateSummary = useCallback(async () => {

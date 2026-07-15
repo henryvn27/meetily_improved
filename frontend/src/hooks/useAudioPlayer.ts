@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 
 export const useAudioPlayer = (audioPath: string | null) => {
@@ -13,7 +13,7 @@ export const useAudioPlayer = (audioPath: string | null) => {
   const rafRef = useRef<number>();
   const seekTimeRef = useRef<number>(0);
 
-  const initAudioContext = async () => {
+  const initAudioContext = useCallback(async () => {
     try {
       if (!audioRef.current) {
         console.log('Creating new AudioContext');
@@ -38,7 +38,7 @@ export const useAudioPlayer = (audioPath: string | null) => {
       setError('Failed to initialize audio');
       return false;
     }
-  };
+  }, []);
 
   // Cleanup function
   useEffect(() => {
@@ -56,7 +56,7 @@ export const useAudioPlayer = (audioPath: string | null) => {
     };
   }, []);
 
-  const loadAudio = async () => {
+  const loadAudio = useCallback(async () => {
     if (!audioPath) {
       console.log('No audio path provided');
       return;
@@ -124,7 +124,7 @@ export const useAudioPlayer = (audioPath: string | null) => {
       }
       setError('Failed to load audio file');
     }
-  };
+  }, [audioPath, initAudioContext]);
 
   // Load audio when path changes
   useEffect(() => {
@@ -132,7 +132,7 @@ export const useAudioPlayer = (audioPath: string | null) => {
     if (audioPath) {
       loadAudio();
     }
-  }, [audioPath]);
+  }, [audioPath, loadAudio]);
 
   const stopPlayback = () => {
     console.log('Stopping playback');

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSidebar } from './Sidebar/SidebarProvider';
 import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@/components/ui/button';
@@ -101,6 +101,16 @@ const GROQ_FALLBACK_MODELS = [
   'gemma2-9b-it',
 ];
 
+const validateOllamaEndpoint = (url: string): boolean => {
+  if (!url.trim()) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 interface ModelSettingsModalProps {
   modelConfig: ModelConfig;
   setModelConfig: (config: ModelConfig | ((prev: ModelConfig) => ModelConfig)) => void;
@@ -137,7 +147,7 @@ export function ModelSettingsModal({
   const [isLoadingOllama, setIsLoadingOllama] = useState<boolean>(false);
   const [lastFetchedEndpoint, setLastFetchedEndpoint] = useState<string>(modelConfig.ollamaEndpoint || '');
   const [endpointValidationState, setEndpointValidationState] = useState<'valid' | 'invalid' | 'none'>('none');
-  const [hasAutoFetched, setHasAutoFetched] = useState<boolean>(false);
+  const hasAutoFetchedRef = useRef(false);
   const hasSyncedFromParent = useRef<boolean>(false);
   const hasLoadedInitialConfig = useRef<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -173,17 +183,6 @@ export function ModelSettingsModal({
 
   // Cache models by endpoint to avoid refetching when reverting endpoint changes
   const modelsCache = useRef<Map<string, OllamaModel[]>>(new Map());
-
-  // URL validation helper
-  const validateOllamaEndpoint = (url: string): boolean => {
-    if (!url.trim()) return true; // Empty is valid (uses default)
-    try {
-      const parsed = new URL(url);
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  };
 
   // Debounced URL validation with visual feedback
   useEffect(() => {
@@ -222,7 +221,7 @@ export function ModelSettingsModal({
     }
   }, [apiKey]);
 
-  const modelOptions: Record<string, string[]> = {
+  const modelOptions = useMemo<Record<string, string[]>>(() => ({
     ollama: models.map((model) => model.name),
     claude: claudeModels.length > 0 ? claudeModels : CLAUDE_FALLBACK_MODELS,
     groq: groqModels.length > 0 ? groqModels : GROQ_FALLBACK_MODELS,
@@ -230,7 +229,7 @@ export function ModelSettingsModal({
     openrouter: openRouterModels.map((m) => m.id),
     'builtin-ai': builtinAiModels.map((m) => m.name),
     'custom-openai': customOpenAIModel ? [customOpenAIModel] : [], // User specifies model manually
-  };
+  }), [builtinAiModels, claudeModels, customOpenAIModel, groqModels, models, openRouterModels, openaiModels]);
 
   const requiresApiKey =
     modelConfig.provider === 'claude' ||
@@ -310,15 +309,12 @@ export function ModelSettingsModal({
     };
 
     fetchModelConfig();
-  }, [skipInitialFetch]);
+  }, [setModelConfig, skipInitialFetch]);
 
   // Sync ollamaEndpoint state when modelConfig.ollamaEndpoint changes from parent
   useEffect(() => {
     const endpoint = modelConfig.ollamaEndpoint || '';
-    if (endpoint !== ollamaEndpoint) {
-      setOllamaEndpoint(endpoint);
-      // Don't set lastFetchedEndpoint here - only after successful model fetch
-    }
+    setOllamaEndpoint(currentEndpoint => currentEndpoint === endpoint ? currentEndpoint : endpoint);
     // Only mark as synced if we have a valid provider (prevents race conditions during init)
     if (modelConfig.provider) {
       hasSyncedFromParent.current = true; // Mark that we've received prop value
@@ -355,7 +351,7 @@ export function ModelSettingsModal({
   // Reset hasAutoFetched flag and clear models when switching away from Ollama
   useEffect(() => {
     if (modelConfig.provider !== 'ollama') {
-      setHasAutoFetched(false); // Reset flag so it can auto-fetch again if user switches back
+      hasAutoFetchedRef.current = false;
       setModels([]); // Clear models list
       setError(''); // Clear any error state
       setOllamaNotInstalled(false); // Reset installation status
@@ -377,7 +373,7 @@ export function ModelSettingsModal({
         setError('');
       } else {
         // No cache - clear models and allow refetch
-        setHasAutoFetched(false);
+        hasAutoFetchedRef.current = false;
         setModels([]);
         setError('');
       }
@@ -388,15 +384,13 @@ export function ModelSettingsModal({
   useEffect(() => {
     if (providerApiKeys && requiresApiKey && modelConfig.provider !== 'custom-openai') {
       const correctKey = providerApiKeys[modelConfig.provider as keyof typeof providerApiKeys];
-      if (correctKey !== apiKey) {
-        setApiKey(correctKey || '');
-        setIsApiKeyLocked(!!correctKey?.trim());
-      }
+      setApiKey(currentKey => currentKey === correctKey ? currentKey : correctKey || '');
+      setIsApiKeyLocked(!!correctKey?.trim());
     }
   }, [modelConfig.provider, providerApiKeys, requiresApiKey]);
 
   // Manual fetch function for Ollama models
-  const fetchOllamaModels = async (silent = false) => {
+  const fetchOllamaModels = useCallback(async (silent = false) => {
     const trimmedEndpoint = ollamaEndpoint.trim();
 
     // Validate URL if provided
@@ -441,7 +435,12 @@ export function ModelSettingsModal({
     } finally {
       setIsLoadingOllama(false);
     }
-  };
+  }, [ollamaEndpoint]);
+
+  const fetchOllamaModelsRef = useRef(fetchOllamaModels);
+  useEffect(() => {
+    fetchOllamaModelsRef.current = fetchOllamaModels;
+  }, [fetchOllamaModels]);
 
   // Auto-fetch models on initial load only (not on endpoint changes)
   useEffect(() => {
@@ -454,10 +453,10 @@ export function ModelSettingsModal({
       // 3. Component is still mounted
       // If skipInitialFetch is true, fetch silently (no error toasts)
       if (modelConfig.provider === 'ollama' &&
-        !hasAutoFetched &&
+        !hasAutoFetchedRef.current &&
         mounted) {
-        await fetchOllamaModels(skipInitialFetch); // Silent if skipInitialFetch=true
-        setHasAutoFetched(true);
+        hasAutoFetchedRef.current = true;
+        await fetchOllamaModelsRef.current(skipInitialFetch);
       }
     };
 
@@ -466,7 +465,7 @@ export function ModelSettingsModal({
     return () => {
       mounted = false;
     };
-  }, [modelConfig.provider]); // Only depend on provider, NOT endpoint
+  }, [modelConfig.provider, skipInitialFetch]);
 
   const loadOpenRouterModels = async () => {
     if (openRouterModels.length > 0) return; // Already loaded
@@ -595,7 +594,7 @@ export function ModelSettingsModal({
     if (cachedModel && providerModels.includes(cachedModel)) {
       setModelConfig((prev: ModelConfig) => ({ ...prev, model: cachedModel }));
     }
-  }, [models, openRouterModels, builtinAiModels, openaiModels, claudeModels, groqModels, modelConfig.provider]);
+  }, [modelConfig.model, modelConfig.provider, modelOptions, setModelConfig]);
 
   const handleSave = async () => {
     // For custom-openai provider, save the custom config first
@@ -767,7 +766,7 @@ export function ModelSettingsModal({
 
     // Update ref for next comparison
     previousDownloadingRef.current = new Set(current);
-  }, [downloadingModels]);
+  }, [downloadingModels, fetchOllamaModels]);
 
   // Filter Ollama models based on search query
   const filteredModels = models.filter((model) => {

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Summary, SummaryResponse } from '@/types';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
@@ -89,23 +89,23 @@ export default function PageContent({
   const templates = useTemplates();
 
   // Callback to register the modal open function
-  const handleRegisterModalOpen = (openFn: () => void) => {
+  const handleRegisterModalOpen = useCallback((openFn: () => void) => {
     console.log('📝 Registering modal open function in PageContent');
     openModelSettingsRef.current = openFn;
-  };
+  }, []);
 
   // Callback to trigger modal open (called from error handler)
-  const handleOpenModelSettings = () => {
+  const handleOpenModelSettings = useCallback(() => {
     console.log('🔔 Opening model settings from PageContent');
     if (openModelSettingsRef.current) {
       openModelSettingsRef.current();
     } else {
       console.warn('⚠️ Modal open function not yet registered');
     }
-  };
+  }, []);
 
   // Save model config to backend database and sync via event
-  const handleSaveModelConfig = async (config?: ModelConfig) => {
+  const handleSaveModelConfig = useCallback(async (config?: ModelConfig) => {
     if (!config) return;
     try {
       await invoke('api_save_model_config', {
@@ -125,7 +125,7 @@ export default function PageContent({
       console.error('Failed to save model config:', error);
       toast.error('Failed to save model settings');
     }
-  };
+  }, []);
 
   const summaryGeneration = useSummaryGeneration({
     meeting,
@@ -156,29 +156,59 @@ export default function PageContent({
     Analytics.trackPageView('meeting_details');
   }, []);
 
-  // Auto-generate summary when flag is set
+  const hasTranscripts = meetingData.transcripts.length > 0;
+  const autoGenerateAttemptRef = useRef<string | null>(null);
+  const autoGenerateActionsRef = useRef({
+    generate: summaryGeneration.handleGenerateSummary,
+    complete: onAutoGenerateComplete,
+    provider: modelConfig.provider,
+    model: modelConfig.model,
+  });
+
   useEffect(() => {
+    autoGenerateActionsRef.current = {
+      generate: summaryGeneration.handleGenerateSummary,
+      complete: onAutoGenerateComplete,
+      provider: modelConfig.provider,
+      model: modelConfig.model,
+    };
+  }, [
+    summaryGeneration.handleGenerateSummary,
+    onAutoGenerateComplete,
+    modelConfig.provider,
+    modelConfig.model,
+  ]);
+
+  // Auto-generate once the selected meeting has a saved transcript.
+  useEffect(() => {
+    if (!shouldAutoGenerate) {
+      autoGenerateAttemptRef.current = null;
+      return;
+    }
+
+    if (!hasTranscripts || autoGenerateAttemptRef.current === meeting.id) return;
+
     let cancelled = false;
+    autoGenerateAttemptRef.current = meeting.id;
 
     const autoGenerate = async () => {
-      if (shouldAutoGenerate && meetingData.transcripts.length > 0 && !cancelled) {
-        console.log(`🤖 Auto-generating summary with ${modelConfig.provider}/${modelConfig.model}...`);
-        await summaryGeneration.handleGenerateSummary('');
+      const actions = autoGenerateActionsRef.current;
+      console.log(`🤖 Auto-generating summary with ${actions.provider}/${actions.model}...`);
+      await actions.generate('');
 
-        // Notify parent that auto-generation is complete (only if not cancelled)
-        if (onAutoGenerateComplete && !cancelled) {
-          onAutoGenerateComplete();
-        }
+      // Notify the route only while this meeting is still mounted.
+      if (!cancelled) {
+        actions.complete?.();
       }
     };
 
-    autoGenerate();
+    void autoGenerate();
 
     // Cleanup: cancel if component unmounts or meeting changes
     return () => {
       cancelled = true;
     };
-  }, [shouldAutoGenerate, meeting.id]); // Re-run if meeting changes
+  }, [shouldAutoGenerate, meeting.id, hasTranscripts]);
 
   return (
     <motion.div

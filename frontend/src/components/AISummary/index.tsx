@@ -19,37 +19,31 @@ interface Props {
   };
 }
 
-export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerateSummary, meeting }: Props) => {
-  const generateUniqueId = (sectionKey: string) => {
-    return `${sectionKey}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  };
+const generateUniqueId = (sectionKey: string) =>
+  `${sectionKey}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
-  const ensureUniqueBlockIds = (summary: Summary): Summary => {
-    // Deep clone to avoid mutating readonly props
-    const updatedSummary: Summary = {};
+const ensureUniqueBlockIds = (summary: Summary): Summary => {
+  const updatedSummary: Summary = {};
 
-    Object.entries(summary).forEach(([sectionKey, section]) => {
-      // Ensure section has blocks array before mapping
-      if (section && Array.isArray(section.blocks)) {
-        updatedSummary[sectionKey] = {
+  Object.entries(summary).forEach(([sectionKey, section]) => {
+    updatedSummary[sectionKey] = section && Array.isArray(section.blocks)
+      ? {
           ...section,
           blocks: section.blocks.map(block => ({
             ...block,
-            id: block.id.includes(sectionKey) ? block.id : generateUniqueId(sectionKey)
-          }))
-        };
-      } else {
-        // Initialize empty blocks array if missing or invalid
-        updatedSummary[sectionKey] = {
+            id: block.id.includes(sectionKey) ? block.id : generateUniqueId(sectionKey),
+          })),
+        }
+      : {
           title: section?.title || sectionKey,
-          blocks: []
+          blocks: [],
         };
-      }
-    });
+  });
 
-    return updatedSummary;
-  };
+  return updatedSummary;
+};
 
+export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerateSummary, meeting }: Props) => {
   const currentSummary = useMemo(() => {
     if (!summary) {
       return {
@@ -71,34 +65,45 @@ export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerat
   // History management
   const [history, setHistory] = useState<Summary[]>([currentSummary]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0);
-  const [isUndoRedoing, setIsUndoRedoing] = useState(false);
+  const currentHistoryIndexRef = useRef(0);
+  const lastRecordedSummaryRef = useRef<Summary>(currentSummary);
 
   // Add to history when summary changes
   useEffect(() => {
-    if (!isUndoRedoing && summary) {  // Only update history if summary is not null
-      const newHistory = history.slice(0, currentHistoryIndex + 1);
-      newHistory.push(summary);
-      setHistory(newHistory);
-      setCurrentHistoryIndex(newHistory.length - 1);
-    }
-    setIsUndoRedoing(false);
+    if (!summary || summary === lastRecordedSummaryRef.current) return;
+
+    lastRecordedSummaryRef.current = summary;
+    setHistory(previousHistory => {
+      const nextHistory = [
+        ...previousHistory.slice(0, currentHistoryIndexRef.current + 1),
+        summary,
+      ];
+      const nextIndex = nextHistory.length - 1;
+      currentHistoryIndexRef.current = nextIndex;
+      setCurrentHistoryIndex(nextIndex);
+      return nextHistory;
+    });
   }, [summary]);
 
   const handleUndo = useCallback(() => {
     if (currentHistoryIndex > 0) {
-      setIsUndoRedoing(true);
       const newIndex = currentHistoryIndex - 1;
+      const targetSummary = history[newIndex];
+      lastRecordedSummaryRef.current = targetSummary;
+      currentHistoryIndexRef.current = newIndex;
       setCurrentHistoryIndex(newIndex);
-      onSummaryChange(history[newIndex]);
+      onSummaryChange(targetSummary);
     }
   }, [currentHistoryIndex, history, onSummaryChange]);
 
   const handleRedo = useCallback(() => {
     if (currentHistoryIndex < history.length - 1) {
-      setIsUndoRedoing(true);
       const newIndex = currentHistoryIndex + 1;
+      const targetSummary = history[newIndex];
+      lastRecordedSummaryRef.current = targetSummary;
+      currentHistoryIndexRef.current = newIndex;
       setCurrentHistoryIndex(newIndex);
-      onSummaryChange(history[newIndex]);
+      onSummaryChange(targetSummary);
     }
   }, [currentHistoryIndex, history, onSummaryChange]);
 
@@ -398,6 +403,31 @@ export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerat
     }
   }, [selectedBlocks, getSelectedBlocksContent]);
 
+  const handleDeleteSelectedBlocks = useCallback(() => {
+    const blocksBySection = new Map<string, string[]>();
+    selectedBlocks.forEach(blockId => {
+      Object.entries(currentSummary).forEach(([sectionKey, section]) => {
+        if (section.blocks.some(block => block.id === blockId)) {
+          const blocks = blocksBySection.get(sectionKey) || [];
+          blocks.push(blockId);
+          blocksBySection.set(sectionKey, blocks);
+        }
+      });
+    });
+
+    const newSummary = { ...currentSummary };
+    blocksBySection.forEach((blockIds, sectionKey) => {
+      newSummary[sectionKey] = {
+        ...newSummary[sectionKey],
+        blocks: newSummary[sectionKey].blocks.filter(block => !blockIds.includes(block.id)),
+      };
+    });
+
+    onSummaryChange(newSummary);
+    setSelectedBlocks([]);
+    setLastSelectedBlock(null);
+  }, [currentSummary, onSummaryChange, selectedBlocks]);
+
   useEffect(() => {
     const handleMouseUp = () => {
       setIsDragging(false);
@@ -437,34 +467,7 @@ export const AISummary = ({ summary, status, error, onSummaryChange, onRegenerat
       document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedBlocks, currentSummary, handleUndo, handleRedo]);
-
-  const handleDeleteSelectedBlocks = () => {
-    // Group selected blocks by section
-    const blocksBySection = new Map<string, string[]>();
-    selectedBlocks.forEach(blockId => {
-      Object.entries(currentSummary).forEach(([sectionKey, section]) => {
-        if (section.blocks.some(b => b.id === blockId)) {
-          const blocks = blocksBySection.get(sectionKey) || [];
-          blocks.push(blockId);
-          blocksBySection.set(sectionKey, blocks);
-        }
-      });
-    });
-
-    // Create new summary with blocks removed
-    const newSummary = { ...currentSummary };
-    blocksBySection.forEach((blockIds, sectionKey) => {
-      newSummary[sectionKey] = {
-        ...newSummary[sectionKey],
-        blocks: newSummary[sectionKey].blocks.filter(b => !blockIds.includes(b.id))
-      };
-    });
-
-    onSummaryChange(newSummary);
-    setSelectedBlocks([]);
-    setLastSelectedBlock(null);
-  };
+  }, [selectedBlocks, currentSummary, handleUndo, handleRedo, handleDeleteSelectedBlocks]);
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{

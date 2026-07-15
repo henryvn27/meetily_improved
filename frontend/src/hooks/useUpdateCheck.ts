@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { updateService, UpdateInfo } from '@/services/updateService';
 import { showUpdateNotification } from '@/components/UpdateNotification';
 
@@ -17,8 +17,13 @@ export function useUpdateCheck(options: UseUpdateCheckOptions = {}) {
 
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const onUpdateAvailableRef = useRef(onUpdateAvailable);
 
-  const checkForUpdates = async (force = false) => {
+  useEffect(() => {
+    onUpdateAvailableRef.current = onUpdateAvailable;
+  }, [onUpdateAvailable]);
+
+  const checkForUpdates = useCallback(async (force = false) => {
     // Skip if checked recently (unless forced)
     if (!force && updateService.wasCheckedRecently()) {
       return;
@@ -30,8 +35,8 @@ export function useUpdateCheck(options: UseUpdateCheckOptions = {}) {
       setUpdateInfo(info);
 
       if (info.available) {
-        if (onUpdateAvailable) {
-          onUpdateAvailable(info);
+        if (onUpdateAvailableRef.current) {
+          onUpdateAvailableRef.current(info);
         } else if (showNotification) {
           showUpdateNotification(info, () => {
             // This will be handled by the component that uses this hook
@@ -44,7 +49,7 @@ export function useUpdateCheck(options: UseUpdateCheckOptions = {}) {
     } finally {
       setIsChecking(false);
     }
-  };
+  }, [showNotification]);
 
   useEffect(() => {
     if (checkOnMount) {
@@ -55,7 +60,7 @@ export function useUpdateCheck(options: UseUpdateCheckOptions = {}) {
 
       return () => clearTimeout(timer);
     }
-  }, [checkOnMount]);
+  }, [checkForUpdates, checkOnMount]);
 
   return {
     updateInfo,

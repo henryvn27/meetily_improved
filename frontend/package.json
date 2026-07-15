@@ -31,7 +31,8 @@
         "tauri:build:coreml": "tauri build -- --features coreml",
         "tauri:build:openblas": "tauri build -- --features openblas",
         "tauri:build:hipblas": "tauri build -- --features hipblas",
-        "lint": "next lint"
+        "lint": "next lint",
+        "check:bundle": "node scripts/check-route-bundle-budget.mjs"
     },
     "dependencies": {
         "@blocknote/core": "0.36.0",

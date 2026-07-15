@@ -116,7 +116,7 @@ export function RetranscribeDialog({
       // Fetch available models using centralized hook
       fetchModels();
     }
-  }, [open, selectedLanguage, transcriptModelConfig, fetchModels]);
+  }, [open, selectedLanguage, transcriptModelConfig, fetchModels, resetSelection]);
 
   // Listen for retranscription events
   useEffect(() => {

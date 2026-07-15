@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Analytics from '@/lib/analytics';
 import { invoke } from '@tauri-apps/api/core';
@@ -68,7 +68,6 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [currentMeeting, setCurrentMeeting] = useState<CurrentMeeting | null>({ id: 'intro-call', title: '+ New Call' });
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [meetings, setMeetings] = useState<CurrentMeeting[]>([]);
-  const [sidebarItems, setSidebarItems] = useState<SidebarItem[]>([]);
   const [isMeetingActive, setIsMeetingActive] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -113,7 +112,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     fetchSettings();
   }, []);
 
-  const baseItems: SidebarItem[] = [
+  const sidebarItems = useMemo<SidebarItem[]>(() => [
     {
       id: 'meetings',
       title: 'Meeting Notes',
@@ -122,11 +121,11 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
         ...meetings.map(meeting => ({ id: meeting.id, title: meeting.title, type: 'file' as const }))
       ]
     },
-  ];
+  ], [meetings]);
 
 
   const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+    setIsCollapsed(previous => !previous);
   };
 
   // Update current meeting when on the capture page
@@ -134,13 +133,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     if (pathname === '/new-meeting') {
       setCurrentMeeting({ id: 'intro-call', title: '+ New Call' });
     }
-    setSidebarItems(baseItems);
   }, [pathname]);
-
-  // Update sidebar items when meetings change
-  useEffect(() => {
-    setSidebarItems(baseItems);
-  }, [meetings]);
 
   // Function to handle recording toggle from sidebar
   const handleRecordingToggle = () => {

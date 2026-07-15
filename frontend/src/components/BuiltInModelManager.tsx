@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { Button } from '@/components/ui/button';
@@ -47,19 +47,12 @@ export function BuiltInModelManager({
   const [downloadProgressInfo, setDownloadProgressInfo] = useState<Record<string, DownloadProgressInfo>>({});
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
 
-  const fetchModels = async () => {
+  const fetchModels = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = (await invoke('builtin_ai_list_models')) as ModelInfo[];
       setModels(data);
 
-      // Auto-select first available model if none selected
-      if (data.length > 0 && !selectedModel) {
-        const firstAvailable = data.find((m) => m.status.type === 'available');
-        if (firstAvailable) {
-          onModelSelect(firstAvailable.name);
-        }
-      }
     } catch (error) {
       console.error('Failed to fetch built-in AI models:', error);
       toast.error('Failed to load models');
@@ -67,11 +60,17 @@ export function BuiltInModelManager({
       setIsLoading(false);
       setHasFetched(true);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchModels();
-  }, []);
+    void fetchModels();
+  }, [fetchModels]);
+
+  useEffect(() => {
+    if (selectedModel || models.length === 0) return;
+    const firstAvailable = models.find(model => model.status.type === 'available');
+    if (firstAvailable) onModelSelect(firstAvailable.name);
+  }, [models, onModelSelect, selectedModel]);
 
   // Listen for download progress events
   useEffect(() => {
@@ -196,7 +195,7 @@ export function BuiltInModelManager({
         unlisten();
       }
     };
-  }, []);
+  }, [fetchModels]);
 
   const downloadModel = async (modelName: string) => {
     try {
