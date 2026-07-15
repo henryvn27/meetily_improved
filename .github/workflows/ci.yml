@@ -42,6 +42,13 @@ jobs:
       - name: Check formatting
         run: cargo +stable fmt --all -- --check
 
+      - name: Build and stage llama-helper sidecar
+        run: |
+          cargo +1.88.0 build --locked -p llama-helper --features metal
+          mkdir -p frontend/src-tauri/binaries
+          install -m 755 target/debug/llama-helper \
+            frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
+
       - name: Verify minimum supported Rust
         run: cargo +1.88.0 check --locked --workspace --all-targets --features metal
 
