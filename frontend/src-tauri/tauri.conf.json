@@ -23,58 +23,58 @@
                 "decorations": true
             }
         ],
-        "macOSPrivateApi": true,
         "security": {
             "csp": {
                 "default-src": "'self'",
+                "base-uri": "'self'",
+                "connect-src": "'self' ipc: http://ipc.localhost",
+                "font-src": "'self' data:",
+                "form-action": "'self'",
+                "frame-ancestors": "'none'",
+                "img-src": "'self' data:",
+                "object-src": "'none'",
+                "script-src": "'self'",
                 "style-src": "'self' 'unsafe-inline'",
-                "img-src": "'self' asset: https://asset.localhost data:",
-                "connect-src": "'self' http://localhost:11434 http://localhost:5167 http://localhost:8178 https://api.ollama.ai"
+                "media-src": "'self' blob: data:"
             },
-            "assetProtocol": {
-                "enable": true,
-                "scope": [
-                    "$APPDATA/**"
-                ]
+            "devCsp": {
+                "default-src": "'self'",
+                "base-uri": "'self'",
+                "connect-src": "'self' ipc: http://ipc.localhost http://localhost:3118 ws://localhost:3118",
+                "font-src": "'self' data:",
+                "form-action": "'self'",
+                "frame-ancestors": "'none'",
+                "img-src": "'self' data:",
+                "object-src": "'none'",
+                "script-src": "'self'",
+                "style-src": "'self' 'unsafe-inline'",
+                "media-src": "'self' blob: data:"
             },
             "capabilities": [
                 {
                     "identifier": "main",
-                    "description": "Main window capability with file system and media access",
+                    "description": "Least-privilege capability for the shipped main window",
                     "windows": [
                         "main"
                     ],
                     "permissions": [
-                        "fs:default",
-                        "fs:allow-read-file",
-                        "fs:read-all",
-                        "fs:write-all",
-                        "fs:allow-app-read",
-                        "fs:allow-app-write",
-                        "fs:allow-download-write",
-                        "fs:allow-download-read",
-                        "fs:scope-download",
-                        "core:path:default",
-                        "core:event:default",
-                        "core:window:default",
-                        "core:app:default",
-                        "core:resources:default",
-                        "core:menu:default",
-                        "core:tray:default",
-                        "core:window:allow-set-title",
-                        "store:default",
-                        "notification:default",
-                        "notification:allow-is-permission-granted",
-                        "updater:default",
-                        "process:default",
-                        {
-                            "identifier": "fs:scope",
-                            "allow": [
-                                {
-                                    "path": "$APPDATA/*"
-                                }
-                            ]
-                        }
+                        "main-window-commands",
+                        "core:app:allow-version",
+                        "core:event:allow-listen",
+                        "core:event:allow-unlisten",
+                        "core:path:allow-resolve-directory",
+                        "core:resources:allow-close",
+                        "store:allow-load",
+                        "store:allow-get",
+                        "store:allow-has",
+                        "store:allow-set",
+                        "store:allow-save",
+                        "updater:allow-check",
+                        "updater:allow-download",
+                        "updater:allow-install",
+                        "updater:allow-download-and-install",
+                        "process:allow-restart",
+                        "os:allow-platform"
                     ]
                 }
             ]
