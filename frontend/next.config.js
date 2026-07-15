@@ -7,6 +7,7 @@ const resolveFromTiptapPm = (pkg) =>
 const nextConfig = {
   reactStrictMode: false, // Disabled for BlockNote compatibility
   output: 'export',
+  outputFileTracingRoot: __dirname,
   images: {
     unoptimized: true,
   },
