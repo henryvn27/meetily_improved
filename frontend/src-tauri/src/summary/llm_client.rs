@@ -75,9 +75,10 @@ pub enum LLMProvider {
     CustomOpenAI,
 }
 
-impl LLMProvider {
-    /// Parse provider from string (case-insensitive)
-    pub fn from_str(s: &str) -> Result<Self, String> {
+impl std::str::FromStr for LLMProvider {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "openai" => Ok(Self::OpenAI),
             "claude" => Ok(Self::Claude),
@@ -110,6 +111,7 @@ impl LLMProvider {
 ///
 /// # Returns
 /// The generated summary text or an error message
+#[allow(clippy::too_many_arguments)] // Explicit provider options form the model boundary.
 pub async fn generate_summary(
     client: &Client,
     provider: &LLMProvider,
@@ -192,7 +194,10 @@ pub async fn generate_summary(
                     .parse()
                     .map_err(|_| "Invalid anthropic version".to_string())?,
             );
-            ("https://api.anthropic.com/v1/messages".to_string(), header_map)
+            (
+                "https://api.anthropic.com/v1/messages".to_string(),
+                header_map,
+            )
         }
         LLMProvider::BuiltInAI => {
             // This case is handled earlier with early returns
@@ -219,7 +224,8 @@ pub async fn generate_summary(
     // Build request body based on provider
     let request_body = if provider != &LLMProvider::Claude {
         // For CustomOpenAI, apply optional parameters if provided
-        let (max_tokens_val, temperature_val, top_p_val) = if provider == &LLMProvider::CustomOpenAI {
+        let (max_tokens_val, temperature_val, top_p_val) = if provider == &LLMProvider::CustomOpenAI
+        {
             (max_tokens, temperature, top_p)
         } else {
             (None, None, None)
@@ -253,7 +259,11 @@ pub async fn generate_summary(
         })
     };
 
-    info!("🐞 LLM Request to {}: model={}", provider_name(provider), model_name);
+    info!(
+        "🐞 LLM Request to {}: model={}",
+        provider_name(provider),
+        model_name
+    );
 
     // Send request with timeout and cancellation support
     let request_future = client
@@ -269,7 +279,7 @@ pub async fn generate_summary(
             result = request_future => {
                 result.map_err(|e| {
                     if e.is_timeout() {
-                        format!("LLM request timed out after 60 seconds")
+                        "LLM request timed out after 60 seconds".to_string()
                     } else {
                         format!("Failed to send request to LLM: {}", e)
                     }
@@ -282,7 +292,7 @@ pub async fn generate_summary(
     } else {
         request_future.await.map_err(|e| {
             if e.is_timeout() {
-                format!("LLM request timed out after 60 seconds")
+                "LLM request timed out after 60 seconds".to_string()
             } else {
                 format!("Failed to send request to LLM: {}", e)
             }
@@ -308,7 +318,7 @@ pub async fn generate_summary(
 
         let content = chat_response
             .content
-            .get(0)
+            .first()
             .ok_or("No content in LLM response")?
             .text
             .trim();
@@ -323,7 +333,7 @@ pub async fn generate_summary(
 
         let content = chat_response
             .choices
-            .get(0)
+            .first()
             .ok_or("No content in LLM response")?
             .message
             .content

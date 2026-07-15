@@ -1,7 +1,7 @@
-/// Embedded default templates using compile-time inclusion
-///
-/// These templates are bundled into the binary and serve as fallbacks
-/// when custom templates are not available.
+//! Embedded default templates using compile-time inclusion.
+//!
+//! These templates are bundled into the binary and serve as fallbacks when
+//! custom templates are not available.
 
 /// Daily standup template for engineering/product teams
 pub const DAILY_STANDUP: &str = include_str!("../../../templates/daily_standup.json");
@@ -12,7 +12,8 @@ pub const STANDARD_MEETING: &str = include_str!("../../../templates/standard_mee
 /// Registry of all built-in templates
 ///
 /// Maps template identifiers to their embedded JSON content
-pub fn get_builtin_templates() -> Vec<(&'static str, &'static str)> {
+#[cfg(test)]
+fn get_builtin_templates() -> Vec<(&'static str, &'static str)> {
     vec![
         ("daily_standup", DAILY_STANDUP),
         ("standard_meeting", STANDARD_MEETING),

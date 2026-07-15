@@ -6,8 +6,8 @@
 use cpal::SupportedStreamConfig;
 use log::{info, warn};
 
+use super::device_detection::{calculate_buffer_timeout, InputDeviceKind};
 use super::devices::AudioDevice;
-use super::device_detection::{InputDeviceKind, calculate_buffer_timeout};
 
 /// Log comprehensive device capabilities and detection results
 ///
@@ -72,7 +72,10 @@ pub fn log_device_capabilities(
     info!("  Sample Format:     {:?}", sample_format);
     info!("  ───────────────────────────────────────────────────────────");
     info!("  Buffer Latency:    {:.2}ms", buffer_latency_ms);
-    info!("  Timeout Range:     {:.0}ms - {:.0}ms", min_timeout_ms, max_timeout_ms);
+    info!(
+        "  Timeout Range:     {:.0}ms - {:.0}ms",
+        min_timeout_ms, max_timeout_ms
+    );
     info!("  Actual Timeout:    {:.0}ms", actual_timeout_ms);
     info!("  ───────────────────────────────────────────────────────────");
 
@@ -101,29 +104,41 @@ fn check_for_issues(
 ) {
     // Issue 1: Bluetooth device with very low buffer latency
     if detected_kind.is_bluetooth() && buffer_latency_ms < 50.0 {
-        warn!("⚠️ POTENTIAL ISSUE: Bluetooth device has unusually low buffer latency ({:.2}ms)",
-              buffer_latency_ms);
+        warn!(
+            "⚠️ POTENTIAL ISSUE: Bluetooth device has unusually low buffer latency ({:.2}ms)",
+            buffer_latency_ms
+        );
         warn!("   This may cause buffer underruns. Expect gaps or audio dropouts.");
-        warn!("   The adaptive mixer will compensate with larger timeout ({:.0}ms).",
-              detected_kind.buffer_timeout().1.as_secs_f64() * 1000.0);
+        warn!(
+            "   The adaptive mixer will compensate with larger timeout ({:.0}ms).",
+            detected_kind.buffer_timeout().1.as_secs_f64() * 1000.0
+        );
     }
 
     // Issue 2: Wired device with very high buffer latency
     if detected_kind.is_wired() && buffer_latency_ms > 50.0 {
-        warn!("⚠️ POTENTIAL ISSUE: Wired device has unusually high buffer latency ({:.2}ms)",
-              buffer_latency_ms);
+        warn!(
+            "⚠️ POTENTIAL ISSUE: Wired device has unusually high buffer latency ({:.2}ms)",
+            buffer_latency_ms
+        );
         warn!("   This is unexpected for wired devices. May be misconfigured.");
     }
 
     // Issue 3: Non-standard sample rate
     if sample_rate != 48000 && sample_rate != 0 {
-        info!("ℹ️ NOTE: Device uses non-standard sample rate ({} Hz)", sample_rate);
+        info!(
+            "ℹ️ NOTE: Device uses non-standard sample rate ({} Hz)",
+            sample_rate
+        );
         info!("   Will be resampled to 48000 Hz for processing.");
     }
 
     // Issue 4: Stereo input (will be converted to mono)
     if channels > 1 {
-        info!("ℹ️ NOTE: Device has {} channels (stereo/multi-channel)", channels);
+        info!(
+            "ℹ️ NOTE: Device has {} channels (stereo/multi-channel)",
+            channels
+        );
         info!("   Will be converted to mono for processing.");
     }
 }
@@ -148,12 +163,12 @@ fn log_macos_specific_info(_device: &AudioDevice, _config: &SupportedStreamConfi
 
             // Get device manufacturer
             if let Ok(manufacturer) = ca_device.manufacturer() {
-                info!("    Manufacturer:    {}", manufacturer.to_string());
+                info!("    Manufacturer:    {}", manufacturer);
             }
 
             // Get device UID
             if let Ok(uid) = ca_device.uid() {
-                info!("    Device UID:      {}", uid.to_string());
+                info!("    Device UID:      {}", uid);
             }
         }
     }
@@ -209,13 +224,10 @@ pub fn log_detection_summary(
     let min_ms_val = min_ms.as_secs_f64() * 1000.0;
     let max_ms_val = max_ms.as_secs_f64() * 1000.0;
 
-    info!("📊 Device '{}': {:?} → Timeout: {:.0}-{:.0}ms (buffer: {}@{}Hz)",
-          device_name,
-          detected_kind,
-          min_ms_val,
-          max_ms_val,
-          buffer_size,
-          sample_rate);
+    info!(
+        "📊 Device '{}': {:?} → Timeout: {:.0}-{:.0}ms (buffer: {}@{}Hz)",
+        device_name, detected_kind, min_ms_val, max_ms_val, buffer_size, sample_rate
+    );
 }
 
 /// Log buffer health statistics during recording
@@ -229,9 +241,14 @@ pub fn log_buffer_health(
     let buffer_utilization = (current_buffer_size as f64 / max_buffer_size as f64) * 100.0;
 
     if buffer_utilization > 80.0 {
-        warn!("⚠️ HIGH BUFFER UTILIZATION: '{}' ({:?})", device_name, device_kind);
-        warn!("   Current: {} / {} samples ({:.1}%)",
-              current_buffer_size, max_buffer_size, buffer_utilization);
+        warn!(
+            "⚠️ HIGH BUFFER UTILIZATION: '{}' ({:?})",
+            device_name, device_kind
+        );
+        warn!(
+            "   Current: {} / {} samples ({:.1}%)",
+            current_buffer_size, max_buffer_size, buffer_utilization
+        );
         warn!("   Dropped frames: {}", dropped_frames);
 
         if device_kind.is_bluetooth() {
@@ -270,9 +287,15 @@ pub fn log_performance_summary(
     info!("╠═══════════════════════════════════════════════════════════╣");
     info!("  Chunks Processed:    {}", total_chunks_processed);
     info!("  Average Latency:     {:.1}ms", average_latency_ms);
-    info!("  Buffer Overflows:    {} {}",
-          buffer_overflows,
-          if buffer_overflows == 0 { "✓" } else { "⚠️" });
+    info!(
+        "  Buffer Overflows:    {} {}",
+        buffer_overflows,
+        if buffer_overflows == 0 {
+            "✓"
+        } else {
+            "⚠️"
+        }
+    );
     info!("  Device Reconnects:   {}", device_reconnects);
     info!("╚═══════════════════════════════════════════════════════════╝");
 
@@ -287,23 +310,14 @@ pub fn log_performance_summary(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::audio::devices::DeviceType;
-    use cpal::SampleFormat;
 
     #[test]
     fn test_diagnostics_dont_panic() {
-        // Create mock device and config
-        let device = AudioDevice::new("Test Device".to_string(), DeviceType::Input);
-
-        // Create a mock config (this is simplified - real configs are more complex)
-        // Just ensure the diagnostic functions don't panic
         let detected_kind = InputDeviceKind::Wired;
 
         log_detection_summary("Test Device", detected_kind, 512, 48000);
         log_buffer_health("Test Device", detected_kind, 100, 1000, 0);
         log_mixer_status(500, 500, 0, 0.0);
         log_performance_summary(1000, 50.0, 0, 0);
-
-        // If we get here without panicking, test passes
     }
 }

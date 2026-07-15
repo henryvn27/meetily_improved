@@ -1,7 +1,7 @@
 use anyhow::Result;
-use cpal::traits::{DeviceTrait, HostTrait};
 #[cfg(not(target_os = "macos"))]
 use cpal::traits::StreamTrait;
+use cpal::traits::{DeviceTrait, HostTrait};
 #[cfg(not(target_os = "macos"))]
 use log::error;
 
@@ -137,7 +137,10 @@ pub fn trigger_audio_permission() -> Result<bool> {
 
     // Start the stream to actually trigger the permission dialog
     if let Err(e) = stream.play() {
-        info!("[trigger_audio_permission] Failed to play stream: {} - permission likely denied", e);
+        info!(
+            "[trigger_audio_permission] Failed to play stream: {} - permission likely denied",
+            e
+        );
         return Ok(false);
     }
 

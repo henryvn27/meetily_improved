@@ -25,18 +25,20 @@ pub enum NotificationType {
     Test, // For testing notifications
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum NotificationPriority {
     Low,
+    #[default]
     Normal,
     High,
     Critical,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum NotificationTimeout {
     Never,
     Seconds(u64),
+    #[default]
     Default,
 }
 
@@ -54,7 +56,11 @@ pub enum NotificationActionType {
 }
 
 impl Notification {
-    pub fn new(title: impl Into<String>, body: impl Into<String>, notification_type: NotificationType) -> Self {
+    pub fn new(
+        title: impl Into<String>,
+        body: impl Into<String>,
+        notification_type: NotificationType,
+    ) -> Self {
         Self {
             id: None,
             title: title.into(),
@@ -99,24 +105,15 @@ impl Notification {
     }
 }
 
-impl Default for NotificationPriority {
-    fn default() -> Self {
-        NotificationPriority::Normal
-    }
-}
-
-impl Default for NotificationTimeout {
-    fn default() -> Self {
-        NotificationTimeout::Default
-    }
-}
-
 // Helper functions for creating common notifications
 impl Notification {
     pub fn recording_started(meeting_name: Option<String>) -> Self {
         let body = match meeting_name {
             Some(name) => format!("Recording started for meeting: {}", name),
-            None => "Recording has started. Please inform others in the meeting that you are recording.".to_string(),
+            None => {
+                "Recording has started. Please inform others in the meeting that you are recording."
+                    .to_string()
+            }
         };
 
         Notification::new("Meetily", body, NotificationType::RecordingStarted)
@@ -128,7 +125,7 @@ impl Notification {
         Notification::new(
             "Meetily",
             "Recording has been stopped and saved",
-            NotificationType::RecordingStopped
+            NotificationType::RecordingStopped,
         )
         .with_priority(NotificationPriority::Normal)
         .with_timeout(NotificationTimeout::Seconds(3))
@@ -138,7 +135,7 @@ impl Notification {
         Notification::new(
             "Meetily",
             "Recording has been paused",
-            NotificationType::RecordingPaused
+            NotificationType::RecordingPaused,
         )
         .with_priority(NotificationPriority::Normal)
         .with_timeout(NotificationTimeout::Seconds(3))
@@ -148,7 +145,7 @@ impl Notification {
         Notification::new(
             "Meetily",
             "Recording has been resumed",
-            NotificationType::RecordingResumed
+            NotificationType::RecordingResumed,
         )
         .with_priority(NotificationPriority::Normal)
         .with_timeout(NotificationTimeout::Seconds(3))
@@ -171,9 +168,13 @@ impl Notification {
             None => format!("Meeting starts in {} minutes", minutes_until),
         };
 
-        Notification::new("Meetily", body, NotificationType::MeetingReminder(minutes_until))
-            .with_priority(NotificationPriority::High)
-            .with_timeout(NotificationTimeout::Seconds(10))
+        Notification::new(
+            "Meetily",
+            body,
+            NotificationType::MeetingReminder(minutes_until),
+        )
+        .with_priority(NotificationPriority::High)
+        .with_timeout(NotificationTimeout::Seconds(10))
     }
 
     pub fn system_error(error: impl Into<String>) -> Self {
@@ -181,7 +182,7 @@ impl Notification {
         Notification::new(
             "Meetily Error",
             error_string.clone(),
-            NotificationType::SystemError(error_string)
+            NotificationType::SystemError(error_string),
         )
         .with_priority(NotificationPriority::Critical)
         .with_timeout(NotificationTimeout::Never)
@@ -191,7 +192,7 @@ impl Notification {
         Notification::new(
             "Meetily",
             "This is a test notification to verify the system is working correctly",
-            NotificationType::Test
+            NotificationType::Test,
         )
         .with_priority(NotificationPriority::Normal)
         .with_timeout(NotificationTimeout::Seconds(5))

@@ -1,7 +1,7 @@
 use anyhow::Result;
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Runtime};
 use tokio::sync::mpsc;
@@ -361,7 +361,7 @@ impl RecordingSaver {
     }
 
     /// Write metadata.json to disk (atomic write with temp file)
-    fn write_metadata(&self, folder: &PathBuf, metadata: &MeetingMetadata) -> Result<()> {
+    fn write_metadata(&self, folder: &Path, metadata: &MeetingMetadata) -> Result<()> {
         let metadata_path = folder.join("metadata.json");
         let temp_path = folder.join(".metadata.json.tmp");
 
@@ -373,7 +373,7 @@ impl RecordingSaver {
     }
 
     /// Write transcripts.json to disk (atomic write with temp file and validation)
-    fn write_transcripts_json(&self, folder: &PathBuf) -> Result<()> {
+    fn write_transcripts_json(&self, folder: &Path) -> Result<()> {
         // Clone segments to avoid holding lock during I/O
         let segments_clone = if let Ok(segments) = self.transcript_segments.lock() {
             segments.clone()

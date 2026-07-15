@@ -15,6 +15,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  rust-core:
+    name: Rust core quality
+    runs-on: macos-14
+    timeout-minutes: 45
+    env:
+      CARGO_TERM_COLOR: always
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Install minimum supported Rust
+        uses: dtolnay/rust-toolchain@1.88.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: .
+
+      - name: Check formatting
+        run: cargo +stable fmt --all -- --check
+
+      - name: Build and stage llama-helper sidecar
+        run: |
+          cargo +1.88.0 build --locked -p llama-helper --features metal
+          mkdir -p frontend/src-tauri/binaries
+          install -m 755 target/debug/llama-helper \
+            frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
+
+      - name: Verify minimum supported Rust
+        run: cargo +1.88.0 check --locked --workspace --all-targets --features metal
+
+      - name: Run strict Clippy
+        run: cargo +stable clippy --locked --workspace --all-targets --features metal -- -D warnings
+
+      - name: Run Rust workspace tests
+        run: cargo +stable test --locked --workspace --all-targets --features metal
+
+  rust-dependencies:
+    name: Rust dependency policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check advisories, licenses, and sources
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          rust-version: "1.88.0"
+          command: check -W unmaintained advisories licenses sources
+          arguments: --all-features --locked
+
   frontend:
     name: Frontend quality
     runs-on: ubuntu-latest

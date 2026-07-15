@@ -3,7 +3,7 @@ use super::AudioDevice;
 use std::io::Write;
 use std::sync::Arc;
 use std::{
-    path::PathBuf,
+    path::Path,
     process::{Command, Stdio},
 };
 use tracing::{debug, error};
@@ -19,9 +19,12 @@ pub fn encode_single_audio(
     data: &[u8],
     sample_rate: u32,
     channels: u16,
-    output_path: &PathBuf,
+    output_path: &Path,
 ) -> anyhow::Result<()> {
-    debug!("Starting FFmpeg process for {} bytes of audio data", data.len());
+    debug!(
+        "Starting FFmpeg process for {} bytes of audio data",
+        data.len()
+    );
 
     if data.is_empty() {
         return Err(anyhow::anyhow!("No audio data provided for encoding"));
