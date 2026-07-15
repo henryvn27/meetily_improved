@@ -1,6 +1,9 @@
 {
   "productName": "Meetily Improved QA Minimum",
   "identifier": "com.meetily.improved.qa.minimum",
+  "bundle": {
+    "createUpdaterArtifacts": false
+  },
   "app": {
     "windows": [
       {

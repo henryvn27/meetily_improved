@@ -2,6 +2,11 @@
     "name": "meetily",
     "version": "0.5.0",
     "private": true,
+    "packageManager": "pnpm@11.7.0",
+    "engines": {
+        "node": ">=22.18.0 <23",
+        "pnpm": "11.7.0"
+    },
     "main": "electron/main.js",
     "scripts": {
         "dev": "next dev -p 3118",
@@ -31,7 +36,8 @@
         "tauri:build:coreml": "tauri build -- --features coreml",
         "tauri:build:openblas": "tauri build -- --features openblas",
         "tauri:build:hipblas": "tauri build -- --features hipblas",
-        "lint": "next lint",
+        "lint": "eslint src --max-warnings 0",
+        "audit:prod": "pnpm audit --prod --audit-level low",
         "check:bundle": "node scripts/check-route-bundle-budget.mjs"
     },
     "dependencies": {
@@ -53,15 +59,6 @@
         "@radix-ui/react-switch": "^1.2.5",
         "@radix-ui/react-tabs": "^1.1.12",
         "@radix-ui/react-tooltip": "^1.2.8",
-        "@remirror/core": "^3.0.1",
-        "@remirror/extension-bold": "^3.0.1",
-        "@remirror/extension-italic": "^3.0.1",
-        "@remirror/extension-list": "^3.0.1",
-        "@remirror/extension-markdown": "^3.0.1",
-        "@remirror/extension-mention": "^3.0.1",
-        "@remirror/extension-underline": "^3.0.1",
-        "@remirror/pm": "^3.0.0",
-        "@remirror/react": "^3.0.1",
         "@tanstack/react-virtual": "^3.13.13",
         "@tauri-apps/api": "^2.6.0",
         "@tauri-apps/plugin-os": "^2.3.2",
@@ -69,8 +66,6 @@
         "@tauri-apps/plugin-store": "^2.4.0",
         "@tauri-apps/plugin-updater": "^2.3.0",
         "@tiptap/pm": "^2.10.4",
-        "@tiptap/react": "^2.10.4",
-        "@tiptap/starter-kit": "^2.10.4",
         "@types/lodash": "^4.17.13",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -78,7 +73,7 @@
         "date-fns": "^4.1.0",
         "framer-motion": "^11.15.0",
         "lodash": "^4.17.21",
-        "next": "^14.2.25",
+        "next": "15.5.20",
         "radix-ui": "^1.4.3",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
@@ -90,16 +85,8 @@
         "tailwindcss-animate": "^1.0.7",
         "zod": "^3.25.71"
     },
-    "pnpm": {
-        "overrides": {
-            "prosemirror-model": "1.25.3",
-            "prosemirror-state": "1.4.3",
-            "prosemirror-view": "1.41.3",
-            "prosemirror-transform": "1.10.4",
-            "prosemirror-tables": "1.8.1"
-        }
-    },
     "devDependencies": {
+        "@eslint/eslintrc": "3.3.6",
         "@tailwindcss/typography": "^0.5.15",
         "@tauri-apps/cli": "^2.1.0",
         "@types/node": "^20",
@@ -107,8 +94,8 @@
         "@types/react-dom": "^18.3.5",
         "autoprefixer": "^10.0.1",
         "concurrently": "^8.2.2",
-        "eslint": "8.57.1",
-        "eslint-config-next": "14.2.35",
+        "eslint": "9.39.2",
+        "eslint-config-next": "15.5.20",
         "postcss": "^8",
         "tailwindcss": "^3.4.1",
         "typescript": "^5.7.2",

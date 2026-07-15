@@ -43,6 +43,7 @@ test('Signal Orange icon assets match the configured desktop packaging contract'
   assert.match(macConfig, /"Resources\/Assets\.car"/);
   assert.match(infoPlist, /<key>CFBundleIconName<\/key>\s*<string>MeetilyImproved<\/string>/);
   assert.match(compileScript, /--app-icon', 'MeetilyImproved'/);
+  assert.match(compileScript, /requires Xcode 26 or newer/);
   assert.match(adaptiveIcon, /"appearance": "light"/);
   assert.match(adaptiveIcon, /"appearance": "dark"/);
   assert.match(adaptiveIcon, /"glass": false/g);
