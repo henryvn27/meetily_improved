@@ -364,13 +364,13 @@ impl SummaryService {
             match SettingsRepository::get_api_key(&pool, &model_provider).await {
                 Ok(Some(key)) if !key.is_empty() => key,
                 Ok(None) | Ok(Some(_)) => {
-                    let err_msg = format!("API key not found for {}", &model_provider);
+                    let err_msg = format!("API key not found for {}", model_provider);
                     Self::update_process_failed(&pool, &meeting_id, &err_msg).await;
                     return;
                 }
                 Err(e) => {
                     let err_msg =
-                        format!("Failed to retrieve API key for {}: {}", &model_provider, e);
+                        format!("Failed to retrieve API key for {}: {}", model_provider, e);
                     Self::update_process_failed(&pool, &meeting_id, &err_msg).await;
                     return;
                 }

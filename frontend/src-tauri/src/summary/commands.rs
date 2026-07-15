@@ -264,7 +264,7 @@ pub async fn api_get_summary<R: Runtime>(
             // Fetch meeting title from database
             let meeting_name = match MeetingsRepository::get_meeting(pool, &meeting_id).await {
                 Ok(Some(meeting_details)) => {
-                    log_info!("Fetched meeting title: {}", &meeting_details.title);
+                    log_info!("Fetched meeting title: {}", meeting_details.title);
                     Some(meeting_details.title)
                 }
                 Ok(None) => {
@@ -346,8 +346,8 @@ pub async fn api_process_transcript<R: Runtime>(
     let m_id = meeting_id.unwrap_or_else(|| format!("meeting-{}", Uuid::new_v4()));
     log_info!(
         "api_process_transcript (native) called for meeting_id: {}, model: {}",
-        &m_id,
-        &model
+        m_id,
+        model
     );
 
     let pool = state.db_manager.pool().clone();
@@ -369,7 +369,7 @@ pub async fn api_process_transcript<R: Runtime>(
         .await
         .map_err(|e| format!("Failed to initialize process: {}", e))?;
 
-    log_info!("✓ Summary process initialized for meeting_id: {}", &m_id);
+    log_info!("✓ Summary process initialized for meeting_id: {}", m_id);
 
     // Save transcript chunks data (matching Python backend behavior)
     let chunk_size = _chunk_size.unwrap_or(40000);
@@ -387,7 +387,7 @@ pub async fn api_process_transcript<R: Runtime>(
     .await
     .map_err(|e| format!("Failed to save transcript data: {}", e))?;
 
-    log_info!("✓ Transcript chunks saved for meeting_id: {}", &m_id);
+    log_info!("✓ Transcript chunks saved for meeting_id: {}", m_id);
 
     // Spawn background task for actual processing
     let meeting_id_clone = m_id.clone();
@@ -406,7 +406,7 @@ pub async fn api_process_transcript<R: Runtime>(
         .await;
     });
 
-    log_info!("🚀 Background task spawned for meeting_id: {}", &m_id);
+    log_info!("🚀 Background task spawned for meeting_id: {}", m_id);
 
     Ok(ProcessTranscriptResponse {
         message: "Summary generation started".to_string(),
