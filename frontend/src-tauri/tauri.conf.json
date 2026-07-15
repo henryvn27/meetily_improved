@@ -50,34 +50,7 @@
                 "style-src": "'self' 'unsafe-inline'",
                 "media-src": "'self' blob: data:"
             },
-            "capabilities": [
-                {
-                    "identifier": "main",
-                    "description": "Least-privilege capability for the shipped main window",
-                    "windows": [
-                        "main"
-                    ],
-                    "permissions": [
-                        "main-window-commands",
-                        "core:app:allow-version",
-                        "core:event:allow-listen",
-                        "core:event:allow-unlisten",
-                        "core:path:allow-resolve-directory",
-                        "core:resources:allow-close",
-                        "store:allow-load",
-                        "store:allow-get",
-                        "store:allow-has",
-                        "store:allow-set",
-                        "store:allow-save",
-                        "updater:allow-check",
-                        "updater:allow-download",
-                        "updater:allow-install",
-                        "updater:allow-download-and-install",
-                        "process:allow-restart",
-                        "os:allow-platform"
-                    ]
-                }
-            ]
+            "capabilities": ["main"]
         }
     },
     "bundle": {

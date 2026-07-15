@@ -8,6 +8,8 @@ const nextConfig = {
   reactStrictMode: false, // Disabled for BlockNote compatibility
   output: 'export',
   outputFileTracingRoot: __dirname,
+  devIndicators: process.env.NEXT_PUBLIC_MEETILY_BROWSER_QA === 'true' ? false : undefined,
+  allowedDevOrigins: ['127.0.0.1'],
   images: {
     unoptimized: true,
   },

@@ -1,0 +1,23 @@
+{
+  "productName": "Meetily Improved QA WebDriver",
+  "identifier": "com.meetily.improved.qa.wdio",
+  "bundle": {
+    "createUpdaterArtifacts": false
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Meetily Improved QA WebDriver",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 1100,
+        "minHeight": 720,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "capabilities": ["main", "wdio"]
+    }
+  }
+}

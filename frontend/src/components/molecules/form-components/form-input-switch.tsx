@@ -48,6 +48,7 @@ export const SwitchInput = ({
           </div>
           <FormControl>
             <Switch
+              id={name}
               checked={field.value}
               onCheckedChange={field.onChange}
             />

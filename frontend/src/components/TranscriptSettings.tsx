@@ -103,7 +103,7 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                 </div> */}
                 <div className="space-y-4 pb-6">
                     <div>
-                        <Label className="mb-1 block text-sm font-medium text-foreground">
+                        <Label htmlFor="transcript-provider" className="mb-1 block text-sm font-medium text-foreground">
                             Transcript model
                         </Label>
                         <div className="flex space-x-2 mx-1">
@@ -117,7 +117,7 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                                     }
                                 }}
                             >
-                            <SelectTrigger className="focus:border-ring focus:ring-1 focus:ring-ring">
+                            <SelectTrigger id="transcript-provider" className="focus:border-ring focus:ring-1 focus:ring-ring">
                                     <SelectValue placeholder="Select provider" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -224,7 +224,6 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
         </div >
     )
 }
-
 
 
 

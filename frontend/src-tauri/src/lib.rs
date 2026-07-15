@@ -403,6 +403,16 @@ pub fn run() {
 
     let mut builder = tauri::Builder::default();
 
+    // WebDriver support is a test-only build feature. The embedded server is
+    // registered only when the WDIO service launches this purpose-built binary.
+    #[cfg(feature = "wdio")]
+    {
+        builder = builder.plugin(tauri_plugin_wdio::init());
+        if std::env::var_os("WDIO_EMBEDDED_SERVER").is_some() {
+            builder = builder.plugin(tauri_plugin_wdio_webdriver::init());
+        }
+    }
+
     #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {

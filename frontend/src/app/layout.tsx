@@ -24,9 +24,16 @@ import { RecordingPostProcessingProvider } from '@/contexts/RecordingPostProcess
 import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
-import { ThemeProvider } from '@/contexts/ThemeContext'
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext'
 import AnalyticsDataModal from '@/components/AnalyticsDataModal'
 import { bypassOnboardingForNativeQa, nativeQaRoute, nativeQaTheme, openAnalyticsDetailsForNativeQa, openImportDialogForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
+import '@/lib/browser-qa-bootstrap'
+
+// This branch is replaced at build time. Normal builds eliminate the dynamic
+// import and therefore do not bundle the WebDriver guest bridge.
+if (process.env.NEXT_PUBLIC_MEETILY_WDIO === 'true') {
+  void import('@wdio/tauri-plugin')
+}
 
 
 // Module-level component — stable reference across RootLayout re-renders.
@@ -68,6 +75,11 @@ function ConditionalImportDialog({
 function ConditionalImportDropOverlay({ visible }: { visible: boolean }) {
   const { isStopping, isProcessing, isSaving } = useRecordingState();
   return <ImportDropOverlay visible={visible && !isStopping && !isProcessing && !isSaving} />;
+}
+
+function AppToaster() {
+  const { resolvedTheme } = useTheme();
+  return <Toaster position="bottom-center" theme={resolvedTheme} richColors closeButton />;
 }
 
 // export { metadata } from './metadata'
@@ -268,6 +280,10 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={nativeQaTheme === 'dark' ? 'dark' : undefined} suppressHydrationWarning>
+      <head>
+        <title>Meetily Improved</title>
+        <meta name="description" content="Private, local-first meeting capture and recall." />
+      </head>
       <body className="font-sans antialiased">
         <a href="#main-content" className="skip-link">Skip to main content</a>
         <ThemeProvider>
@@ -313,9 +329,8 @@ export default function RootLayout({
             </TranscriptProvider>
           </RecordingStateProvider>
         </AnalyticsProvider>
+        <AppToaster />
         </ThemeProvider>
-
-        <Toaster position="bottom-center" richColors closeButton />
         {openAnalyticsDetailsForNativeQa && (
           <AnalyticsDataModal
             isOpen

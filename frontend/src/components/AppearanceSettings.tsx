@@ -32,6 +32,7 @@ export function AppearanceSettings() {
               key={option.value}
               type="button"
               role="radio"
+              aria-label={option.label}
               aria-checked={selected}
               onClick={() => setPreference(option.value)}
               className={cn(

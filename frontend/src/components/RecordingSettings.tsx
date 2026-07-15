@@ -171,6 +171,7 @@ export function RecordingSettings({ onSave }: RecordingSettingsProps) {
           </div>
         </div>
         <Switch
+          aria-label="Save audio recordings"
           checked={preferences.auto_save}
           onCheckedChange={handleAutoSaveToggle}
           disabled={saving}
@@ -223,6 +224,7 @@ export function RecordingSettings({ onSave }: RecordingSettingsProps) {
           </div>
         </div>
         <Switch
+          aria-label="Show recording start notification"
           checked={showRecordingNotification}
           onCheckedChange={handleNotificationToggle}
         />

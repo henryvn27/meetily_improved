@@ -171,8 +171,8 @@ export default function AnalyticsConsentSwitch() {
 
         <div className="flex items-center justify-between border border-border bg-muted/50 p-3">
           <div>
-            <h4 className="font-semibold text-foreground">Enable Analytics</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 id="analytics-consent-heading" className="font-semibold text-foreground">Enable Analytics</h4>
+            <p id="analytics-consent-description" className="text-sm text-muted-foreground">
               {isProcessing ? 'Updating...' : 'Off unless you choose to enable it'}
             </p>
           </div>
@@ -181,6 +181,8 @@ export default function AnalyticsConsentSwitch() {
               <ArrowPathIcon className="size-4 animate-spin text-muted-foreground" aria-hidden="true" />
             )}
             <Switch
+              aria-labelledby="analytics-consent-heading"
+              aria-describedby="analytics-consent-description"
               checked={isAnalyticsOptedIn}
               onCheckedChange={handleToggle}
               disabled={isProcessing}

@@ -242,11 +242,13 @@ export function DeviceSelection({ selectedDevices, onDeviceChange, disabled = fa
           {/*   {isMonitoring ? 'Stop Test' : 'Test Mic'} */}
           {/* </button> */}
           <button
+            type="button"
+            aria-label="Refresh audio devices"
             onClick={handleRefresh}
             disabled={refreshing || disabled}
             className="inline-flex h-8 w-8 items-center justify-center rounded-[3px] p-0 text-sm font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
           >
-            <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin motion-reduce:animate-none' : ''}`} />
+            <ArrowPathIcon aria-hidden="true" className={`h-4 w-4 ${refreshing ? 'animate-spin motion-reduce:animate-none' : ''}`} />
           </button>
         </div>
       </div>

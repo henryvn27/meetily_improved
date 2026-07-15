@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import Analytics from '@/lib/analytics';
 
-function RecordingConsentToast({ toastId }: { toastId: string | number }) {
+export function RecordingConsentToast({ toastId }: { toastId: string | number }) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [isAcknowledging, setIsAcknowledging] = useState(false);
 

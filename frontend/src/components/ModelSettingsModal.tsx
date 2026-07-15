@@ -791,7 +791,7 @@ export function ModelSettingsModal({
 
       <div className="space-y-4">
         <div>
-          <Label>Summarization Model</Label>
+          <Label htmlFor="summary-provider">Summarization Model</Label>
           <div className="flex space-x-2 mt-1">
             <Select
               value={modelConfig.provider}
@@ -852,7 +852,7 @@ export function ModelSettingsModal({
                 }
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger id="summary-provider">
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent className="max-h-64 overflow-y-auto">
@@ -872,6 +872,7 @@ export function ModelSettingsModal({
                   <Button
                     variant="outline"
                     role="combobox"
+                    aria-label={modelConfig.model ? `Summarization model: ${modelConfig.model}` : 'Select summarization model'}
                     aria-expanded={modelComboboxOpen}
                     className="flex-1 max-w-[200px] justify-between font-normal"
                   >

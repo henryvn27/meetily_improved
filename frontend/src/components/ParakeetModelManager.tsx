@@ -560,7 +560,7 @@ function ModelCard({
                     e.stopPropagation();
                     onDelete();
                   }}
-                  className="rounded-md bg-warning px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-warning/90"
+                  className="rounded-md bg-warning px-3 py-1.5 text-sm font-medium text-[hsl(var(--warning-foreground))] transition-colors hover:bg-warning/90"
                 >
                   Delete
                 </button>
