@@ -114,3 +114,76 @@ jobs:
 
       - name: Enforce route bundle budget
         run: pnpm run check:bundle
+
+  native-qa-macos:
+    name: Native macOS QA bundle
+    needs: [rust-core, rust-dependencies, frontend]
+    runs-on: macos-14
+    timeout-minutes: 45
+    env:
+      CARGO_TERM_COLOR: always
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Restore Rust build cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: .
+          shared-key: native-qa-macos
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and stage llama-helper sidecar
+        run: |
+          cargo build --locked -p llama-helper --features metal
+          mkdir -p frontend/src-tauri/binaries
+          install -m 755 target/debug/llama-helper \
+            frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
+
+      - name: Build isolated native QA app
+        working-directory: frontend
+        run: pnpm run tauri:build:qa
+
+      - name: Verify native bundle identity and signature
+        id: bundle
+        shell: bash
+        run: |
+          APP_PATH=$(find target frontend/src-tauri/target \
+            -type d -path '*/bundle/macos/Meetily Improved QA Routes.app' \
+            -print -quit 2>/dev/null || true)
+          test -n "$APP_PATH"
+          test -f "$APP_PATH/Contents/Info.plist"
+          test -n "$(find "$APP_PATH/Contents/Resources" -name index.html -print -quit)"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
+            "$APP_PATH/Contents/Info.plist")" = "com.meetily.improved.qa.routes"
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          ARCHIVE="$RUNNER_TEMP/meetily-improved-qa-routes-${GITHUB_SHA}.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ARCHIVE"
+          echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload isolated native QA app
+        uses: actions/upload-artifact@v4
+        with:
+          name: meetily-improved-qa-routes-${{ github.sha }}
+          path: ${{ steps.bundle.outputs.archive }}
+          if-no-files-found: error
+          retention-days: 14

@@ -1,6 +1,9 @@
 {
   "productName": "Meetily Improved QA Onboarding",
   "identifier": "com.meetily.improved.qa.onboarding",
+  "bundle": {
+    "createUpdaterArtifacts": false
+  },
   "app": {
     "windows": [
       {
