@@ -52,7 +52,6 @@ unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 allow-git = [
     "https://github.com/emotechlab/silero-rs",
-    "https://github.com/hoodie/notify-rust",
     "https://github.com/nathanbabcock/ffmpeg-sidecar",
     "https://github.com/yury/cidre",
 ]

@@ -8,11 +8,11 @@ cargo deny --all-features --locked check -W unmaintained advisories licenses sou
 
 Vulnerabilities, yanked crates, disallowed licenses, and unknown sources must fail the gate. Informational `unmaintained` advisories remain warnings only when there is no safe supported migration; they must stay visible and appear in the review register below.
 
-## Temporary upstream pin
+## Temporary vendored dependency
 
-`notify-rust` is pinned to upstream commit `a733009b2c52c6605443b287ae5348a6c4879a3e` from [notify-rust PR #288](https://github.com/hoodie/notify-rust/pull/288). That one-line dependency update moves Windows notifications to `tauri-winrt-notification 0.8`, which removes the vulnerable `quick-xml 0.37` parser. The upstream PR is mergeable and its Windows, macOS, Linux, MSRV, format, and semver checks pass.
+`vendor/notify-rust` is the source from upstream tag [`v4.17.0`](https://github.com/hoodie/notify-rust/releases/tag/v4.17.0), the last release compatible with Meetily's Rust 1.88 floor, plus the single dependency-line change from [notify-rust PR #288](https://github.com/hoodie/notify-rust/pull/288). The patch moves Windows notifications to `tauri-winrt-notification 0.8`, which removes the vulnerable `quick-xml 0.37` parser. The upstream PR is mergeable and its Windows, macOS, Linux, MSRV, format, and semver checks pass. The vendored source retains the original MIT and Apache-2.0 licenses and records exact provenance in `vendor/notify-rust/MEETILY-VENDORING.md`.
 
-- Removal condition: replace the Git pin with the first crates.io `notify-rust` release containing PR #288.
+- Removal condition: replace the vendored crate with the first crates.io `notify-rust` release containing PR #288 that supports Meetily's declared Rust floor.
 - Next review: 2026-07-28.
 - Runtime constraint: preserve native notifications on all three supported desktop platforms; do not replace them with a browser or remote service.
 
@@ -40,4 +40,4 @@ Vulnerabilities, yanked crates, disallowed licenses, and unknown sources must fa
 
 - `spin 0.9.8` was replaced by semver-compatible `spin 0.9.9`; the `flume` maintainer confirmed in [flume#183](https://github.com/zesterer/flume/issues/183) that `flume` did not use the unsound API behind the yank.
 - `nnnoiseless` now disables its unused command-line default feature, removing `clap 3`, `atty`, and related binary-only dependencies while retaining the RNNoise library API used by recording.
-- `quick-xml 0.37` and both associated RustSec advisory exceptions were removed from the graph through the audited `notify-rust` upstream pin.
+- `quick-xml 0.37` and both associated RustSec advisory exceptions were removed from the graph through the audited `notify-rust` patch.
