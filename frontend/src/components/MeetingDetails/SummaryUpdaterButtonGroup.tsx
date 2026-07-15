@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { ArrowPathIcon, CheckIcon, DocumentDuplicateIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, CheckIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 
 interface SummaryUpdaterButtonGroupProps {
@@ -10,7 +10,6 @@ interface SummaryUpdaterButtonGroupProps {
   isDirty: boolean;
   onSave: () => Promise<void>;
   onCopy: () => Promise<void>;
-  onFind?: () => void;
   onOpenFolder: () => Promise<void>;
   hasSummary: boolean;
 }
@@ -20,7 +19,6 @@ export function SummaryUpdaterButtonGroup({
   isDirty,
   onSave,
   onCopy,
-  onFind,
   onOpenFolder,
   hasSummary
 }: SummaryUpdaterButtonGroupProps) {
@@ -66,24 +64,6 @@ export function SummaryUpdaterButtonGroup({
         <DocumentDuplicateIcon className="size-4" aria-hidden="true" />
         <span className="hidden 2xl:inline">Copy</span>
       </Button>
-
-      {/* Find button */}
-      {/* {onFind && (
-        <Button
-          variant="outline"
-          size="sm"
-          title="Find in Summary"
-          onClick={() => {
-            Analytics.trackButtonClick('find_in_summary', 'meeting_details');
-            onFind();
-          }}
-          disabled={!hasSummary}
-          className="cursor-pointer"
-        >
-          <MagnifyingGlassIcon className="size-4" aria-hidden="true" />
-          <span className="hidden lg:inline">Find</span>
-        </Button>
-      )} */}
     </ButtonGroup>
   );
 }

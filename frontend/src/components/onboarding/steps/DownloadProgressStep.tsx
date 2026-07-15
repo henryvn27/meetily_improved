@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { ArrowDownTrayIcon, ArrowPathIcon, CheckIcon, CpuChipIcon, LanguageIcon } from '@heroicons/react/24/outline';
@@ -184,17 +184,7 @@ export function DownloadProgressStep() {
         setParakeetState((prev) => ({ ...prev, status: 'error', error: String(error) }));
       }
     });
-  }, []);
-
-  // Start the selected summary model only after the backend recommendation is known.
-  useEffect(() => {
-    if (isNativeQaMode) return;
-    if (summaryDownloadStartedRef.current) return;
-    if (!selectedSummaryModel) return;
-    summaryDownloadStartedRef.current = true;
-
-    startSummaryDownload();
-  }, [selectedSummaryModel]);
+  }, [parakeetDownloaded, startBackgroundDownloads]);
 
   // Listen to Parakeet download progress
   useEffect(() => {
@@ -251,7 +241,7 @@ export function DownloadProgressStep() {
       unlistenComplete.then((fn) => fn());
       unlistenError.then((fn) => fn());
     };
-  }, []);
+  }, [setParakeetDownloaded]);
 
   // Listen to Summary Model download progress (always downloading for builtin-ai)
   useEffect(() => {
@@ -289,7 +279,7 @@ export function DownloadProgressStep() {
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, [selectedSummaryModel]);
+  }, [selectedSummaryModel, setSummaryModelDownloaded]);
 
   useEffect(() => {
     const modelForSize = selectedSummaryModel || recommendedSummaryModel;
@@ -311,7 +301,7 @@ export function DownloadProgressStep() {
     }));
   }, [selectedSummaryModel, recommendedSummaryModel, summaryModelDownloaded]);
 
-  const startSummaryDownload = async () => {
+  const startSummaryDownload = useCallback(async () => {
     if (!summaryModelDownloaded && selectedSummaryModel) {
       try {
         setSummaryState((prev) => ({
@@ -329,7 +319,17 @@ export function DownloadProgressStep() {
         setSummaryState((prev) => ({ ...prev, status: 'error', error: String(error) }));
       }
     }
-  };
+  }, [selectedSummaryModel, startBackgroundDownloads, summaryModelDownloaded]);
+
+  // Start the selected summary model only after the backend recommendation is known.
+  useEffect(() => {
+    if (isNativeQaMode) return;
+    if (summaryDownloadStartedRef.current) return;
+    if (!selectedSummaryModel) return;
+    summaryDownloadStartedRef.current = true;
+
+    void startSummaryDownload();
+  }, [selectedSummaryModel, startSummaryDownload]);
 
   const handleContinue = async () => {
     // Verify actual model availability (catches state drift)

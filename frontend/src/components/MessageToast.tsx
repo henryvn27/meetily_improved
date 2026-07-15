@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import { useEffect } from 'react';
 
 interface MessageToastProps {
     message: string;
@@ -10,16 +10,23 @@ interface MessageToastProps {
 export function MessageToast({ message, type, show, setShow }: MessageToastProps) {
     
     useEffect(() => {
+        if (!show) return;
+
         const timer = setTimeout(() => {
             setShow(false);
         }, 3000);
         
         return () => clearTimeout(timer);
-    }, []); 
-    
+    }, [setShow, show]);
+
+    if (!show) return null;
+
     return (
-        show && (
-            <span className={type === 'success' ? 'text-success' : 'text-destructive'}>{message}</span>
-        )
+        <span
+            role={type === 'error' ? 'alert' : 'status'}
+            className={type === 'success' ? 'text-success' : 'text-destructive'}
+        >
+            {message}
+        </span>
     );
 }

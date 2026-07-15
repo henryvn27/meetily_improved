@@ -108,3 +108,6 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      - name: Enforce route bundle budget
+        run: pnpm run check:bundle

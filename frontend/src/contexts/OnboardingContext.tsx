@@ -108,6 +108,18 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [permissionsSkipped, setPermissionsSkipped] = useState(false);
 
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const initializationActionsRef = useRef<{
+    loadStatus: () => Promise<void>;
+    checkDatabase: () => Promise<void>;
+    initializeNativeQa: () => Promise<void>;
+    initializeDatabase: () => Promise<void>;
+  }>({
+    loadStatus: async () => {},
+    checkDatabase: async () => {},
+    initializeNativeQa: async () => {},
+    initializeDatabase: async () => {},
+  });
+  const saveOnboardingStatusRef = useRef<() => Promise<void>>(async () => undefined);
 
   const initializeSummaryModelSelection = async (preferredModel = selectedSummaryModel) => {
     try {
@@ -150,13 +162,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   // Load status on mount and initialize database
   useEffect(() => {
-    loadOnboardingStatus();
-    checkDatabaseStatus();
+    const actions = initializationActionsRef.current;
+    void actions.loadStatus();
+    void actions.checkDatabase();
     if (isNativeQaMode) {
-      initializeNativeQaDatabase();
+      void actions.initializeNativeQa();
       return;
     }
-    initializeDatabaseInBackground();
+    void actions.initializeDatabase();
   }, []);
 
   // QA receives its own bundle identifier and app-data directory. Initialize only
@@ -245,7 +258,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     if (completed || isCompletingRef.current) return;
 
     saveTimeoutRef.current = setTimeout(() => {
-      saveOnboardingStatus();
+      void saveOnboardingStatusRef.current();
     }, 1000);
 
     return () => {
@@ -613,6 +626,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       throw error;
     }
   };
+
+  initializationActionsRef.current = {
+    loadStatus: loadOnboardingStatus,
+    checkDatabase: checkDatabaseStatus,
+    initializeNativeQa: initializeNativeQaDatabase,
+    initializeDatabase: initializeDatabaseInBackground,
+  };
+  saveOnboardingStatusRef.current = saveOnboardingStatus;
 
   const setPermissionStatus = useCallback((permission: keyof OnboardingPermissions, status: PermissionStatus) => {
     setPermissions((prev: OnboardingPermissions) => ({

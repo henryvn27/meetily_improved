@@ -1,7 +1,8 @@
 "use client";
 
 import { Summary, SummaryResponse, Transcript } from '@/types';
-import { BlockNoteSummaryView, BlockNoteSummaryViewRef } from '@/components/AISummary/BlockNoteSummaryView';
+import type { BlockNoteSummaryViewRef } from '@/components/AISummary/BlockNoteSummaryView';
+import dynamic from 'next/dynamic';
 import { EmptyStateSummary } from '@/components/EmptyStateSummary';
 import { ModelConfig } from '@/components/ModelSettingsModal';
 import { SummaryGeneratorButtonGroup } from './SummaryGeneratorButtonGroup';
@@ -20,6 +21,20 @@ import {
   saveMeetingSummaryLanguage,
   SummaryLanguageStorage,
 } from '@/lib/summary-language-preferences';
+
+const BlockNoteSummaryView = dynamic(
+  () => import('@/components/AISummary/BlockNoteSummaryView').then(module => module.BlockNoteSummaryView),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-3 py-2" role="status" aria-label="Loading summary editor">
+        <div className="h-4 w-2/3 animate-pulse rounded-sm bg-muted" />
+        <div className="h-4 w-full animate-pulse rounded-sm bg-muted" />
+        <div className="h-4 w-5/6 animate-pulse rounded-sm bg-muted" />
+      </div>
+    ),
+  },
+);
 
 interface SummaryPanelProps {
   meeting: {
@@ -329,10 +344,6 @@ export function SummaryPanel({
                 isDirty={isTitleDirty || (summaryRef.current?.isDirty || false)}
                 onSave={onSaveAll}
                 onCopy={onCopySummary}
-                onFind={() => {
-                  // TODO: Implement find in summary functionality
-                  console.log('Find in summary clicked');
-                }}
                 onOpenFolder={onOpenFolder}
                 hasSummary={!!aiSummary}
               />

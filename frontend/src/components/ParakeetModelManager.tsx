@@ -35,6 +35,7 @@ export function ParakeetModelManager({
   // Refs for stable callbacks
   const onModelSelectRef = useRef(onModelSelect);
   const autoSaveRef = useRef(autoSave);
+  const downloadModelRef = useRef<(modelName: string) => Promise<void>>(async () => undefined);
 
   // Progress throttle map to prevent rapid updates
   const progressThrottleRef = useRef<Map<string, { progress: number; timestamp: number }>>(new Map());
@@ -179,7 +180,7 @@ export function ParakeetModelManager({
             duration: 6000,
             action: {
               label: 'Retry',
-              onClick: () => downloadModel(modelName)
+              onClick: () => void downloadModelRef.current(modelName)
             }
           });
         }
@@ -244,7 +245,7 @@ export function ParakeetModelManager({
     }
   };
 
-  const downloadModel = async (modelName: string) => {
+  const downloadModel = useCallback(async (modelName: string) => {
     if (downloadingModels.has(modelName)) return;
 
     const displayInfo = getModelDisplayInfo(modelName);
@@ -282,7 +283,11 @@ export function ParakeetModelManager({
         )
       );
     }
-  };
+  }, [downloadingModels]);
+
+  useEffect(() => {
+    downloadModelRef.current = downloadModel;
+  }, [downloadModel]);
 
   const selectModel = async (modelName: string) => {
     if (onModelSelect) {

@@ -62,8 +62,6 @@ export function useRecordingStop(
   const {
     refetchMeetings,
     setCurrentMeeting,
-    setMeetings,
-    meetings,
     setIsMeetingActive,
   } = useSidebar();
 
@@ -421,8 +419,6 @@ export function useRecordingStop(
     markMeetingAsSaved,
     refetchMeetings,
     setCurrentMeeting,
-    setMeetings,
-    meetings,
     setIsMeetingActive,
     router,
   ]);
