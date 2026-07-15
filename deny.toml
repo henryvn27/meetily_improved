@@ -8,10 +8,7 @@ targets = [
 all-features = true
 
 [advisories]
-ignore = [
-    { id = "RUSTSEC-2026-0194", reason = "Windows notifications parse only app-generated toast XML; notify-rust 4.18 still pins tauri-winrt-notification 0.7 and quick-xml 0.37" },
-    { id = "RUSTSEC-2026-0195", reason = "Windows notifications parse only app-generated toast XML; notify-rust 4.18 still pins tauri-winrt-notification 0.7 and quick-xml 0.37" },
-]
+ignore = []
 
 [licenses]
 allow = [
