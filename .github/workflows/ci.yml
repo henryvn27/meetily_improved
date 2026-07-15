@@ -180,7 +180,12 @@ jobs:
             -print -quit 2>/dev/null || true)
           test -n "$APP_PATH"
           test -f "$APP_PATH/Contents/Info.plist"
-          test -n "$(find "$APP_PATH/Contents/Resources" -name index.html -print -quit)"
+          EXECUTABLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' \
+            "$APP_PATH/Contents/Info.plist")
+          test -x "$APP_PATH/Contents/MacOS/$EXECUTABLE"
+          file "$APP_PATH/Contents/MacOS/$EXECUTABLE" | grep -q 'Mach-O 64-bit executable arm64'
+          test -f "$APP_PATH/Contents/Resources/Assets.car"
+          test -f "$APP_PATH/Contents/Resources/MeetilyImproved.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
             "$APP_PATH/Contents/Info.plist")" = "com.meetily.improved.qa.routes"
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
