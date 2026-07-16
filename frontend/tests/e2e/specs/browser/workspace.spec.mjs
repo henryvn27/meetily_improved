@@ -1,6 +1,9 @@
 import { $, browser, expect } from '@wdio/globals';
 import { expectWcag22Aa } from '../../helpers/accessibility.mjs';
-import { installEmptyBackendMocks } from '../../helpers/browser-empty-backend.mjs';
+import {
+  emptyBackendMocksAreInstalled,
+  installEmptyBackendMocks,
+} from '../../helpers/browser-empty-backend.mjs';
 import { expectPageHeading, openSidebarRoute, routes, setAppearance } from '../../helpers/routes.mjs';
 
 const appearances = ['Light', 'Dark'];
@@ -22,7 +25,7 @@ async function expectAccessible(context) {
 }
 
 describe('Meetily browser-mode workspace', () => {
-  beforeEach(async () => {
+  before(async () => {
     await browser.url('http://127.0.0.1:3120/');
     await installEmptyBackendMocks(browser);
     try {
@@ -37,6 +40,12 @@ describe('Meetily browser-mode workspace', () => {
         html: document.body?.innerHTML.slice(0, 2_000) ?? '',
       }));
       throw new Error(`Empty-workspace bootstrap did not render: ${JSON.stringify(diagnostic)}. ${error instanceof Error ? error.message : String(error)}`);
+    }
+  });
+
+  afterEach(async () => {
+    if (!await emptyBackendMocksAreInstalled(browser)) {
+      await installEmptyBackendMocks(browser);
     }
   });
 
