@@ -51,11 +51,14 @@ jobs:
 
       - name: Verify immutable main source
         shell: bash
+        env:
+          CONFIRM_SIGNING_READY: ${{ inputs.confirm_signing_ready }}
+          RELEASE_SHA_INPUT: ${{ inputs.release_sha }}
         run: |
-          test "${{ github.ref }}" = "refs/heads/main"
-          test "${{ inputs.confirm_signing_ready }}" = "true"
-          [[ "${{ inputs.release_sha }}" =~ ^[0-9a-f]{40}$ ]]
-          test "${{ inputs.release_sha }}" = "${GITHUB_SHA}"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$CONFIRM_SIGNING_READY" = "true"
+          [[ "$RELEASE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]]
+          test "$RELEASE_SHA_INPUT" = "$GITHUB_SHA"
           REMOTE_MAIN=$(gh api "repos/${GITHUB_REPOSITORY}/branches/main" --jq '.commit.sha')
           test "$REMOTE_MAIN" = "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
