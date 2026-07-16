@@ -1,8 +1,9 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 
 const route = '/meeting-details/page';
 const maximumCompressedBytes = 350_000;
+const productionForbiddenMarkers = ['[WDIO Tauri Plugin]', 'window.wdioTauri'];
 const manifest = JSON.parse(await readFile('.next/app-build-manifest.json', 'utf8'));
 const routeFiles = manifest.pages?.[route];
 
@@ -26,4 +27,17 @@ if (compressedBytes > maximumCompressedBytes) {
   );
 }
 
+const staticChunksRoot = '.next/static/chunks';
+const staticChunks = (await readdir(staticChunksRoot, { recursive: true }))
+  .filter((file) => file.endsWith('.js'));
+
+for (const file of staticChunks) {
+  const source = await readFile(`${staticChunksRoot}/${file}`, 'utf8');
+  const marker = productionForbiddenMarkers.find((candidate) => source.includes(candidate));
+  if (marker) {
+    throw new Error(`Production chunk ${file} contains test-only WDIO marker ${JSON.stringify(marker)}.`);
+  }
+}
+
 console.log(`${route} initial JavaScript: ${formattedSize} / ${formattedBudget} compressed bytes`);
+console.log(`Production static chunks exclude ${productionForbiddenMarkers.length} WDIO bridge markers`);

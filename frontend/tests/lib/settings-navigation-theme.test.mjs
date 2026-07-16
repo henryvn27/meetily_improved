@@ -5,8 +5,9 @@ import test from 'node:test';
 const root = new URL('../../', import.meta.url);
 
 test('settings has reliable native navigation and appearance controls', async () => {
-  const [layout, sidebar, settings, appearance] = await Promise.all([
+  const [layout, globals, sidebar, settings, appearance] = await Promise.all([
     readFile(new URL('src/app/layout.tsx', root), 'utf8'),
+    readFile(new URL('src/app/globals.css', root), 'utf8'),
     readFile(new URL('src/components/Sidebar/index.tsx', root), 'utf8'),
     readFile(new URL('src/app/settings/page.tsx', root), 'utf8'),
     readFile(new URL('src/components/AppearanceSettings.tsx', root), 'utf8'),
@@ -15,6 +16,7 @@ test('settings has reliable native navigation and appearance controls', async ()
   assert.match(layout, /event\.metaKey && event\.key === ','/);
   assert.match(layout, /event\.preventDefault\(\)/);
   assert.match(layout, /window\.openSettings\?\.\(\)/);
+  assert.match(globals, /html:not\(\[data-theme\]\) \.transition-colors\s*\{\s*transition-property: none !important;/);
   assert.match(sidebar, /router\.push\('\/settings'\)/);
   assert.doesNotMatch(sidebar, /window\.location\.assign\('\/settings'\)/);
   assert.match(sidebar, /onClick=\{openSettings\}/);

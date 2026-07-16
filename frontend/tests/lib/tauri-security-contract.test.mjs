@@ -139,17 +139,19 @@ test('the main webview can invoke exactly the custom commands used by shipped so
 });
 
 test('the main capability grants only caller-proven core and plugin operations', async () => {
-  const [configSource, packageSource, cargoSource, libSource, { modules }] = await Promise.all([
+  const [configSource, capabilitySource, packageSource, cargoSource, libSource, { modules }] = await Promise.all([
     readFile(new URL('src-tauri/tauri.conf.json', frontendRoot), 'utf8'),
+    readFile(new URL('src-tauri/capabilities/main.json', frontendRoot), 'utf8'),
     readFile(new URL('package.json', frontendRoot), 'utf8'),
     readFile(new URL('src-tauri/Cargo.toml', frontendRoot), 'utf8'),
     readFile(new URL('src-tauri/src/lib.rs', frontendRoot), 'utf8'),
     frontendCommandContract(),
   ]);
   const config = JSON.parse(configSource);
+  const main = JSON.parse(capabilitySource);
   const packageJson = JSON.parse(packageSource);
-  const main = config.app.security.capabilities.find(({ identifier }) => identifier === 'main');
-  assert.ok(main, 'main window capability must exist');
+  assert.deepEqual(config.app.security.capabilities, ['main']);
+  assert.equal(main.identifier, 'main');
 
   const expectedPermissions = [
     'main-window-commands',

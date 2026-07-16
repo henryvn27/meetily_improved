@@ -66,7 +66,14 @@ try {
     serverExited,
   ]);
 
-  runner = spawn(packageManager, ['exec', 'wdio', 'run', 'tests/e2e/wdio.browser.conf.mjs', ...wdioArguments], {
+  runner = spawn(packageManager, [
+    'exec',
+    'wdio',
+    'run',
+    'tests/e2e/wdio.browser.conf.mjs',
+    ...(updateVisuals ? ['--update-visual-baseline'] : []),
+    ...wdioArguments,
+  ], {
     cwd: root,
     env: {
       ...process.env,

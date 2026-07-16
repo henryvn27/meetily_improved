@@ -25,7 +25,7 @@ Review every changed PNG at 100% scale in both Light and Dark. Confirm the 1280Ã
 
 ## Security boundary
 
-Normal builds use only `src-tauri/capabilities/main.json` and omit the optional Cargo `wdio` feature. The test binary additionally uses `src-tauri/capabilities/wdio.json`, `withGlobalTauri`, and the two WDIO plugins. CI verifies the public bundle does not contain the test bridge or WDIO permissions.
+Normal builds use only `src-tauri/capabilities/main.json` and omit the optional Cargo `wdio` feature. The isolated WDIO config inlines its test-only capability, enables `withGlobalTauri`, and opts into the two WDIO plugins. Keeping that capability outside the auto-discovered production directory lets normal Rust builds validate without the optional plugins. Every export cleans prior Next output, and production resolution replaces the guest bridge with an empty module. CI then fails if WDIO markers remain in shipped static chunks or permissions enter the main capability.
 
 ## Human release gate
 

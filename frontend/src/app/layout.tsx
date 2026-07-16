@@ -281,7 +281,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={nativeQaTheme === 'dark' ? 'dark' : undefined} suppressHydrationWarning>
       <head>
-        <title>Meetily Improved</title>
+        <title>{process.env.NEXT_PUBLIC_MEETILY_WDIO === 'true' ? 'Meetily Improved QA WebDriver' : 'Meetily Improved'}</title>
         <meta name="description" content="Private, local-first meeting capture and recall." />
       </head>
       <body className="font-sans antialiased">

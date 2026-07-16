@@ -11,6 +11,10 @@ describe('appearance settings', () => {
   beforeEach(() => {
     prefersDark = false;
     listeners = new Set();
+    window.localStorage.clear();
+    document.documentElement.classList.remove('dark');
+    delete document.documentElement.dataset.theme;
+    document.documentElement.style.colorScheme = '';
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: vi.fn().mockImplementation(() => ({
@@ -24,6 +28,15 @@ describe('appearance settings', () => {
         dispatchEvent: vi.fn(),
       })),
     });
+  });
+
+  it('resolves the initial system theme before enabling color transitions', () => {
+    prefersDark = true;
+    render(<ThemeProvider><AppearanceSettings /></ThemeProvider>);
+
+    expect(document.documentElement).toHaveClass('dark');
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(document.documentElement.style.colorScheme).toBe('dark');
   });
 
   it('persists explicit themes and follows a changing system appearance', async () => {

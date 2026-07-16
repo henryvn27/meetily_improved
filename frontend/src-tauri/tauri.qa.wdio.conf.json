@@ -17,7 +17,19 @@
       }
     ],
     "security": {
-      "capabilities": ["main", "wdio"]
+      "capabilities": [
+        "main",
+        {
+          "identifier": "wdio",
+          "description": "Test-only WebDriver capability for the isolated QA binary",
+          "windows": ["main"],
+          "permissions": [
+            "wdio:allow-execute",
+            "wdio:allow-get-window-states",
+            "wdio-webdriver:default"
+          ]
+        }
+      ]
     }
   }
 }

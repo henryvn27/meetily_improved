@@ -184,6 +184,11 @@
     height: 100%;
   }
 
+  /* Avoid carrying light-token interpolation into WebKit's first resolved theme. */
+  html:not([data-theme]) .transition-colors {
+    transition-property: none !important;
+  }
+
   button,
   a,
   input,

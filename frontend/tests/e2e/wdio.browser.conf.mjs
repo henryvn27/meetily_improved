@@ -17,7 +17,7 @@ export const config = {
     'goog:chromeOptions': {
       args: [
         '--headless=new',
-        '--disable-gpu',
+        '--force-prefers-reduced-motion',
         '--no-sandbox',
         '--disable-dev-shm-usage',
         '--window-size=1280,820',
@@ -37,6 +37,7 @@ export const config = {
       alwaysSaveActualImage: true,
       clearRuntimeFolder: true,
       disableCSSAnimation: true,
+      enableLegacyScreenshotMethod: true,
     }],
   ],
   framework: 'mocha',

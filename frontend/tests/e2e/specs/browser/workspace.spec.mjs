@@ -5,6 +5,13 @@ import { expectPageHeading, openSidebarRoute, routes, setAppearance } from '../.
 
 const appearances = ['Light', 'Dark'];
 const settingsSections = ['General', 'Recordings', 'Transcription', 'Summary', 'Beta'];
+const settingsHeadings = {
+  General: 'General settings',
+  Recordings: 'Recording settings',
+  Transcription: 'Transcription settings',
+  Summary: 'Summary settings',
+  Beta: 'Beta settings',
+};
 
 async function expectAccessible(context) {
   try {
@@ -45,9 +52,36 @@ describe('Meetily browser-mode workspace', () => {
     for (const section of settingsSections) {
       it(`passes WCAG 2.2 AA on ${appearance} Settings ${section}`, async () => {
         await setAppearance(appearance);
-        const tab = await $(`[role="tab"][aria-label="${section}"]`);
-        await tab.click();
-        await browser.waitUntil(async () => await tab.getAttribute('data-state') === 'active');
+        const selector = `[role="tab"][aria-label="${section}"]`;
+        await $(selector).click();
+        try {
+          await browser.waitUntil(
+            () => browser.execute((expectedHeading) => {
+              const activePanel = document.querySelector('[role="tabpanel"][data-state="active"]');
+              return activePanel?.querySelector('h2')?.textContent?.trim() === expectedHeading;
+            }, settingsHeadings[section]),
+            {
+              timeout: 15_000,
+              timeoutMsg: `Settings did not activate the ${section} panel`,
+            },
+          );
+        } catch (error) {
+          await browser.saveScreenshot(`/tmp/meetily-browser-qa-settings-${section.toLowerCase()}-failure.png`);
+          const diagnostic = await browser.execute(() => ({
+            activeElement: document.activeElement?.outerHTML,
+            body: document.body?.innerText.slice(0, 2_000),
+            tabs: Array.from(document.querySelectorAll('[role="tab"]')).map((tab) => ({
+              label: tab.getAttribute('aria-label'),
+              selected: tab.getAttribute('aria-selected'),
+              state: tab.getAttribute('data-state'),
+            })),
+            panels: Array.from(document.querySelectorAll('[role="tabpanel"]')).map((panel) => ({
+              state: panel.getAttribute('data-state'),
+              heading: panel.querySelector('h2')?.textContent?.trim(),
+            })),
+          }));
+          throw new Error(`${error instanceof Error ? error.message : String(error)}: ${JSON.stringify(diagnostic)}`);
+        }
         await expectAccessible(`${appearance} / Settings / ${section}`);
       });
     }
@@ -112,15 +146,13 @@ describe('Meetily browser-mode workspace', () => {
     expect(focusBounds.width).toBeGreaterThanOrEqual(24);
     expect(focusBounds.height).toBeGreaterThanOrEqual(24);
 
-    await browser.cdp('Emulation', 'setEmulatedMedia', {
-      features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
-    });
+    expect(await browser.execute(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
     const timing = await browser.execute(() => {
       const target = document.querySelector('button');
       const style = target ? getComputedStyle(target) : null;
       return style ? { animationDuration: style.animationDuration, transitionDuration: style.transitionDuration } : null;
     });
     expect(timing).not.toBeNull();
-    expect(timing.transitionDuration).toBe('0.00001s');
+    expect(Number.parseFloat(timing.transitionDuration)).toBeLessThanOrEqual(0.00001);
   });
 });

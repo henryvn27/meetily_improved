@@ -49,4 +49,24 @@ export async function setAppearance(preference) {
     const theme = await browser.execute(() => document.documentElement.dataset.theme);
     return preference === 'System' ? theme === 'light' || theme === 'dark' : theme === preference.toLowerCase();
   });
+  await browser.waitUntil(
+    async () => browser.execute(() => {
+      const button = document.querySelector('button[aria-label="Open recorder"]');
+      if (!(button instanceof HTMLElement)) return false;
+
+      const parseRgb = (value) => (value.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+      const luminance = (value) => {
+        const [red, green, blue] = parseRgb(value).map((channel) => {
+          const normalized = channel / 255;
+          return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+        });
+        return (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+      };
+      const style = getComputedStyle(button);
+      const lighter = Math.max(luminance(style.color), luminance(style.backgroundColor));
+      const darker = Math.min(luminance(style.color), luminance(style.backgroundColor));
+      return (lighter + 0.05) / (darker + 0.05) >= 4.5;
+    }),
+    { timeout: 5_000, timeoutMsg: `Recorder contrast did not settle after selecting ${preference}.` },
+  );
 }

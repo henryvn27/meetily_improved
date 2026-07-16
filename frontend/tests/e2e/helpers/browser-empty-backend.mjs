@@ -1,12 +1,15 @@
 const responses = new Map([
   ['api_get_transcript_config', null],
   ['get_audio_devices', []],
+  ['get_audio_backend_info', []],
   ['get_menu_bar_enabled', false],
   ['get_notification_settings', null],
   ['get_recording_preferences', {
+    save_folder: '',
+    auto_save: true,
+    file_format: 'mp4',
     preferred_mic_device: null,
     preferred_system_device: null,
-    recordings_folder_path: null,
   }],
   ['get_current_audio_backend', 'default'],
   ['get_available_audio_backends', []],

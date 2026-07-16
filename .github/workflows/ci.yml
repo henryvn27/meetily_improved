@@ -106,6 +106,9 @@ jobs:
       - name: Run focused source tests
         run: node --test tests/lib/*.test.mjs
 
+      - name: Run rendered behavior tests
+        run: pnpm run test:rendered
+
       - name: Lint
         run: pnpm run lint
 
@@ -114,6 +117,18 @@ jobs:
 
       - name: Enforce route bundle budget
         run: pnpm run check:bundle
+
+      - name: Run browser accessibility and visual QA
+        run: pnpm run test:e2e:browser
+
+      - name: Upload browser QA failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-qa-failure-${{ github.sha }}
+          path: frontend/tests/e2e/artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
 
   native-qa-macos:
     name: Native macOS QA bundle
@@ -166,6 +181,23 @@ jobs:
           mkdir -p frontend/src-tauri/binaries
           install -m 755 target/debug/llama-helper \
             frontend/src-tauri/binaries/llama-helper-aarch64-apple-darwin
+
+      - name: Build isolated native WebDriver app
+        working-directory: frontend
+        run: pnpm run tauri:build:wdio
+
+      - name: Run native accessibility and route QA
+        working-directory: frontend
+        run: pnpm run test:e2e:native
+
+      - name: Upload native QA evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-webdriver-evidence-${{ github.sha }}
+          path: frontend/tests/e2e/artifacts/native/
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Build isolated native QA app
         working-directory: frontend
