@@ -33,7 +33,8 @@ test('IndexedDB recovery preserves the backend transcript sequence identifier', 
 });
 
 test('browser accessibility scans use one in-page axe execution', () => {
-  assert.match(accessibilityHelper, /const results = await analyzeInCurrentWindow\(browser\)/);
+  assert.match(accessibilityHelper, /const violations = await analyzeInCurrentWindow\(browser\)/);
+  assert.match(accessibilityHelper, /return results\.violations\.map/);
   assert.doesNotMatch(accessibilityHelper, /AxeBuilder|@axe-core\/webdriverio/);
 });
 
