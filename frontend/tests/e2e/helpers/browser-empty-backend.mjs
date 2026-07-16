@@ -31,19 +31,9 @@ const responses = new Map([
   ['get_default_recordings_folder_path', ''],
 ]);
 
-const mocks = new Map();
-
 export async function installEmptyBackendMocks(browser) {
   for (const [command, value] of responses) {
-    let mock = mocks.get(command);
-    if (!mock) {
-      mock = await browser.tauri.mock(command);
-      mocks.set(command, mock);
-    }
+    const mock = await browser.tauri.mock(command);
     await mock.mockResolvedValue(value);
   }
-}
-
-export async function emptyBackendMocksAreInstalled(browser) {
-  return browser.execute(() => Boolean(window.__wdio_mocks__?.api_get_model_config));
 }

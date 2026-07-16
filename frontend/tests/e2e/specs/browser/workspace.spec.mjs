@@ -1,9 +1,6 @@
 import { $, browser, expect } from '@wdio/globals';
 import { expectWcag22Aa } from '../../helpers/accessibility.mjs';
-import {
-  emptyBackendMocksAreInstalled,
-  installEmptyBackendMocks,
-} from '../../helpers/browser-empty-backend.mjs';
+import { installEmptyBackendMocks } from '../../helpers/browser-empty-backend.mjs';
 import { expectPageHeading, openSidebarRoute, routes, setAppearance } from '../../helpers/routes.mjs';
 
 const appearances = ['Light', 'Dark'];
@@ -40,12 +37,6 @@ describe('Meetily browser-mode workspace', () => {
         html: document.body?.innerHTML.slice(0, 2_000) ?? '',
       }));
       throw new Error(`Empty-workspace bootstrap did not render: ${JSON.stringify(diagnostic)}. ${error instanceof Error ? error.message : String(error)}`);
-    }
-  });
-
-  afterEach(async () => {
-    if (!await emptyBackendMocksAreInstalled(browser)) {
-      await installEmptyBackendMocks(browser);
     }
   });
 
@@ -95,12 +86,6 @@ describe('Meetily browser-mode workspace', () => {
       });
     }
 
-    it(`passes WCAG 2.2 AA on ${appearance} missing-meeting recovery`, async () => {
-      await setAppearance(appearance);
-      await browser.url('http://127.0.0.1:3120/meeting-details');
-      await expectPageHeading('Meeting could not be opened', 2);
-      await expectAccessible(`${appearance} / missing-meeting recovery`);
-    });
   }
 
   it('persists theme selection and compares both required workspace sizes', async () => {
@@ -164,4 +149,18 @@ describe('Meetily browser-mode workspace', () => {
     expect(timing).not.toBeNull();
     expect(Number.parseFloat(timing.transitionDuration)).toBeLessThanOrEqual(0.00001);
   });
+
+  for (const appearance of appearances) {
+    it(`passes WCAG 2.2 AA on ${appearance} missing-meeting recovery`, async () => {
+      await browser.execute((preference) => {
+        window.localStorage.setItem('meetily-theme-preference', preference.toLowerCase());
+      }, appearance);
+      await browser.url('http://127.0.0.1:3120/meeting-details');
+      await browser.waitUntil(
+        () => browser.execute((theme) => document.documentElement.dataset.theme === theme, appearance.toLowerCase()),
+      );
+      await expectPageHeading('Meeting could not be opened', 2);
+      await expectAccessible(`${appearance} / missing-meeting recovery`);
+    });
+  }
 });
