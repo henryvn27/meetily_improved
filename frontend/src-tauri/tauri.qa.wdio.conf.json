@@ -1,0 +1,35 @@
+{
+  "productName": "Meetily Improved QA WebDriver",
+  "identifier": "com.meetily.improved.qa.wdio",
+  "bundle": {
+    "createUpdaterArtifacts": false
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Meetily Improved QA WebDriver",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 1100,
+        "minHeight": 720,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "capabilities": [
+        "main",
+        {
+          "identifier": "wdio",
+          "description": "Test-only WebDriver capability for the isolated QA binary",
+          "windows": ["main"],
+          "permissions": [
+            "wdio:allow-execute",
+            "wdio:allow-get-window-states",
+            "wdio-webdriver:default"
+          ]
+        }
+      ]
+    }
+  }
+}

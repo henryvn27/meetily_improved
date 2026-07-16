@@ -198,10 +198,15 @@ export function PreferenceSettings() {
         <div className="flex items-center justify-between">
           <div>
             <p className="app-eyebrow mb-2">Notifications</p>
-            <h3 className="text-lg font-semibold tracking-[-0.03em]">Recording alerts</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Enable or disable notifications at the start and end of a meeting.</p>
+            <h3 id="recording-alerts-heading" className="text-lg font-semibold tracking-[-0.03em]">Recording alerts</h3>
+            <p id="recording-alerts-description" className="mt-1 text-sm text-muted-foreground">Enable or disable notifications at the start and end of a meeting.</p>
           </div>
-          <Switch checked={notificationsEnabledValue} onCheckedChange={setNotificationsEnabled} />
+          <Switch
+            aria-labelledby="recording-alerts-heading"
+            aria-describedby="recording-alerts-description"
+            checked={notificationsEnabledValue}
+            onCheckedChange={setNotificationsEnabled}
+          />
         </div>
       </section>
 

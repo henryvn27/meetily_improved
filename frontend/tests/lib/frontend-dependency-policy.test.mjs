@@ -21,6 +21,7 @@ test('frontend toolchain and patched framework versions are reproducible', () =>
   assert.equal(packageJson.devDependencies['eslint-config-next'], '15.5.20');
   assert.equal(packageJson.devDependencies.eslint, '9.39.2');
   assert.equal(packageJson.scripts.lint, 'eslint src --max-warnings 0');
+  assert.equal(packageJson.scripts.build, 'node scripts/clean-next-output.mjs && next build');
   assert.equal(packageJson.pnpm, undefined);
 });
 

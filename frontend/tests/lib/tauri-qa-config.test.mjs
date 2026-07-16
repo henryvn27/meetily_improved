@@ -5,12 +5,14 @@ import test from 'node:test';
 const root = new URL('../../', import.meta.url);
 
 test('QA launcher isolates the native dev instance without changing the release identity', async () => {
-  const [packageJson, qaConfig, routesQaConfig, minimumQaConfig, onboardingQaConfig, releaseConfig] = await Promise.all([
+  const [packageJson, qaConfig, routesQaConfig, minimumQaConfig, onboardingQaConfig, wdioQaConfig, layoutSource, releaseConfig] = await Promise.all([
     readFile(new URL('package.json', root), 'utf8'),
     readFile(new URL('src-tauri/tauri.qa.conf.json', root), 'utf8'),
     readFile(new URL('src-tauri/tauri.qa.routes.conf.json', root), 'utf8'),
     readFile(new URL('src-tauri/tauri.qa.minimum.conf.json', root), 'utf8'),
     readFile(new URL('src-tauri/tauri.qa.onboarding.conf.json', root), 'utf8'),
+    readFile(new URL('src-tauri/tauri.qa.wdio.conf.json', root), 'utf8'),
+    readFile(new URL('src/app/layout.tsx', root), 'utf8'),
     readFile(new URL('src-tauri/tauri.conf.json', root), 'utf8'),
   ]);
   const scripts = JSON.parse(packageJson).scripts;
@@ -18,6 +20,7 @@ test('QA launcher isolates the native dev instance without changing the release 
   const routesQa = JSON.parse(routesQaConfig);
   const minimumQa = JSON.parse(minimumQaConfig);
   const onboardingQa = JSON.parse(onboardingQaConfig);
+  const wdioQa = JSON.parse(wdioQaConfig);
   const release = JSON.parse(releaseConfig);
 
   assert.equal(scripts['tauri:dev:qa'], 'NEXT_PUBLIC_MEETILY_NATIVE_QA_MODE=routes tauri dev --config src-tauri/tauri.qa.routes.conf.json -- --features metal');
@@ -38,7 +41,21 @@ test('QA launcher isolates the native dev instance without changing the release 
   assert.equal(onboardingQa.identifier, 'com.meetily.improved.qa.onboarding');
   assert.equal(onboardingQa.productName, 'Meetily Improved QA Onboarding');
   assert.equal(onboardingQa.app.windows[0].title, 'Meetily Improved QA Onboarding');
-  for (const config of [qa, routesQa, minimumQa, onboardingQa]) {
+  assert.equal(wdioQa.identifier, 'com.meetily.improved.qa.wdio');
+  assert.equal(wdioQa.app.windows[0].title, 'Meetily Improved QA WebDriver');
+  assert.equal(wdioQa.app.security.capabilities[0], 'main');
+  assert.deepEqual(wdioQa.app.security.capabilities[1], {
+    identifier: 'wdio',
+    description: 'Test-only WebDriver capability for the isolated QA binary',
+    windows: ['main'],
+    permissions: [
+      'wdio:allow-execute',
+      'wdio:allow-get-window-states',
+      'wdio-webdriver:default',
+    ],
+  });
+  assert.match(layoutSource, /NEXT_PUBLIC_MEETILY_WDIO === 'true' \? 'Meetily Improved QA WebDriver' : 'Meetily Improved'/);
+  for (const config of [qa, routesQa, minimumQa, onboardingQa, wdioQa]) {
     assert.equal(config.bundle.createUpdaterArtifacts, false);
   }
   assert.equal(release.bundle.createUpdaterArtifacts, true);

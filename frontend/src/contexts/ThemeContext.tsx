@@ -34,10 +34,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const apply = () => {
       const theme = resolveTheme(preference);
+      const root = document.documentElement;
+      const isInitialTheme = !root.dataset.theme;
+
       setResolvedTheme(theme);
-      document.documentElement.classList.toggle('dark', theme === 'dark');
-      document.documentElement.dataset.theme = theme;
-      document.documentElement.style.colorScheme = theme;
+      root.classList.toggle('dark', theme === 'dark');
+      root.style.colorScheme = theme;
+
+      if (isInitialTheme) {
+        // Commit the theme tokens while transition utilities are disabled by
+        // html:not([data-theme]), then enable transitions synchronously. A
+        // frame callback can be deferred indefinitely in an unfocused WKWebView.
+        void root.offsetWidth;
+      }
+      root.dataset.theme = theme;
     };
 
     apply();

@@ -21,7 +21,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/75",
         ghost: "hover:bg-secondary hover:text-foreground",
         link: "text-foreground underline-offset-4 hover:underline",
-        green: "bg-[hsl(var(--success))] text-white hover:opacity-90",
+        green: "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:opacity-90",
         blue: "bg-[hsl(var(--info))] text-white hover:opacity-90",
         red: "bg-destructive text-destructive-foreground hover:opacity-90",
         gray: "border border-input bg-card hover:bg-secondary",

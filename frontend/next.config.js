@@ -8,6 +8,8 @@ const nextConfig = {
   reactStrictMode: false, // Disabled for BlockNote compatibility
   output: 'export',
   outputFileTracingRoot: __dirname,
+  devIndicators: process.env.NEXT_PUBLIC_MEETILY_BROWSER_QA === 'true' ? false : undefined,
+  allowedDevOrigins: ['127.0.0.1'],
   images: {
     unoptimized: true,
   },
@@ -17,6 +19,13 @@ const nextConfig = {
 
   // Add webpack configuration for Tauri
   webpack: (config, { isServer }) => {
+    if (process.env.NEXT_PUBLIC_MEETILY_WDIO !== 'true') {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@wdio/tauri-plugin$': path.resolve(__dirname, 'src/lib/wdio-disabled.ts'),
+      };
+    }
+
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,

@@ -1,0 +1,66 @@
+diff --git a/dist/cjs/index.js b/dist/cjs/index.js
+index 199d9ee179defe66f659ca67246db54a34e175ca..7c77cd0087dc5160af5616bcdb01ce6e408c2cfd 100644
+--- a/dist/cjs/index.js
++++ b/dist/cjs/index.js
+@@ -3900,7 +3900,7 @@ class TauriWorkerService {
+         }
+     }
+     async beforeCommand(commandName, _args) {
+-        if (!this.browser || this.browser.isMultiremote) {
++        if (this.mode === 'browser' || !this.browser || this.browser.isMultiremote) {
+             return;
+         }
+         const browser = this.browser;
+@@ -3934,14 +3934,17 @@ class TauriWorkerService {
+                 const mrBrowser = this.browser;
+                 for (const instanceName of mrBrowser.instances) {
+                     try {
+-                        await restoreAllMocks.call({ browser: mrBrowser.getInstance(instanceName) });
++                        const instanceBrowser = mrBrowser.getInstance(instanceName);
++                        if (instanceBrowser.sessionId) {
++                            await restoreAllMocks.call({ browser: instanceBrowser });
++                        }
+                     }
+                     catch (instanceError) {
+                         log$1.warn(`Failed to restore mocks on instance ${instanceName}:`, instanceError);
+                     }
+                 }
+             }
+-            else if (this.browser) {
++            else if (this.browser?.sessionId) {
+                 await restoreAllMocks.call({ browser: this.browser });
+             }
+             mockStore.clear();
+diff --git a/dist/esm/index.js b/dist/esm/index.js
+index 96bcb93875968ed51ed17cc9ceeca59eacc20bf1..b681300b802627eb7fc575c0fc5f1a8a8a3fc6fe 100644
+--- a/dist/esm/index.js
++++ b/dist/esm/index.js
+@@ -3896,7 +3896,7 @@ class TauriWorkerService {
+         }
+     }
+     async beforeCommand(commandName, _args) {
+-        if (!this.browser || this.browser.isMultiremote) {
++        if (this.mode === 'browser' || !this.browser || this.browser.isMultiremote) {
+             return;
+         }
+         const browser = this.browser;
+@@ -3930,14 +3930,17 @@ class TauriWorkerService {
+                 const mrBrowser = this.browser;
+                 for (const instanceName of mrBrowser.instances) {
+                     try {
+-                        await restoreAllMocks.call({ browser: mrBrowser.getInstance(instanceName) });
++                        const instanceBrowser = mrBrowser.getInstance(instanceName);
++                        if (instanceBrowser.sessionId) {
++                            await restoreAllMocks.call({ browser: instanceBrowser });
++                        }
+                     }
+                     catch (instanceError) {
+                         log$1.warn(`Failed to restore mocks on instance ${instanceName}:`, instanceError);
+                     }
+                 }
+             }
+-            else if (this.browser) {
++            else if (this.browser?.sessionId) {
+                 await restoreAllMocks.call({ browser: this.browser });
+             }
+             mockStore.clear();

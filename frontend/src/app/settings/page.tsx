@@ -92,6 +92,7 @@ export default function SettingsPage() {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
+                    aria-label={tab.label}
                     ref={el => { tabRefs.current[index] = el }}
                     className="relative z-10 flex min-h-11 items-center gap-2 rounded-none border-0 bg-transparent px-5 py-3 text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                   >

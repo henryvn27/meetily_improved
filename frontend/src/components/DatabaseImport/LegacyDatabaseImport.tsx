@@ -187,7 +187,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
             <button
               onClick={handleImport}
               disabled={!canImport || isLoading}
-              className="flex w-full items-center justify-center gap-2 bg-[hsl(var(--success))] px-4 py-3 text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+              className="flex w-full items-center justify-center gap-2 bg-[hsl(var(--success))] px-4 py-3 text-[hsl(var(--success-foreground))] transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
             >
               {importState === 'importing' ? (
                 <>
