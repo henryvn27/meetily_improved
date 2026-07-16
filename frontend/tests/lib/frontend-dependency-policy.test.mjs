@@ -52,10 +52,10 @@ test('CI installs the frozen graph before enforcing the production audit', () =>
   assert.ok(installIndex >= 0);
   assert.ok(auditIndex > installIndex);
   assert.ok(testIndex > auditIndex);
-  assert.match(ciText, /actions\/checkout@v7/);
-  assert.match(ciText, /actions\/setup-node@v7/);
-  assert.match(ciText, /pnpm\/action-setup@v6/);
-  assert.match(ciText, /actions\/upload-artifact@v7/);
+  assert.match(ciText, /actions\/checkout@[0-9a-f]{40} # v7/);
+  assert.match(ciText, /actions\/setup-node@[0-9a-f]{40} # v7/);
+  assert.match(ciText, /pnpm\/action-setup@[0-9a-f]{40} # v6/);
+  assert.match(ciText, /actions\/upload-artifact@[0-9a-f]{40} # v7/);
   assert.match(ciText, /CFBundleExecutable/);
   assert.match(ciText, /Mach-O 64-bit executable arm64/);
   assert.match(ciText, /Contents\/Resources\/Assets\.car/);
