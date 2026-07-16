@@ -371,7 +371,7 @@ pub async fn api_process_transcript<R: Runtime>(
 
     log_info!("✓ Summary process initialized for meeting_id: {}", m_id);
 
-    // Save transcript chunks data (matching Python backend behavior)
+    // Save transcript chunks in the legacy database-compatible shape.
     let chunk_size = _chunk_size.unwrap_or(40000);
     let overlap = _overlap.unwrap_or(1000);
 

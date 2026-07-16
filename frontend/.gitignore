@@ -17,9 +17,6 @@ package-lock.json
 transcripts/
 chroma/
 models/
-whisper.cpp/
-whisper-server*
-whisper-server-package/
 
 # testing
 /coverage

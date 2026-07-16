@@ -1,6 +1,6 @@
 use log::{error, info};
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Emitter, Manager};
 
 use super::manager::DatabaseManager;
@@ -43,43 +43,41 @@ pub async fn select_legacy_database_path(app: AppHandle) -> Result<Option<String
     }
 }
 
-/// Detect legacy database from a selected path (root repo, backend folder, or db file)
+fn detect_legacy_database_path(path: &Path) -> Option<PathBuf> {
+    if path.is_file() && path.extension().is_some_and(|extension| extension == "db") {
+        return Some(path.to_path_buf());
+    }
+
+    if !path.is_dir() {
+        return None;
+    }
+
+    let direct_db = path.join("meeting_minutes.db");
+    if direct_db.is_file() {
+        return Some(direct_db);
+    }
+
+    // Preserve user-data migration from historical Meetily repository layouts.
+    let historical_repo_db = path.join("backend").join("meeting_minutes.db");
+    historical_repo_db.is_file().then_some(historical_repo_db)
+}
+
+/// Detect a legacy database from a selected database, containing folder, or historical repo.
 #[tauri::command]
 pub async fn detect_legacy_database(selected_path: String) -> Result<Option<String>, String> {
     let path = PathBuf::from(&selected_path);
 
     info!("Detecting legacy database from path: {}", selected_path);
 
-    // Case 1: User selected the .db file directly
-    if path.is_file() {
-        if let Some(extension) = path.extension() {
-            if extension == "db" {
-                info!("Direct .db file selected: {}", selected_path);
-                return Ok(Some(selected_path));
-            }
-        }
+    let detected = detect_legacy_database_path(&path)
+        .map(|database_path| database_path.to_string_lossy().to_string());
+
+    match &detected {
+        Some(database_path) => info!("Found legacy database: {}", database_path),
+        None => info!("No legacy database found at path: {}", selected_path),
     }
 
-    // Case 2: User selected directory containing meeting_minutes.db
-    if path.is_dir() {
-        let direct_db = path.join("meeting_minutes.db");
-        if direct_db.exists() && direct_db.is_file() {
-            let db_path = direct_db.to_string_lossy().to_string();
-            info!("Found database in selected directory: {}", db_path);
-            return Ok(Some(db_path));
-        }
-
-        // Case 3: User selected root repo (check backend subdirectory)
-        let backend_db = path.join("backend").join("meeting_minutes.db");
-        if backend_db.exists() && backend_db.is_file() {
-            let db_path = backend_db.to_string_lossy().to_string();
-            info!("Found database in backend subdirectory: {}", db_path);
-            return Ok(Some(db_path));
-        }
-    }
-
-    info!("No legacy database found at path: {}", selected_path);
-    Ok(None)
+    Ok(detected)
 }
 
 /// Check for legacy database in the default app data directory
@@ -281,4 +279,46 @@ pub async fn open_database_folder(app: AppHandle) -> Result<(), String> {
 
     info!("Opened database folder: {}", folder_path);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::detect_legacy_database_path;
+    use std::fs;
+
+    #[test]
+    fn detects_direct_database_file() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let database = temp_dir.path().join("previous.db");
+        fs::write(&database, b"database").unwrap();
+
+        assert_eq!(detect_legacy_database_path(&database), Some(database));
+    }
+
+    #[test]
+    fn detects_database_in_selected_folder() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let database = temp_dir.path().join("meeting_minutes.db");
+        fs::write(&database, b"database").unwrap();
+
+        assert_eq!(detect_legacy_database_path(temp_dir.path()), Some(database));
+    }
+
+    #[test]
+    fn detects_database_in_historical_repository_layout() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let historical_backend = temp_dir.path().join("backend");
+        fs::create_dir(&historical_backend).unwrap();
+        let database = historical_backend.join("meeting_minutes.db");
+        fs::write(&database, b"database").unwrap();
+
+        assert_eq!(detect_legacy_database_path(temp_dir.path()), Some(database));
+    }
+
+    #[test]
+    fn returns_none_when_selected_path_has_no_database() {
+        let temp_dir = tempfile::tempdir().unwrap();
+
+        assert_eq!(detect_legacy_database_path(temp_dir.path()), None);
+    }
 }
