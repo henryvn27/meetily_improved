@@ -1,345 +1,132 @@
-# GitHub Actions Workflows Overview
+# GitHub Actions workflows
 
-This document provides a quick overview of all available CI/CD workflows in this repository.
+Meetily Improved uses automatic protected checks for every pull request and
+manual workflows for platform builds and release operations. Remote actions
+must be pinned to a full 40-character commit SHA; the repository also enforces
+that rule at the GitHub Actions policy layer.
 
-**Note:** All workflows in this repository use **manual triggers only** (`workflow_dispatch`). There are no automatic triggers from push or pull request events.
+## Required pull-request checks
 
-## Workflow Files
+### `ci.yml`
 
-### 1. **build-devtest.yml** - DevTest Builds
-**Purpose:** Fast builds for development and testing
+Runs on pull requests, pushes to `main`, and manual dispatch.
 
-**Key Features:**
-- Signing OFF by default (faster builds)
-- Optional signing via workflow dispatch input
-- All platforms in parallel
-- 14-day artifact retention
+- **Frontend quality** installs the frozen pnpm graph, audits production
+  dependencies, runs source and rendered tests, lints, builds, and enforces the
+  route-bundle budget.
+- **Rust dependency policy** runs cargo-deny for advisories, licenses, and
+  sources.
+- **Rust core quality** verifies formatting, Rust 1.88.0 compatibility, strict
+  Clippy, and workspace tests with the native helper staged.
+- **Native macOS QA bundle** runs browser accessibility/visual QA, isolated
+  WebDriver route QA, native bundle identity/signature checks, and uploads
+  evidence from an Apple Silicon macOS 26 runner.
 
-**Triggers:**
-- Manual dispatch only
+### `security.yml`
 
-**Use When:**
-- Regular development work
-- Testing features
-- Need fast feedback
+Runs on pull requests, pushes to `main`, and manual dispatch.
 
----
+- **Workflow action pinning** rejects movable remote Action references.
+- **Dependency review** rejects new dependencies with moderate-or-higher known
+  vulnerabilities.
+- **CodeQL (JavaScript/TypeScript)** runs the `security-extended` query suite.
 
-### 2. **build-macos.yml** - macOS Standalone Builds
-**Purpose:** Build and test specifically for Apple Silicon (M1/M2/M3)
+Protected `main` requires all seven named checks to be current with the branch,
+including the native QA bundle. Admins are subject to the same rules; force
+pushes and branch deletion are disabled.
 
-**Key Features:**
-- Apple Developer Certificate signing (optional)
-- Notarization with Apple ID
-- Signature verification
-- macOS-focused optimizations
+## Production release
 
-**Triggers:**
-- Manual dispatch only
+### `release.yml`
 
-**Use When:**
-- macOS-specific development
-- Testing Metal GPU acceleration
-- Verifying macOS-specific features
+The Release workflow is manual and creates a gated draft for macOS Apple
+Silicon and Windows x64. It does not publish the release.
 
-**Outputs:**
-- `.dmg` installer
-- `.app` bundle
+Dispatch it from `main` with:
 
----
+- `release_sha`: the exact 40-character current `main` SHA;
+- `confirm_signing_ready`: `true` only after Apple, Windows, and updater
+  credentials are configured.
 
-### 3. **build-windows.yml** - Windows Standalone Builds
-**Purpose:** Build and test specifically for Windows x64
+The preflight requires the dispatch SHA, workflow SHA, checked-out SHA, and
+live remote `main` SHA to match. The committed `X.Y.Z` version is authoritative.
+If its tag or release already exists, the workflow fails; it never invents a
+suffix or replaces an existing release.
 
-**Key Features:**
-- DigiCert KeyLocker signing (cloud HSM)
-- Signs both MSI and NSIS installers
-- Signature verification with PowerShell
-- MSI installer validation
+The workflow then:
 
-**Triggers:**
-- Manual dispatch only
+1. creates a draft targeted at the verified SHA;
+2. builds signed macOS and Windows installers through `build.yml`;
+3. verifies Developer ID signature, Gatekeeper assessment, notarization and
+   stapling for the app and DMG;
+4. verifies valid Authenticode signatures on both MSI and NSIS installers;
+5. requires Tauri updater signatures and `latest.json`;
+6. generates an SPDX JSON SBOM, `RELEASE_PROVENANCE.json`, and deterministic
+   `SHA256SUMS`;
+7. creates and verifies GitHub build-provenance and SBOM attestations;
+8. uploads the evidence to the draft and leaves publication manual.
 
-**Use When:**
-- Windows-specific development
-- Testing CUDA/Vulkan GPU acceleration
-- Verifying Windows-specific features
+See [`../../docs/RELEASE_SECURITY.md`](../../docs/RELEASE_SECURITY.md) for the
+exact dispatch and clean-download verification procedure. Do not publish the
+existing rejected `v0.5.0` draft or any draft that has not passed every gate.
 
-**Outputs:**
-- `.msi` installer
-- `.exe` NSIS installer
+### Required release secrets
 
----
+macOS signing and notarization:
 
-### 4. **build-linux.yml** - Linux Standalone Builds
-**Purpose:** Build and test for Linux distributions
+- `APPLE_CERTIFICATE`
+- `APPLE_CERTIFICATE_PASSWORD`
+- `APPLE_ID`
+- `APPLE_ID_PASSWORD`
+- `APPLE_TEAM_ID`
+- `KEYCHAIN_PASSWORD`
 
-**Key Features:**
-- Support for Ubuntu 22.04 and 24.04
-- Multiple bundle formats (DEB, AppImage, RPM)
-- Tauri updater signing
-- AppImage compatibility fixes
-- Package verification
+Windows DigiCert KeyLocker signing:
 
-**Triggers:**
-- Manual dispatch only
+- `SM_HOST`
+- `SM_API_KEY`
+- `SM_CLIENT_CERT_FILE_B64`
+- `SM_CLIENT_CERT_PASSWORD`
+- `SM_CODE_SIGNING_CERT_SHA1_HASH`
 
-**Use When:**
-- Linux-specific development
-- Testing Vulkan GPU acceleration
-- Verifying package formats
+Tauri updater signing:
 
-**Outputs:**
-- `.deb` package (Ubuntu/Debian)
-- `.AppImage` portable
-- `.rpm` package (Fedora/RHEL)
+- `TAURI_SIGNING_PRIVATE_KEY`
+- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
 
----
+Signing credentials are machine/account-owner inputs. Their absence is an
+intentional release stop condition, not a reason to weaken the workflow.
 
-### 5. **build-test.yml** - Multi-Platform Test Builds
-**Purpose:** Test builds across all platforms with signing
+## Manual build workflows
 
-**Key Features:**
-- Signing ON by default
-- All platforms in parallel
-- Uses reusable `build.yml` workflow
-- 30-day artifact retention
-- Artifacts prefixed with `meetily-test-`
-
-**Triggers:**
-- Manual dispatch only
-
-**Use When:**
-- Pre-release testing
-- Verifying signing infrastructure
-- Testing across all platforms simultaneously
-
----
-
-### 6. **build.yml** - Reusable Build Workflow
-**Purpose:** Shared workflow used by other workflows
-
-**Key Features:**
-- Reusable workflow (called by others)
-- Highly configurable inputs
-- Used by `build-test.yml` and `release.yml`
-
-**Not directly triggered** - used as a building block
-
----
-
-### 7. **release.yml** - Production Release
-**Purpose:** Create official releases with signed binaries
-
-**Key Features:**
-- Signing REQUIRED
-- Creates GitHub Release (draft)
-- Version tags from `tauri.conf.json`
-- Uploads release assets
-- **macOS and Windows only** (Linux excluded from production releases)
-- Auto-generates `latest.json` for Tauri updater
-- **Auto-increment versioning**: If tag exists, auto-increments (e.g., `0.1.1` -> `0.1.1.1` -> `0.1.1.2`, up to `.100`)
-
-**Triggers:**
-- Manual dispatch only
-
-**Use When:**
-- Ready to publish a new version
-- Creating official release artifacts
-
-**Outputs:**
-- GitHub Release (draft)
-- macOS: DMG installer, app.tar.gz (updater), .sig
-- Windows: MSI installer (signed), NSIS installer (signed), .sig files
-- Updater manifest: latest.json
-- Release notes auto-generated
-
-**Version Behavior:**
-- If `v0.1.1` tag doesn't exist: creates `v0.1.1`
-- If `v0.1.1` exists: creates `v0.1.1.1`
-- If `v0.1.1.1` exists: creates `v0.1.1.2`
-- Maximum: `v0.1.1.100` (then update `tauri.conf.json`)
-
-**Note:** Linux builds are not included in releases. Use `build-linux.yml` for Linux testing.
-
----
-
-### 8. **pr-main-check.yml** - Validation Check
-**Purpose:** Quick validation of version and configuration
-
-**Key Features:**
-- No builds triggered
-- Validates version format
-- Shows current branch info
-- Provides next steps guidance
-
-**Triggers:**
-- Manual dispatch only
-
-**Use When:**
-- Quick configuration check
-- Before running full builds
-
----
-
-## How to Run Workflows
-
-1. **Go to Actions tab** in GitHub repository
-2. **Select workflow** from left sidebar
-3. **Click "Run workflow"** button
-4. **Select branch** to run against
-5. **Configure options** (build type, signing, etc.)
-6. **Click "Run workflow"** to start
-7. **Monitor progress** in the Actions tab
-
----
-
-## Quick Decision Guide
-
-### "I'm developing a new feature..."
-- **Use `build-devtest.yml`** (manual dispatch)
-- Fast builds, no signing by default
-- Enable signing checkbox if needed
-
-### "I need to test macOS-specific code..."
-- **Use `build-macos.yml`** (manual dispatch)
-- Focus on macOS
-- Optional signing
-
-### "I need to test Windows-specific code..."
-- **Use `build-windows.yml`** (manual dispatch)
-- Focus on Windows
-- Optional signing
-
-### "I need to test Linux packages..."
-- **Use `build-linux.yml`** (manual dispatch)
-- Choose Ubuntu version
-- Choose bundle types
-
-### "I need signed builds for all platforms..."
-- **Use `build-test.yml`** (manual dispatch)
-- All platforms
-- Signing enabled
-- Full verification
-
-### "I'm ready to release..."
-- **Use `release.yml`** (manual dispatch)
-- Creates GitHub Release
-- All platforms, fully signed
-- Production-ready artifacts
-
----
-
-## Workflow Dependencies
-
-```
-build.yml (reusable)
-    |-- build-test.yml (calls build.yml)
-    |-- release.yml (calls build.yml)
-
-Standalone (don't use build.yml):
-    |-- build-macos.yml
-    |-- build-windows.yml
-    |-- build-linux.yml
-    |-- build-devtest.yml
-    |-- pr-main-check.yml (validation only)
-```
-
----
-
-## Comparison Matrix
-
-| Workflow | Platforms | Default Signing | Speed | Retention | Use Case |
-|----------|-----------|----------------|-------|-----------|----------|
-| `build-devtest.yml` | All | OFF | Fast | 14 days | Development |
-| `build-macos.yml` | macOS | Optional | Medium | 30 days | macOS dev |
-| `build-windows.yml` | Windows | Optional | Medium | 30 days | Windows dev |
-| `build-linux.yml` | Linux | Optional | Medium | 30 days | Linux dev |
-| `build-test.yml` | All | ON | Slow | 30 days | Pre-release |
-| `release.yml` | macOS + Windows | REQUIRED | Slow | Permanent | Release |
-
----
-
-## Artifact Naming Convention
-
-```
-meetily-{workflow}-{platform}-{target}-{version}
-```
-
-**Examples:**
-- `meetily-devtest-macOS-aarch64-apple-darwin-0.1.3`
-- `meetily-test-windows-x86_64-pc-windows-msvc-0.1.3`
-- `meetily-macos-aarch64-release-0.1.3`
-
----
-
-## Required Secrets
-
-All workflows require these secrets to be configured:
-
-### macOS Signing
-- `APPLE_CERTIFICATE` - Developer ID certificate (base64)
-- `APPLE_CERTIFICATE_PASSWORD` - Certificate password
-- `APPLE_ID` - Apple ID email
-- `APPLE_PASSWORD` - App-specific password
-- `APPLE_TEAM_ID` - Team ID
-- `KEYCHAIN_PASSWORD` - Temporary keychain password
-
-### Windows Signing (DigiCert)
-- `SM_HOST` - DigiCert host URL
-- `SM_API_KEY` - API key
-- `SM_CLIENT_CERT_FILE_B64` - Client cert (base64)
-- `SM_CLIENT_CERT_PASSWORD` - Client cert password
-- `SM_CODE_SIGNING_CERT_SHA1_HASH` - Certificate hash
-
-### Tauri Updater (All Platforms)
-- `TAURI_SIGNING_PRIVATE_KEY` - Ed25519 private key
-- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` - Key password
-
-### Application Configuration
-- `MEETILY_RSA_PUBLIC_KEY` - License validation public key
-- `SUPABASE_URL` - Online license verification
-- `SUPABASE_ANON_KEY` - Supabase anonymous key
-
----
-
-## Performance Tips
-
-1. **Use devtest workflow** for routine development (fastest)
-2. **Enable signing** only when necessary (adds 10-15 minutes)
-3. **Test specific platforms** when working on platform-specific code
-4. **Run full builds** (`build-test.yml`) before releases
-5. **Cache is enabled** - subsequent builds are faster
-
----
-
-## Troubleshooting
-
-### Build fails with version error (Windows MSI)
-- Ensure version in `tauri.conf.json` doesn't contain non-numeric pre-release identifiers
-- Use `0.1.3` not `0.1.2-pro-trial`
-
-### Signing fails
-- Verify all required secrets are configured
-- Check secret expiration dates
-- Review workflow logs for specific errors
-
-### Artifacts not available
-- Check build succeeded completely
-- Artifacts expire based on retention period
-- Ensure `upload-artifacts` is enabled
-
-### Workflow not appearing in Actions
-- Verify YAML syntax is valid
-- Check file is in `.github/workflows/` directory
-- Ensure file extension is `.yml` or `.yaml`
-
----
-
-## Support
-
-For issues with workflows:
-1. Check workflow logs in Actions tab
-2. Review this documentation
-3. Check `README_DEVTEST.md` for devtest-specific help
-4. Check `ACCELERATION_GUIDE.md` for GPU/performance info
+| Workflow | Purpose | Platforms | Signing |
+| --- | --- | --- | --- |
+| `build-devtest.yml` | Development and preflight artifacts | macOS, Windows, Linux | Optional |
+| `build-macos.yml` | Standalone Apple Silicon build | macOS | Optional |
+| `build-windows.yml` | Standalone MSI/NSIS build | Windows | Optional |
+| `build-linux.yml` | DEB, AppImage, and RPM builds | Linux | Updater signing where configured |
+| `build-test.yml` | Signed cross-platform test matrix | macOS, Windows, Linux | Required |
+| `pr-main-check.yml` | Quick version/branch metadata check | Ubuntu | None |
+
+`build.yml` is the reusable implementation called by `build-test.yml` and
+`release.yml`; it is not directly dispatched. Release builds install the
+frontend from the frozen lockfile and record the exact source SHA, toolchain,
+target, platform verification, and installer hashes as build evidence.
+
+Standalone/manual build artifacts are test outputs. They do not satisfy the
+production release gate and must not be substituted for the draft assets
+created from an exact protected `main` SHA.
+
+## Routine usage
+
+- Open or update a pull request and wait for all protected CI and Security
+  checks. Do not merge around a missing or stale context.
+- Use a standalone build workflow only for platform-specific investigation.
+- Use `build-test.yml` when signing infrastructure needs a pre-release exercise.
+- Use `release.yml` only after the protected release commit and every required
+  credential are ready.
+- Verify downloaded artifacts, attestations, checksums, signatures, and
+  platform trust decisions before publishing a draft.
+
+For dev-test details, see [`README_DEVTEST.md`](README_DEVTEST.md). For GPU
+toolchain context, see [`ACCELERATION_GUIDE.md`](ACCELERATION_GUIDE.md).

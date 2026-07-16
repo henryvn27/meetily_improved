@@ -5,10 +5,15 @@ import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
 
-const [packageText, workspaceText, ciText] = await Promise.all([
+const [packageText, workspaceText, ciText, releaseText, buildText, windowsBuildText, devTestBuildText, workflowOverviewText] = await Promise.all([
   readFile(new URL('package.json', root), 'utf8'),
   readFile(new URL('pnpm-workspace.yaml', root), 'utf8'),
   readFile(new URL('../.github/workflows/ci.yml', root), 'utf8'),
+  readFile(new URL('../.github/workflows/release.yml', root), 'utf8'),
+  readFile(new URL('../.github/workflows/build.yml', root), 'utf8'),
+  readFile(new URL('../.github/workflows/build-windows.yml', root), 'utf8'),
+  readFile(new URL('../.github/workflows/build-devtest.yml', root), 'utf8'),
+  readFile(new URL('../.github/workflows/WORKFLOWS_OVERVIEW.md', root), 'utf8'),
 ]);
 
 const packageJson = JSON.parse(packageText);
@@ -52,14 +57,30 @@ test('CI installs the frozen graph before enforcing the production audit', () =>
   assert.ok(installIndex >= 0);
   assert.ok(auditIndex > installIndex);
   assert.ok(testIndex > auditIndex);
-  assert.match(ciText, /actions\/checkout@v7/);
-  assert.match(ciText, /actions\/setup-node@v7/);
-  assert.match(ciText, /pnpm\/action-setup@v6/);
-  assert.match(ciText, /actions\/upload-artifact@v7/);
+  assert.match(ciText, /actions\/checkout@[0-9a-f]{40} # v7/);
+  assert.match(ciText, /actions\/setup-node@[0-9a-f]{40} # v7/);
+  assert.match(ciText, /pnpm\/action-setup@[0-9a-f]{40} # v6/);
+  assert.match(ciText, /actions\/upload-artifact@[0-9a-f]{40} # v7/);
   assert.match(ciText, /CFBundleExecutable/);
   assert.match(ciText, /Mach-O 64-bit executable arm64/);
   assert.match(ciText, /Contents\/Resources\/Assets\.car/);
+  assert.match(ciText, /name: Native macOS QA bundle[\s\S]*?timeout-minutes: 60/);
   assert.doesNotMatch(ciText, /Resources.*index\.html/);
+});
+
+test('release workflows keep dispatch inputs and signing secrets out of shell source and logs', () => {
+  const signingWorkflows = `${buildText}\n${windowsBuildText}\n${devTestBuildText}`;
+
+  assert.match(releaseText, /RELEASE_SHA_INPUT: \$\{\{ inputs\.release_sha \}\}/);
+  assert.match(releaseText, /\[\[ "\$RELEASE_SHA_INPUT" =~ \^\[0-9a-f\]\{40\}\$ \]\]/);
+  assert.doesNotMatch(releaseText, /test "\$\{\{ inputs\.release_sha \}\}"/);
+  assert.doesNotMatch(releaseText, /\[\[ "\$\{\{ inputs\.release_sha \}\}"/);
+  assert.match(buildText, /pnpm install --frozen-lockfile/);
+  assert.doesNotMatch(signingWorkflows, /SM_API_KEY[^\n]*Substring|Substring[^\n]*SM_API_KEY/);
+  assert.doesNotMatch(signingWorkflows, /"[^"\n]*\$\{\{ secrets\.SM_/);
+  assert.match(workflowOverviewText, /seven named checks/);
+  assert.match(workflowOverviewText, /release_sha/);
+  assert.doesNotMatch(workflowOverviewText, /manual triggers only|Auto-increment versioning/);
 });
 
 test('the scoped uuid upgrade preserves the v4 API BlockNote uses', () => {

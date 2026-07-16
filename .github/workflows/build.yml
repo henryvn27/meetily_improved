@@ -51,7 +51,7 @@ jobs:
     runs-on: ${{ inputs.platform }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ inputs.repository }}
           ref: ${{ inputs.ref }}
@@ -78,13 +78,13 @@ jobs:
           fi
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11.7.0
           run_install: false
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
 
@@ -94,7 +94,7 @@ jobs:
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: Setup pnpm cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -102,16 +102,34 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
         with:
           # Only aarch64-apple-darwin for Apple Silicon (no Intel support)
           targets: ${{ contains(inputs.platform, 'macos') && 'aarch64-apple-darwin' || '' }}
 
       - name: Rust cache
-        uses: swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           workspaces: ". -> target"
           key: ${{ inputs.platform }}-${{ inputs.target }}-vulkan-v2
+
+      - name: Initialize release build evidence
+        if: inputs.release-id != ''
+        shell: bash
+        run: |
+          EVIDENCE_DIR="$RUNNER_TEMP/release-build-evidence"
+          EVIDENCE_FILE="$EVIDENCE_DIR/${{ inputs.target }}.txt"
+          mkdir -p "$EVIDENCE_DIR"
+          {
+            echo "source_sha=${GITHUB_SHA}"
+            echo "source_ref=${GITHUB_REF}"
+            echo "target=${{ inputs.target }}"
+            echo "runner_os=${RUNNER_OS}"
+            echo "runner_arch=${RUNNER_ARCH}"
+            echo "node=$(node --version)"
+            echo "pnpm=$(pnpm --version)"
+            rustc -vV
+          } > "$EVIDENCE_FILE"
 
       - name: install dependencies (ubuntu 24.04)
         if: contains(inputs.platform, 'ubuntu-24.04')
@@ -133,7 +151,7 @@ jobs:
 
       - name: Install Vulkan SDK (Windows)
         if: contains(inputs.platform, 'windows')
-        uses: humbletim/install-vulkan-sdk@v1.2
+        uses: humbletim/install-vulkan-sdk@30ba978f977e81b72d091fc8888feb1fb26f9aff # v1.2
         with:
           version: 1.4.309.0
           cache: true
@@ -241,16 +259,22 @@ jobs:
       - name: Setup DigiCert Environment
         if: contains(inputs.platform, 'windows') && inputs.sign-binaries
         shell: pwsh
+        env:
+          SM_API_KEY_SECRET: ${{ secrets.SM_API_KEY }}
+          SM_CLIENT_CERT_FILE_B64_SECRET: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
+          SM_CLIENT_CERT_PASSWORD_SECRET: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
+          SM_CODE_SIGNING_CERT_SHA1_HASH_SECRET: ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}
+          SM_HOST_SECRET: ${{ secrets.SM_HOST }}
         run: |
           # Set environment variables
-          "SM_HOST=${{ secrets.SM_HOST }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "SM_API_KEY=${{ secrets.SM_API_KEY }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "SM_CODE_SIGNING_CERT_SHA1_HASH=${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SM_HOST=$env:SM_HOST_SECRET" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SM_API_KEY=$env:SM_API_KEY_SECRET" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SM_CLIENT_CERT_PASSWORD=$env:SM_CLIENT_CERT_PASSWORD_SECRET" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SM_CODE_SIGNING_CERT_SHA1_HASH=$env:SM_CODE_SIGNING_CERT_SHA1_HASH_SECRET" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           # Decode and save client certificate using PowerShell
           $certPath = "D:\Certificate_pkcs12.p12"
-          $base64String = "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}"
+          $base64String = $env:SM_CLIENT_CERT_FILE_B64_SECRET
           $certBytes = [System.Convert]::FromBase64String($base64String)
           [System.IO.File]::WriteAllBytes($certPath, $certBytes)
 
@@ -263,7 +287,7 @@ jobs:
 
             # Verify it's a valid PKCS12 file by checking if we can load it
             try {
-              $testCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certPath, "${{ secrets.SM_CLIENT_CERT_PASSWORD }}")
+              $testCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certPath, $env:SM_CLIENT_CERT_PASSWORD_SECRET)
               Write-Host "  ✓ Certificate file is valid PKCS12 format"
               Write-Host "  ✓ Password is correct"
               Write-Host "  Certificate Subject: $($testCert.Subject)"
@@ -283,7 +307,7 @@ jobs:
 
       - name: Setup DigiCert KeyLocker
         if: contains(inputs.platform, 'windows') && inputs.sign-binaries
-        uses: digicert/ssm-code-signing@v1.1.1
+        uses: digicert/ssm-code-signing@fb61e357690ad6aaa11c372000c37fb74d35c000 # v1.1.1
 
       - name: Sync Certificate to Windows Certificate Store
         if: contains(inputs.platform, 'windows') && inputs.sign-binaries
@@ -380,7 +404,7 @@ jobs:
           # Check environment variables
           Write-Host "Environment Variables:"
           Write-Host "  SM_HOST: $env:SM_HOST"
-          Write-Host "  SM_API_KEY: $($env:SM_API_KEY.Substring(0, [Math]::Min(20, $env:SM_API_KEY.Length)))..."
+          Write-Host "  SM_API_KEY: $(if ($env:SM_API_KEY) { 'SET' } else { 'NOT SET' })"
           Write-Host "  SM_CLIENT_CERT_FILE: $env:SM_CLIENT_CERT_FILE"
           Write-Host "  SM_CLIENT_CERT_PASSWORD: $(if ($env:SM_CLIENT_CERT_PASSWORD) { '***SET***' } else { 'NOT SET' })"
           Write-Host ""
@@ -431,7 +455,7 @@ jobs:
       - name: Install frontend dependencies
         run: |
           cd frontend
-          pnpm install
+          pnpm install --frozen-lockfile
 
       - name: rustup install target
         if: ${{ inputs.target != '' && !contains(inputs.target, 'unknown-linux-gnu') && !contains(inputs.target, 'pc-windows-msvc') }}
@@ -561,14 +585,14 @@ jobs:
           ls -la frontend/src-tauri/binaries/
 
       - name: Cache FFmpeg binary
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: frontend/src-tauri/binaries/ffmpeg-*
           key: ${{ runner.os }}-ffmpeg-${{ hashFiles('ffmpeg-build/Cargo.toml', 'ffmpeg-build/src/lib.rs', 'ffmpeg-build/ffmpeg-assets.json') }}
 
       - name: Build with Tauri
         id: tauri-build
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_ID: ${{ inputs.sign-binaries && secrets.APPLE_ID || '' }}
@@ -593,9 +617,73 @@ jobs:
           releaseId: ${{ inputs.release-id }}
           args: ${{ inputs.build-args }} ${{ steps.build-features.outputs.features }}
 
+      - name: Verify release signature, notarization, and stapling (macOS)
+        if: inputs.release-id != '' && inputs.sign-binaries && contains(inputs.platform, 'macos')
+        shell: bash
+        run: |
+          APP_PATH=$(find target -type d -path '*/release/bundle/macos/*.app' -print -quit)
+          DMG_PATH=$(find target -type f -path '*/release/bundle/dmg/*.dmg' -print -quit)
+          test -n "$APP_PATH"
+          test -n "$DMG_PATH"
+
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          spctl --assess --type execute --verbose=4 "$APP_PATH"
+          xcrun stapler validate "$APP_PATH"
+          xcrun stapler validate "$DMG_PATH"
+
+          EVIDENCE_FILE="$RUNNER_TEMP/release-build-evidence/${{ inputs.target }}.txt"
+          {
+            echo ""
+            echo "macos_signature_and_notarization=verified"
+            codesign -d --verbose=4 "$APP_PATH" 2>&1
+            spctl --assess --type execute --verbose=4 "$APP_PATH" 2>&1
+            xcrun stapler validate "$APP_PATH" 2>&1
+            xcrun stapler validate "$DMG_PATH" 2>&1
+            shasum -a 256 "$DMG_PATH"
+          } >> "$EVIDENCE_FILE"
+
+      - name: Verify release Authenticode signatures (Windows)
+        if: inputs.release-id != '' && inputs.sign-binaries && contains(inputs.platform, 'windows')
+        shell: pwsh
+        run: |
+          $installers = Get-ChildItem target -Recurse -File |
+            Where-Object { $_.FullName -match '[\\/]release[\\/]bundle[\\/]' -and $_.Extension -in '.msi', '.exe' }
+          if (-not ($installers | Where-Object Extension -eq '.msi')) {
+            throw 'Signed MSI release installer is missing'
+          }
+          if (-not ($installers | Where-Object Extension -eq '.exe')) {
+            throw 'Signed NSIS release installer is missing'
+          }
+
+          $evidence = @(
+            "",
+            'windows_authenticode=verified'
+          )
+          foreach ($installer in $installers) {
+            $signature = Get-AuthenticodeSignature -FilePath $installer.FullName
+            if ($signature.Status -ne 'Valid') {
+              throw "Invalid Authenticode signature for $($installer.FullName): $($signature.Status)"
+            }
+            $hash = Get-FileHash -Algorithm SHA256 -Path $installer.FullName
+            $evidence += "file=$($installer.Name)"
+            $evidence += "sha256=$($hash.Hash.ToLowerInvariant())"
+            $evidence += "signer=$($signature.SignerCertificate.Subject)"
+            $evidence += "thumbprint=$($signature.SignerCertificate.Thumbprint)"
+          }
+          $evidence | Add-Content -Path "$env:RUNNER_TEMP/release-build-evidence/${{ inputs.target }}.txt"
+
+      - name: Upload release build evidence
+        if: inputs.release-id != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-build-evidence-${{ inputs.target }}-${{ github.sha }}
+          path: ${{ runner.temp }}/release-build-evidence/${{ inputs.target }}.txt
+          if-no-files-found: error
+          retention-days: 90
+
       - name: Upload artifacts (macOS)
         if: inputs.upload-artifacts && contains(inputs.platform, 'macos')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ inputs.asset-prefix }}-${{ inputs.target }}
           path: |
@@ -658,7 +746,7 @@ jobs:
 
       - name: Upload artifacts (Linux)
         if: inputs.upload-artifacts && contains(inputs.platform, 'ubuntu')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ inputs.asset-prefix }}-${{ inputs.platform }}-${{ inputs.target }}
           path: |
@@ -669,7 +757,7 @@ jobs:
 
       - name: Upload artifacts (Windows)
         if: inputs.upload-artifacts && contains(inputs.platform, 'windows')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ inputs.asset-prefix }}-${{ inputs.target }}
           path: |

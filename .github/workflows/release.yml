@@ -1,105 +1,152 @@
-name: "Release"
+name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact 40-character main commit SHA to release
+        required: true
+        type: string
+      confirm_signing_ready:
+        description: Confirm Developer ID, notarization, Windows signing, and updater credentials are configured
+        required: true
+        default: false
+        type: boolean
 
-# Prevent duplicate releases
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: false  # Don't cancel releases, fail instead
+  cancel-in-progress: false
 
 jobs:
-  # STEP 1: Create draft release first
-  create-release:
-    permissions:
-      contents: write
+  preflight:
+    name: Release source and credential preflight
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     outputs:
-      release-id: ${{ steps.create-release.outputs.result }}
-      version: ${{ steps.get-version.outputs.version }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all tags
+      version: ${{ steps.version.outputs.version }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      SM_API_KEY: ${{ secrets.SM_API_KEY }}
+      SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
+      SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
+      SM_CODE_SIGNING_CERT_SHA1_HASH: ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}
+      SM_HOST: ${{ secrets.SM_HOST }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
-      - name: Get version from tauri.conf.json and check for existing tags
-        id: get-version
+    steps:
+      - name: Checkout exact release source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Verify immutable main source
+        shell: bash
+        env:
+          CONFIRM_SIGNING_READY: ${{ inputs.confirm_signing_ready }}
+          RELEASE_SHA_INPUT: ${{ inputs.release_sha }}
+        run: |
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$CONFIRM_SIGNING_READY" = "true"
+          [[ "$RELEASE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]]
+          test "$RELEASE_SHA_INPUT" = "$GITHUB_SHA"
+          REMOTE_MAIN=$(gh api "repos/${GITHUB_REPOSITORY}/branches/main" --jq '.commit.sha')
+          test "$REMOTE_MAIN" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+
+      - name: Require release signing credentials
         shell: bash
         run: |
-          BASE_VERSION=$(grep -o '"version": "[^"]*"' frontend/src-tauri/tauri.conf.json | cut -d'"' -f4)
-          echo "Base version from tauri.conf.json: $BASE_VERSION"
-
-          # Fetch all tags
-          git fetch --tags
-
-          # Check if base version tag exists
-          if git tag -l "v${BASE_VERSION}" | grep -q .; then
-            echo "Tag v${BASE_VERSION} already exists, looking for minor updates..."
-
-            # Find all existing minor versions (e.g., 0.1.1.1, 0.1.1.2, etc.)
-            LATEST_MINOR=0
-            for i in $(seq 1 100); do
-              if git tag -l "v${BASE_VERSION}.${i}" | grep -q .; then
-                LATEST_MINOR=$i
-              else
-                break
-              fi
-            done
-
-            # Increment to next minor version
-            NEXT_MINOR=$((LATEST_MINOR + 1))
-
-            if [ $NEXT_MINOR -gt 100 ]; then
-              echo "ERROR: Maximum minor version (100) reached for ${BASE_VERSION}"
-              echo "Please update the version in tauri.conf.json"
-              exit 1
+          missing=0
+          for name in \
+            APPLE_CERTIFICATE \
+            APPLE_CERTIFICATE_PASSWORD \
+            APPLE_ID \
+            APPLE_ID_PASSWORD \
+            APPLE_TEAM_ID \
+            KEYCHAIN_PASSWORD \
+            SM_API_KEY \
+            SM_CLIENT_CERT_FILE_B64 \
+            SM_CLIENT_CERT_PASSWORD \
+            SM_CODE_SIGNING_CERT_SHA1_HASH \
+            SM_HOST \
+            TAURI_SIGNING_PRIVATE_KEY \
+            TAURI_SIGNING_PRIVATE_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Required release secret $name is not configured"
+              missing=1
             fi
+          done
+          test "$missing" -eq 0
 
-            VERSION="${BASE_VERSION}.${NEXT_MINOR}"
-            echo "Using minor update version: $VERSION"
-          else
-            VERSION="${BASE_VERSION}"
-            echo "Using base version: $VERSION"
+      - name: Resolve unambiguous release version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(jq -er '.version | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))' \
+            frontend/src-tauri/tauri.conf.json)
+          if gh api "repos/${GITHUB_REPOSITORY}/releases/tags/v${VERSION}" >/dev/null 2>&1; then
+            echo "::error::Release v${VERSION} already exists; bump the committed app version instead of replacing assets"
+            exit 1
           fi
-
-          echo "Final version: $VERSION"
+          if git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
+            echo "::error::Tag v${VERSION} already exists; bump the committed app version"
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Create Draft Release
-        id: create-release
-        uses: actions/github-script@v7
+  create-release:
+    name: Create immutable draft release
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      release-id: ${{ steps.create.outputs.result }}
+    steps:
+      - name: Create draft at the verified source SHA
+        id: create
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const { data } = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `v${{ steps.get-version.outputs.version }}`,
-              name: `Meetily Improved v${{ steps.get-version.outputs.version }}`,
+              tag_name: `v${{ needs.preflight.outputs.version }}`,
+              target_commitish: context.sha,
+              name: `Meetily Improved v${{ needs.preflight.outputs.version }}`,
               draft: true,
               prerelease: false,
               generate_release_notes: true
             })
-            console.log(`Created draft release with ID: ${data.id}`)
+            core.info(`Created draft release ${data.id} for ${context.sha}`)
             return data.id
 
-  # STEP 2: Build all platforms and upload directly to release
-  # Note: Linux builds are excluded from release (only macOS and Windows)
   build-all-platforms:
-    needs: create-release
+    name: Signed release build (${{ matrix.target }})
+    needs: [preflight, create-release]
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # for Apple Silicon only (M1 and above)
-            args: "--target aarch64-apple-darwin"
-            target: "aarch64-apple-darwin"
-          - platform: "windows-latest"
+          - platform: macos-latest
+            args: --target aarch64-apple-darwin
+            target: aarch64-apple-darwin
+          - platform: windows-latest
             args: ""
-            target: "x86_64-pc-windows-msvc"
-
+            target: x86_64-pc-windows-msvc
     uses: ./.github/workflows/build.yml
     with:
       platform: ${{ matrix.platform }}
@@ -107,91 +154,150 @@ jobs:
       build-args: ${{ matrix.args }}
       sign-binaries: true
       asset-prefix: "meetily-improved"
-      upload-artifacts: false  # tauri-action uploads directly to release
+      upload-artifacts: false
       release-id: ${{ needs.create-release.outputs.release-id }}
+      ref: ${{ github.sha }}
     secrets: inherit
 
-  # STEP 3: Show release summary
-  release-summary:
-    needs: [create-release, build-all-platforms]
+  attest-release:
+    name: Release checksums, SBOM, and attestations
+    needs: [preflight, create-release, build-all-platforms]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.preflight.outputs.version }}
+      RELEASE_ID: ${{ needs.create-release.outputs.release-id }}
+
     steps:
-      - name: Get release assets and latest.json
-        id: release-info
+      - name: Checkout exact release source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Download platform build evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: release-build-evidence-*-${{ github.sha }}
+          path: build-evidence
+          merge-multiple: true
+
+      - name: Download and validate exact draft assets
+        shell: bash
         run: |
-          VERSION="${{ needs.create-release.outputs.version }}"
-          RELEASE_ID="${{ needs.create-release.outputs.release-id }}"
+          mkdir -p release-assets
+          gh release download "v${VERSION}" --dir release-assets
 
-          echo "## Release Assets" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          test "$(find build-evidence -type f -name '*.txt' | wc -l | tr -d ' ')" -eq 2
+          cp build-evidence/*.txt release-assets/
 
-          # List all release assets
-          echo "### Files in Release" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          gh api repos/${{ github.repository }}/releases/${RELEASE_ID}/assets --jq '.[] | "\(.name) (\(.size / 1048576 | floor)MB)"' >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          find release-assets -maxdepth 1 -type f -name '*.dmg' -print -quit | grep -q .
+          find release-assets -maxdepth 1 -type f -name '*.msi' -print -quit | grep -q .
+          find release-assets -maxdepth 1 -type f -name '*.exe' -print -quit | grep -q .
+          test -f release-assets/latest.json
+          test "$(find release-assets -maxdepth 1 -type f -name '*.sig' | wc -l | tr -d ' ')" -ge 2
+          jq -e '
+            .version and
+            (.platforms | type == "object") and
+            ([.platforms[].signature] | length > 0 and all(.[]; type == "string" and length > 0))
+          ' release-assets/latest.json >/dev/null
 
-          # Download and show latest.json
-          echo "### latest.json content" >> $GITHUB_STEP_SUMMARY
-          gh release download "v${VERSION}" --pattern "latest.json" --dir . 2>/dev/null || echo "latest.json not yet available"
-          if [ -f latest.json ]; then
-            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
-            cat latest.json >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: release-assets/meetily-improved-${{ needs.preflight.outputs.version }}.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
 
-          # Download links
-          echo "### Download Links" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Release page:** https://github.com/${{ github.repository }}/releases/tag/v${VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Download all as ZIP:** https://github.com/${{ github.repository }}/archive/refs/tags/v${VERSION}.zip" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Updater manifest:** https://github.com/${{ github.repository }}/releases/latest/download/latest.json" >> $GITHUB_STEP_SUMMARY
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Release Summary
+      - name: Generate provenance and deterministic checksums
+        shell: bash
         run: |
-          echo "============================================"
-          echo "=== Release Created Successfully ==="
-          echo "============================================"
-          echo "Version: v${{ needs.create-release.outputs.version }}"
-          echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.create-release.outputs.version }}"
-          echo ""
-          echo "Uploaded assets (via tauri-action):"
-          echo "  - macOS: DMG installer + app.tar.gz (for updater) + .sig"
-          echo "  - Windows: MSI + NSIS installers (SIGNED via signCommand) + .sig files"
-          echo "  - Updater manifest: latest.json (auto-generated by tauri-action)"
-          echo ""
-          echo "Next steps:"
-          echo "  1. Review the draft release"
-          echo "  2. Edit release notes if needed"
-          echo "  3. Publish the release when ready"
-          echo "============================================"
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg source_sha "$GITHUB_SHA" \
+            --arg source_ref "$GITHUB_REF" \
+            --arg workflow "$GITHUB_WORKFLOW" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg version "$VERSION" \
+            --arg release_id "$RELEASE_ID" \
+            --slurpfile ffmpeg ffmpeg-build/ffmpeg-assets.json \
+            '{
+              schema_version: 1,
+              repository: $repository,
+              source_sha: $source_sha,
+              source_ref: $source_ref,
+              workflow: $workflow,
+              run_id: $run_id,
+              run_attempt: $run_attempt,
+              version: $version,
+              release_id: $release_id,
+              ffmpeg_inputs: $ffmpeg[0],
+              required_external_proofs: [
+                "Developer ID signature",
+                "Apple notarization ticket",
+                "stapled macOS app and DMG",
+                "valid Windows Authenticode signatures",
+                "Tauri updater signatures"
+              ]
+            }' > release-assets/RELEASE_PROVENANCE.json
 
-          # Add to GitHub Step Summary
-          echo "## Release Created Successfully" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** v${{ needs.create-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Release URL:** [View Release](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.create-release.outputs.version }})" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Uploaded Assets" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Platform | Assets |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **macOS** | DMG installer, app.tar.gz (updater), .sig |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Windows** | MSI installer (SIGNED), NSIS installer (SIGNED), .sig files |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Updater** | latest.json manifest (auto-generated by tauri-action) |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "1. [Review the draft release](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.create-release.outputs.version }})" >> $GITHUB_STEP_SUMMARY
-          echo "2. Edit release notes if needed" >> $GITHUB_STEP_SUMMARY
-          echo "3. Publish the release when ready" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          (
+            cd release-assets
+            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 |
+              LC_ALL=C sort -z |
+              while IFS= read -r -d '' path; do
+                hash=$(sha256sum "$path" | cut -d' ' -f1)
+                printf '%s  %s\n' "$hash" "${path#./}"
+              done > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
+
+      - name: Attest release build provenance
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4
+        with:
+          subject-checksums: release-assets/SHA256SUMS
+
+      - name: Attest release SBOM
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4
+        with:
+          subject-checksums: release-assets/SHA256SUMS
+          sbom-path: release-assets/meetily-improved-${{ needs.preflight.outputs.version }}.spdx.json
+
+      - name: Verify generated attestations
+        shell: bash
+        run: |
+          while read -r _ file; do
+            gh attestation verify "release-assets/$file" --repo "$GITHUB_REPOSITORY"
+            gh attestation verify "release-assets/$file" \
+              --repo "$GITHUB_REPOSITORY" \
+              --predicate-type https://spdx.dev/Document/v2.3
+          done < release-assets/SHA256SUMS
+
+      - name: Upload immutable release evidence
+        shell: bash
+        run: |
+          gh release upload "v${VERSION}" \
+            release-assets/SHA256SUMS \
+            release-assets/RELEASE_PROVENANCE.json \
+            release-assets/*.txt \
+            release-assets/*.spdx.json
+
+      - name: Summarize gated draft
+        shell: bash
+        run: |
+          {
+            echo "## Gated draft release"
+            echo ""
+            echo "- Version: \`v${VERSION}\`"
+            echo "- Exact source: \`${GITHUB_SHA}\`"
+            echo "- Draft: https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${VERSION}"
+            echo "- Checksums, SPDX SBOM, platform signing evidence, and GitHub attestations: verified"
+            echo "- Publication: intentionally manual after clean-download verification"
+          } >> "$GITHUB_STEP_SUMMARY"

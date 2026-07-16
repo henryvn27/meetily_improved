@@ -24,7 +24,7 @@
 
 ![Meetily Improved desktop workspace](docs/meetily-improved-icon-native-window.png)
 
-> **Release status:** Meetily Improved is preparing its first public release. The repository is usable from source today; the macOS download will appear on [GitHub Releases](https://github.com/henryvn27/meetily_improved/releases) after signing, notarization, and clean-install verification pass.
+> **Release status:** Meetily Improved is preparing its first public release. The repository is usable from source today; downloads will appear on [GitHub Releases](https://github.com/henryvn27/meetily_improved/releases) only after the documented [release security and provenance gates](docs/RELEASE_SECURITY.md) pass.
 
 ## Why Meetily Improved
 
