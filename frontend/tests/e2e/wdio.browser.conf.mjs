@@ -22,6 +22,7 @@ export const config = {
       args: [
         '--headless=new',
         '--force-prefers-reduced-motion',
+        '--hide-scrollbars',
         '--no-sandbox',
         '--disable-dev-shm-usage',
         '--window-size=1280,820',
