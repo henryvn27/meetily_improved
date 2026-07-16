@@ -5,13 +5,14 @@ import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
 
-const [packageText, workspaceText, ciText, releaseText, buildText, windowsBuildText] = await Promise.all([
+const [packageText, workspaceText, ciText, releaseText, buildText, windowsBuildText, devTestBuildText] = await Promise.all([
   readFile(new URL('package.json', root), 'utf8'),
   readFile(new URL('pnpm-workspace.yaml', root), 'utf8'),
   readFile(new URL('../.github/workflows/ci.yml', root), 'utf8'),
   readFile(new URL('../.github/workflows/release.yml', root), 'utf8'),
   readFile(new URL('../.github/workflows/build.yml', root), 'utf8'),
   readFile(new URL('../.github/workflows/build-windows.yml', root), 'utf8'),
+  readFile(new URL('../.github/workflows/build-devtest.yml', root), 'utf8'),
 ]);
 
 const packageJson = JSON.parse(packageText);
@@ -66,12 +67,15 @@ test('CI installs the frozen graph before enforcing the production audit', () =>
 });
 
 test('release workflows keep dispatch inputs and signing secrets out of shell source and logs', () => {
+  const signingWorkflows = `${buildText}\n${windowsBuildText}\n${devTestBuildText}`;
+
   assert.match(releaseText, /RELEASE_SHA_INPUT: \$\{\{ inputs\.release_sha \}\}/);
   assert.match(releaseText, /\[\[ "\$RELEASE_SHA_INPUT" =~ \^\[0-9a-f\]\{40\}\$ \]\]/);
   assert.doesNotMatch(releaseText, /test "\$\{\{ inputs\.release_sha \}\}"/);
   assert.doesNotMatch(releaseText, /\[\[ "\$\{\{ inputs\.release_sha \}\}"/);
   assert.match(buildText, /pnpm install --frozen-lockfile/);
-  assert.doesNotMatch(`${buildText}\n${windowsBuildText}`, /SM_API_KEY[^\n]*Substring|Substring[^\n]*SM_API_KEY/);
+  assert.doesNotMatch(signingWorkflows, /SM_API_KEY[^\n]*Substring|Substring[^\n]*SM_API_KEY/);
+  assert.doesNotMatch(signingWorkflows, /"[^"\n]*\$\{\{ secrets\.SM_/);
 });
 
 test('the scoped uuid upgrade preserves the v4 API BlockNote uses', () => {
