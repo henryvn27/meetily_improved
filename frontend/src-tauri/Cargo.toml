@@ -54,12 +54,9 @@ openmp = ["whisper-rs/openmp"]     # OpenMP parallel processing
 wdio = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
 
 [build-dependencies]
+ffmpeg-build = { path = "../../ffmpeg-build" }
 tauri-build = { version = "2.3.0", features = [] }
-reqwest = { version = "0.13", features = ["blocking", "multipart", "json", "stream"] }
 which = "6.0.1"
-zip = "2.2"           # ZIP extraction (Windows, macOS)
-tar = "0.4"           # TAR extraction (Linux)
-xz2 = "0.1"           # XZ decompression (Linux)
 
 
 [dependencies]

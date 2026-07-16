@@ -223,14 +223,30 @@ jobs:
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
             "$APP_PATH/Contents/Info.plist")" = "com.meetily.improved.qa.routes"
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          FFMPEG_PATH=$(find "$APP_PATH" -type f -name 'ffmpeg*' -print -quit)
+          test -n "$FFMPEG_PATH"
+          EXPECTED_FFMPEG_SHA=$(jq -r \
+            '.assets[] | select(.target == "aarch64-apple-darwin") | .binary_sha256' \
+            ffmpeg-build/ffmpeg-assets.json)
+          INPUT_FFMPEG=frontend/src-tauri/binaries/ffmpeg-aarch64-apple-darwin
+          INPUT_FFMPEG_SHA=$(shasum -a 256 "$INPUT_FFMPEG" | awk '{print $1}')
+          test "$INPUT_FFMPEG_SHA" = "$EXPECTED_FFMPEG_SHA"
+          PROVENANCE="$RUNNER_TEMP/meetily-ffmpeg-provenance-${GITHUB_SHA}"
+          mkdir -p "$PROVENANCE"
+          cp ffmpeg-build/ffmpeg-assets.json "$PROVENANCE/ffmpeg-assets.json"
+          shasum -a 256 "$INPUT_FFMPEG" > "$PROVENANCE/authenticated-input-sha256.txt"
+          shasum -a 256 "$FFMPEG_PATH" > "$PROVENANCE/signed-bundle-sha256.txt"
           ARCHIVE="$RUNNER_TEMP/meetily-improved-qa-routes-${GITHUB_SHA}.zip"
           ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ARCHIVE"
           echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
+          echo "provenance=$PROVENANCE" >> "$GITHUB_OUTPUT"
 
       - name: Upload isolated native QA app
         uses: actions/upload-artifact@v7
         with:
           name: meetily-improved-qa-routes-${{ github.sha }}
-          path: ${{ steps.bundle.outputs.archive }}
+          path: |
+            ${{ steps.bundle.outputs.archive }}
+            ${{ steps.bundle.outputs.provenance }}
           if-no-files-found: error
           retention-days: 14

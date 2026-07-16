@@ -2111,6 +2111,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ffmpeg-build"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tar",
+ "tempfile",
+ "xz2",
+ "zip 2.4.2",
+]
+
+[[package]]
 name = "ffmpeg-sidecar"
 version = "2.5.0"
 source = "git+https://github.com/nathanbabcock/ffmpeg-sidecar?branch=main#b0f48a514235d1278d860f4a0af66aa9d6e1618d"
@@ -3735,6 +3749,7 @@ dependencies = [
  "ebur128",
  "env_logger",
  "esaxx-rs",
+ "ffmpeg-build",
  "ffmpeg-sidecar",
  "futures",
  "futures-channel",
@@ -3763,7 +3778,6 @@ dependencies = [
  "strsim 0.10.0",
  "symphonia",
  "sysinfo",
- "tar",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
@@ -3788,8 +3802,6 @@ dependencies = [
  "whatlang",
  "which 6.0.3",
  "whisper-rs",
- "xz2",
- "zip 2.4.2",
 ]
 
 [[package]]
