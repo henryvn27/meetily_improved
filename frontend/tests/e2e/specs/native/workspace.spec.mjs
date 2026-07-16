@@ -54,14 +54,14 @@ async function captureWorkspaceDialogs(appearance, width, height) {
   await browser.execute(() => window.location.assign('/'));
   await expectPageHeading('Work from what was said.');
 
-  await $('button=Import audio').click();
+  await $('button[aria-label="Import audio"]').click();
   await expectPageHeading('Import a recording', 2);
   await expectWcag22Aa(browser, '[role="dialog"]');
   await browser.saveScreenshot(resolve(artifactDir, `import-audio-${slug(appearance)}-${width}x${height}.png`));
   await closeDialog();
   await resetWorkspace();
 
-  await $('button=About').click();
+  await $('button[aria-label="About"]').click();
   await expectPageHeading('About Meetily Improved', 2);
   await expectWcag22Aa(browser, '[role="dialog"]');
   await browser.saveScreenshot(resolve(artifactDir, `about-${slug(appearance)}-${width}x${height}.png`));

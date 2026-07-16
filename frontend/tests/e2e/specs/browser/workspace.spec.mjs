@@ -55,14 +55,14 @@ async function compareWorkspaceDialogs(appearance, width, height) {
   await browser.url('http://127.0.0.1:3120/');
   await expectPageHeading('Work from what was said.');
 
-  await $('button=Import audio').click();
+  await $('button[aria-label="Import audio"]').click();
   await expectPageHeading('Import a recording', 2);
   await expectAccessible(`${appearance} / Import audio dialog`, '[role="dialog"]');
   expect(await browser.checkScreen(`import-audio-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
   await closeDialog();
   await resetWorkspace();
 
-  await $('button=About').click();
+  await $('button[aria-label="About"]').click();
   await expectPageHeading('About Meetily Improved', 2);
   await expectAccessible(`${appearance} / About dialog`, '[role="dialog"]');
   expect(await browser.checkScreen(`about-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);

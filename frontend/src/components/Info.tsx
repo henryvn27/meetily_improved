@@ -14,6 +14,7 @@ const Info = React.forwardRef<HTMLButtonElement, InfoProps>(({ isCollapsed }, re
       <DialogTrigger asChild>
         <button 
           ref={ref} 
+          aria-label="About"
           className={`flex min-h-9 items-center justify-center cursor-pointer border-none text-muted-foreground transition-colors hover:text-foreground ${
             isCollapsed 
               ? "size-10 bg-transparent rounded-lg hover:bg-[hsl(var(--sidebar-strong))]"
