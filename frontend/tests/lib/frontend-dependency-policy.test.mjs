@@ -5,7 +5,7 @@ import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
 
-const [packageText, workspaceText, ciText, releaseText, buildText, windowsBuildText, devTestBuildText] = await Promise.all([
+const [packageText, workspaceText, ciText, releaseText, buildText, windowsBuildText, devTestBuildText, workflowOverviewText] = await Promise.all([
   readFile(new URL('package.json', root), 'utf8'),
   readFile(new URL('pnpm-workspace.yaml', root), 'utf8'),
   readFile(new URL('../.github/workflows/ci.yml', root), 'utf8'),
@@ -13,6 +13,7 @@ const [packageText, workspaceText, ciText, releaseText, buildText, windowsBuildT
   readFile(new URL('../.github/workflows/build.yml', root), 'utf8'),
   readFile(new URL('../.github/workflows/build-windows.yml', root), 'utf8'),
   readFile(new URL('../.github/workflows/build-devtest.yml', root), 'utf8'),
+  readFile(new URL('../.github/workflows/WORKFLOWS_OVERVIEW.md', root), 'utf8'),
 ]);
 
 const packageJson = JSON.parse(packageText);
@@ -76,6 +77,9 @@ test('release workflows keep dispatch inputs and signing secrets out of shell so
   assert.match(buildText, /pnpm install --frozen-lockfile/);
   assert.doesNotMatch(signingWorkflows, /SM_API_KEY[^\n]*Substring|Substring[^\n]*SM_API_KEY/);
   assert.doesNotMatch(signingWorkflows, /"[^"\n]*\$\{\{ secrets\.SM_/);
+  assert.match(workflowOverviewText, /seven named checks/);
+  assert.match(workflowOverviewText, /release_sha/);
+  assert.doesNotMatch(workflowOverviewText, /manual triggers only|Auto-increment versioning/);
 });
 
 test('the scoped uuid upgrade preserves the v4 API BlockNote uses', () => {
