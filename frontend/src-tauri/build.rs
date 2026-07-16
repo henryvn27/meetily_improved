@@ -1,5 +1,3 @@
-#[path = "build/ffmpeg.rs"]
-mod ffmpeg;
 #[path = "build/webview_commands.rs"]
 mod webview_commands;
 
@@ -18,7 +16,7 @@ fn main() {
     }
 
     // Download and bundle FFmpeg binary at build-time
-    ffmpeg::ensure_ffmpeg_binary();
+    ffmpeg_build::ensure_ffmpeg_binary();
 
     tauri_build::try_build(
         tauri_build::Attributes::new().app_manifest(

@@ -70,7 +70,8 @@
             "icons/app_icon.ico"
         ],
         "resources": [
-            "templates/*.json"
+            "templates/*.json",
+            "resources/licenses/*"
         ],
         "externalBin": [
             "binaries/llama-helper",

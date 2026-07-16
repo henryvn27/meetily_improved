@@ -1,0 +1,11 @@
+Meetily distributions include an FFmpeg executable licensed under the GNU
+General Public License, version 3 or later. FFmpeg is a trademark of Fabrice
+Bellard, originator of the FFmpeg project. Meetily is not affiliated with the
+FFmpeg project or the third-party binary providers.
+
+The corresponding GPL license text is packaged next to this notice. Exact
+versions, providers, source links, archive hashes, and executable hashes are
+published in docs/FFMPEG_PROVENANCE.md and ffmpeg-build/ffmpeg-assets.json in
+the Meetily source repository.
+
+FFmpeg source and project information: https://ffmpeg.org/
