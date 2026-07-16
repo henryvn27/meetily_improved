@@ -62,6 +62,7 @@ export function HomebrewDatabaseDetector({ onImportSuccess, onDecline }: Homebre
       });
 
       toast.success('Database imported successfully! Reloading...');
+      onImportSuccess();
 
       // Wait 1 second for user to see success, then reload window to refresh all data
       setTimeout(() => {

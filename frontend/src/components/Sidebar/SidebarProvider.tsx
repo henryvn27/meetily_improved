@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Analytics from '@/lib/analytics';
 import { invoke } from '@tauri-apps/api/core';
 import { useRecordingState } from '@/contexts/RecordingStateContext';
+import type { SummaryPollResult } from '@/types';
 
 
 interface SidebarItem {
@@ -47,7 +48,7 @@ interface SidebarContextType {
   setTranscriptServerAddress: (address: string) => void;
   // Summary polling management
   activeSummaryPolls: Map<string, NodeJS.Timeout>;
-  startSummaryPolling: (meetingId: string, processId: string, onUpdate: (result: any) => void) => void;
+  startSummaryPolling: (meetingId: string, processId: string, onUpdate: (result: SummaryPollResult) => void) => void;
   stopSummaryPolling: (meetingId: string) => void;
   // Refetch meetings from backend
   refetchMeetings: () => Promise<void>;
@@ -69,7 +70,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [meetings, setMeetings] = useState<CurrentMeeting[]>([]);
   const [isMeetingActive, setIsMeetingActive] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<TranscriptSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [serverAddress, setServerAddress] = useState('');
   const [transcriptServerAddress, setTranscriptServerAddress] = useState('');
@@ -86,7 +87,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     if (serverAddress) {
       try {
         const meetings = await invoke('api_get_meetings') as Array<{ id: string, title: string }>;
-        const transformedMeetings = meetings.map((meeting: any) => ({
+        const transformedMeetings = meetings.map((meeting) => ({
           id: meeting.id,
           title: meeting.title
         }));
@@ -169,7 +170,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const startSummaryPolling = React.useCallback((
     meetingId: string,
     processId: string,
-    onUpdate: (result: any) => void
+    onUpdate: (result: SummaryPollResult) => void
   ) => {
     // Stop existing poll for this meeting if any
     if (activeSummaryPolls.has(meetingId)) {
@@ -200,9 +201,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       try {
-        const result = await invoke('api_get_summary', {
+        const result = await invoke<SummaryPollResult>('api_get_summary', {
           meetingId: meetingId,
-        }) as any;
+        });
 
         console.log(`📊 Polling update for ${meetingId}:`, result.status);
 

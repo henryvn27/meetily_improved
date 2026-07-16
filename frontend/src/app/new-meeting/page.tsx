@@ -49,8 +49,6 @@ export default function NewMeetingPage() {
   // Recovery hook
   const {
     recoverableMeetings,
-    isLoading: isLoadingRecovery,
-    isRecovering,
     checkForRecoverableTranscripts,
     recoverMeeting,
     loadMeetingTranscripts,

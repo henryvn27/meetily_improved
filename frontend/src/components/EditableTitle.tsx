@@ -21,12 +21,6 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
 }) => {
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      onFinishEditing();
-    }
-  };
-
   // Auto-resize textarea height based on content
   useEffect(() => {
     if (titleInputRef.current && isEditing) {

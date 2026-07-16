@@ -9,6 +9,7 @@ import { Button } from './ui/button';
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { APP_VERSION } from '@/lib/app-version';
+import { getErrorMessage } from '@/lib/utils';
 
 
 export function About() {
@@ -40,9 +41,9 @@ export function About() {
             } else {
                 toast.success('You are running the latest version');
             }
-        } catch (error: any) {
+        } catch (error) {
             console.error('Failed to check for updates:', error);
-            toast.error('Failed to check for updates: ' + (error.message || 'Unknown error'));
+            toast.error('Failed to check for updates: ' + getErrorMessage(error, 'Unknown error'));
         } finally {
             setIsChecking(false);
         }

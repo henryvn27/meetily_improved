@@ -4,6 +4,8 @@
  * to enable recovery after app crashes or unexpected closures.
  */
 
+import { TranscriptUpdate } from '@/types';
+
 // Database schema interfaces
 export interface MeetingMetadata {
   meetingId: string;          // Primary key: "meeting-{timestamp}"
@@ -22,11 +24,13 @@ export interface StoredTranscript {
   timestamp: string;          // ISO 8601 timestamp
   confidence: number;         // Whisper confidence score
   sequenceId: number;         // Sequence number for ordering
+  chunk_start_time?: number;  // Legacy chunk-relative timestamp
+  is_partial?: boolean;
   storedAt: number;           // Unix timestamp when saved
   audio_start_time?: number;  // Recording-relative start time in seconds
   audio_end_time?: number;    // Recording-relative end time in seconds
   duration?: number;          // Duration in seconds
-  [key: string]: any;         // Allow additional fields from TranscriptUpdate
+  [key: string]: unknown;     // Allow additional fields from TranscriptUpdate
 }
 
 class IndexedDBService {
@@ -227,13 +231,14 @@ class IndexedDBService {
   /**
    * Save a transcript segment
    */
-  async saveTranscript(meetingId: string, transcript: any): Promise<void> {
+  async saveTranscript(meetingId: string, transcript: TranscriptUpdate): Promise<void> {
     try {
       if (!this.db) await this.init();
 
       const storedTranscript: StoredTranscript = {
         ...transcript,
         meetingId,
+        sequenceId: transcript.sequence_id,
         storedAt: Date.now()
       };
 

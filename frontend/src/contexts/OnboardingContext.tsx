@@ -7,6 +7,7 @@ import type { PermissionStatus, OnboardingPermissions } from '@/types/onboarding
 import { resolveOnboardingSummaryModelStatus } from '@/lib/onboarding-summary-model';
 import { isNativeQaMode, nativeQaOnboardingStep } from '@/lib/native-qa-mode';
 import { withTimeout } from '@/lib/with-timeout';
+import { ParakeetModelInfo } from '@/lib/parakeet';
 
 const PARAKEET_MODEL = 'parakeet-tdt-0.6b-v3-int8';
 
@@ -449,7 +450,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     // Determine the correct step based on verified status
     // New simplified flow: Step 1: Welcome, Step 2: Setup Overview, Step 3: Download Progress, Step 4: Permissions (macOS)
     let currentStep = savedStatus.current_step;
-    let completed = savedStatus.completed;
+    const completed = savedStatus.completed;
 
     // Clamp step to new max (4)
     if (currentStep > 4) {
@@ -602,8 +603,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   // Check if any models are currently downloading (for re-entry)
   const checkActiveDownloads = async () => {
     try {
-      const models = await invoke<any[]>('parakeet_get_available_models');
-      const isDownloading = models.some(m => m.status && (typeof m.status === 'object' ? 'Downloading' in m.status : m.status === 'Downloading'));
+      const models = await invoke<ParakeetModelInfo[]>('parakeet_get_available_models');
+      const isDownloading = models.some(m => typeof m.status === 'object' && 'Downloading' in m.status);
       
       if (isDownloading) {
         console.log('[OnboardingContext] Detected active background downloads on mount');

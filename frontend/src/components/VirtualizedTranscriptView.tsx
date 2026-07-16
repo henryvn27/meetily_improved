@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useEffect, useState, memo } from "react";
+import { useRef, useEffect, memo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { useTranscriptStreaming } from "@/hooks/useTranscriptStreaming";

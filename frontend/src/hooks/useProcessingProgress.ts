@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ChunkStatus, ProcessingProgress } from '../components/ChunkProgressDisplay';
+import { ProcessingProgress } from '../components/ChunkProgressDisplay';
 
 export interface ProcessingSession {
   session_id: string;

@@ -22,7 +22,7 @@ async function expectAccessible(context) {
 }
 
 describe('Meetily browser-mode workspace', () => {
-  beforeEach(async () => {
+  before(async () => {
     await browser.url('http://127.0.0.1:3120/');
     await installEmptyBackendMocks(browser);
     try {
@@ -86,12 +86,6 @@ describe('Meetily browser-mode workspace', () => {
       });
     }
 
-    it(`passes WCAG 2.2 AA on ${appearance} missing-meeting recovery`, async () => {
-      await setAppearance(appearance);
-      await browser.url('http://127.0.0.1:3120/meeting-details');
-      await expectPageHeading('Meeting could not be opened', 2);
-      await expectAccessible(`${appearance} / missing-meeting recovery`);
-    });
   }
 
   it('persists theme selection and compares both required workspace sizes', async () => {
@@ -155,4 +149,18 @@ describe('Meetily browser-mode workspace', () => {
     expect(timing).not.toBeNull();
     expect(Number.parseFloat(timing.transitionDuration)).toBeLessThanOrEqual(0.00001);
   });
+
+  for (const appearance of appearances) {
+    it(`passes WCAG 2.2 AA on ${appearance} missing-meeting recovery`, async () => {
+      await browser.execute((preference) => {
+        window.localStorage.setItem('meetily-theme-preference', preference.toLowerCase());
+      }, appearance);
+      await browser.url('http://127.0.0.1:3120/meeting-details');
+      await browser.waitUntil(
+        () => browser.execute((theme) => document.documentElement.dataset.theme === theme, appearance.toLowerCase()),
+      );
+      await expectPageHeading('Meeting could not be opened', 2);
+      await expectAccessible(`${appearance} / missing-meeting recovery`);
+    });
+  }
 });

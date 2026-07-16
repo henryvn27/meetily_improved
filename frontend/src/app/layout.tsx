@@ -90,7 +90,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const [showOnboarding, setShowOnboarding] = useState(!bypassOnboardingForNativeQa)
-  const [onboardingCompleted, setOnboardingCompleted] = useState(bypassOnboardingForNativeQa)
+  const [, setOnboardingCompleted] = useState(bypassOnboardingForNativeQa)
 
   // Import audio state
   const [showDropOverlay, setShowDropOverlay] = useState(false)

@@ -35,32 +35,38 @@ export interface BlockNoteSummaryViewRef {
   isDirty: boolean;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
 // Format detection helper
-function detectSummaryFormat(data: any): { format: SummaryFormat; data: any } {
-  if (!data) {
+function detectSummaryFormat(data: unknown): { format: SummaryFormat; data: SummaryDataResponse | null } {
+  if (!isRecord(data)) {
     return { format: 'legacy', data: null };
   }
 
+  const summaryData = data as SummaryDataResponse;
+
   // Priority 1: BlockNote format (has summary_json)
-  if (data.summary_json && Array.isArray(data.summary_json)) {
+  if (Array.isArray(summaryData.summary_json)) {
     console.log('✅ FORMAT: BLOCKNOTE (summary_json exists)');
-    return { format: 'blocknote', data };
+    return { format: 'blocknote', data: summaryData };
   }
 
   // Priority 2: Markdown format
-  if (data.markdown && typeof data.markdown === 'string') {
+  if (typeof summaryData.markdown === 'string' && summaryData.markdown) {
     console.log('✅ FORMAT: MARKDOWN (will parse to BlockNote)');
-    return { format: 'markdown', data };
+    return { format: 'markdown', data: summaryData };
   }
 
   // Priority 3: Legacy JSON
-  const hasLegacyStructure = data.MeetingName || Object.keys(data).some(key =>
-    typeof data[key] === 'object' && data[key]?.title && data[key]?.blocks
+  const hasLegacyStructure = typeof summaryData.MeetingName === 'string' || Object.values(summaryData).some(value =>
+    isRecord(value) && typeof value.title === 'string' && Array.isArray(value.blocks)
   );
 
   if (hasLegacyStructure) {
     console.log('✅ FORMAT: LEGACY (custom JSON)');
-    return { format: 'legacy', data };
+    return { format: 'legacy', data: summaryData };
   }
 
   return { format: 'legacy', data: null };
@@ -80,7 +86,7 @@ export const BlockNoteSummaryView = forwardRef<BlockNoteSummaryViewRef, BlockNot
   const { format, data } = detectSummaryFormat(summaryData);
   const [isDirty, setIsDirty] = useState(false);
   const [currentBlocks, setCurrentBlocks] = useState<Block[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
+  const [, setIsSaving] = useState(false);
   const isContentLoaded = useRef(false);
 
   // Create BlockNote editor for markdown parsing
@@ -91,10 +97,11 @@ export const BlockNoteSummaryView = forwardRef<BlockNoteSummaryViewRef, BlockNot
   // Parse markdown to blocks when format is markdown
   useEffect(() => {
     if (format === 'markdown' && data?.markdown && editor) {
+      const markdown = data.markdown;
       const loadMarkdown = async () => {
         try {
           console.log('📝 Parsing markdown to BlockNote blocks...');
-          const blocks = await editor.tryParseMarkdownToBlocks(data.markdown);
+          const blocks = await editor.tryParseMarkdownToBlocks(markdown);
           editor.replaceBlocks(editor.document, blocks);
           console.log('✅ Markdown parsed successfully');
 
@@ -242,7 +249,7 @@ export const BlockNoteSummaryView = forwardRef<BlockNoteSummaryViewRef, BlockNot
       <div className="flex flex-col w-full">
         <div className="w-full">
           <Editor
-            initialContent={data.summary_json}
+            initialContent={data?.summary_json as unknown as Block[] | undefined}
             onChange={(blocks) => {
               console.log('📝 Editor blocks changed:', blocks.length);
               handleEditorChange(blocks);

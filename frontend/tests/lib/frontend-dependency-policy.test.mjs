@@ -28,6 +28,8 @@ test('frontend toolchain and patched framework versions are reproducible', () =>
   assert.equal(packageJson.devDependencies['eslint-config-next'], '15.5.20');
   assert.equal(packageJson.devDependencies.eslint, '9.39.2');
   assert.equal(packageJson.scripts.lint, 'eslint src --max-warnings 0');
+  assert.equal(packageJson.scripts['lint:strict'], 'eslint src --config eslint.strict.config.mjs --max-warnings 0');
+  assert.equal(packageJson.scripts.typecheck, 'tsc --noEmit');
   assert.equal(packageJson.scripts.build, 'node scripts/clean-next-output.mjs && next build');
   assert.equal(packageJson.pnpm, undefined);
 });
@@ -71,10 +73,18 @@ test('CI installs the frozen graph before enforcing the production audit', () =>
   const installIndex = ciText.indexOf('pnpm install --frozen-lockfile');
   const auditIndex = ciText.indexOf('pnpm run audit:prod');
   const testIndex = ciText.indexOf('node --test tests/lib/*.test.mjs');
+  const coreLintIndex = ciText.indexOf('pnpm run lint');
+  const strictLintIndex = ciText.indexOf('pnpm run lint:strict');
+  const typecheckIndex = ciText.indexOf('pnpm run typecheck');
+  const buildIndex = ciText.indexOf('pnpm run build');
 
   assert.ok(installIndex >= 0);
   assert.ok(auditIndex > installIndex);
   assert.ok(testIndex > auditIndex);
+  assert.ok(coreLintIndex > testIndex);
+  assert.ok(strictLintIndex > coreLintIndex);
+  assert.ok(typecheckIndex > strictLintIndex);
+  assert.ok(buildIndex > typecheckIndex);
   assert.match(ciText, /actions\/checkout@[0-9a-f]{40} # v7/);
   assert.match(ciText, /actions\/setup-node@[0-9a-f]{40} # v7/);
   assert.match(ciText, /pnpm\/action-setup@[0-9a-f]{40} # v6/);

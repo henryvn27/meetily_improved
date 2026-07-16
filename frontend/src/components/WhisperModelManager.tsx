@@ -40,7 +40,7 @@ export function ModelManager({
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
-  const [hasUserSelection, setHasUserSelection] = useState(false);
+  const [, setHasUserSelection] = useState(false);
 
   // Refs for stable callbacks
   const onModelSelectRef = useRef(onModelSelect);
@@ -521,7 +521,6 @@ function ModelCard({
   onDownload,
   onCancel,
   onDelete,
-  isDownloading,
   displayName
 }: ModelCardProps) {
   const [isHovered, setIsHovered] = useState(false);

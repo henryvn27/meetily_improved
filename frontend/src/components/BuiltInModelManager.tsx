@@ -9,18 +9,16 @@ import { cn } from '@/lib/utils';
 import { ArrowDownTrayIcon, ArrowPathIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { formatSummaryModelSizeLabelFromMb } from '@/lib/onboarding-summary-model';
+import { BuiltInModelInfo } from '@/lib/builtin-ai';
 
-interface ModelInfo {
-  name: string;
-  display_name: string;
-  status: {
-    type: 'not_downloaded' | 'downloading' | 'available' | 'corrupted' | 'error';
-    progress?: number;
-  };
-  size_mb: number;
-  context_size: number;
-  description: string;
-  gguf_file: string;
+interface BuiltInDownloadProgress {
+  model: string;
+  progress: number;
+  downloaded_mb?: number;
+  total_mb?: number;
+  speed_mbps?: number;
+  status: 'downloading' | 'completed' | 'cancelled' | 'error';
+  error?: string;
 }
 
 interface DownloadProgressInfo {
@@ -40,7 +38,7 @@ export function BuiltInModelManager({
   onModelSelect,
   layout = 'inline',
 }: BuiltInModelManagerProps) {
-  const [models, setModels] = useState<ModelInfo[]>([]);
+  const [models, setModels] = useState<BuiltInModelInfo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasFetched, setHasFetched] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
@@ -50,7 +48,7 @@ export function BuiltInModelManager({
   const fetchModels = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = (await invoke('builtin_ai_list_models')) as ModelInfo[];
+      const data = await invoke<BuiltInModelInfo[]>('builtin_ai_list_models');
       setModels(data);
 
     } catch (error) {
@@ -77,8 +75,8 @@ export function BuiltInModelManager({
     let unlisten: (() => void) | undefined;
 
     const setupListener = async () => {
-      unlisten = await listen('builtin-ai-download-progress', (event: any) => {
-        const { model, progress, downloaded_mb, total_mb, speed_mbps, status } = event.payload;
+      unlisten = await listen<BuiltInDownloadProgress>('builtin-ai-download-progress', (event) => {
+        const { model, progress, downloaded_mb, total_mb, speed_mbps, status, error } = event.payload;
 
         // Update percentage progress
         setDownloadProgress((prev) => ({
@@ -117,12 +115,14 @@ export function BuiltInModelManager({
           });
           // Clean up progress state
           setDownloadProgress((prev) => {
-            const { [model]: _, ...rest } = prev;
-            return rest;
+            const next = { ...prev };
+            delete next[model];
+            return next;
           });
           setDownloadProgressInfo((prev) => {
-            const { [model]: _, ...rest } = prev;
-            return rest;
+            const next = { ...prev };
+            delete next[model];
+            return next;
           });
           // Refresh models list
           fetchModels();
@@ -138,12 +138,14 @@ export function BuiltInModelManager({
           });
           // Clean up progress state
           setDownloadProgress((prev) => {
-            const { [model]: _, ...rest } = prev;
-            return rest;
+            const next = { ...prev };
+            delete next[model];
+            return next;
           });
           setDownloadProgressInfo((prev) => {
-            const { [model]: _, ...rest } = prev;
-            return rest;
+            const next = { ...prev };
+            delete next[model];
+            return next;
           });
           // Refresh models list
           fetchModels();
@@ -158,12 +160,14 @@ export function BuiltInModelManager({
           });
           // Clean up progress state
           setDownloadProgress((prev) => {
-            const { [model]: _, ...rest } = prev;
-            return rest;
+            const next = { ...prev };
+            delete next[model];
+            return next;
           });
           setDownloadProgressInfo((prev) => {
-            const { [model]: _, ...rest } = prev;
-            return rest;
+            const next = { ...prev };
+            delete next[model];
+            return next;
           });
 
           // Update model status to error locally instead of fetching from backend
@@ -175,8 +179,8 @@ export function BuiltInModelManager({
                     ...m,
                     status: {
                       type: 'error',
-                      progress: 0,
-                    } as any,
+                      Error: error || 'Download failed',
+                    },
                   }
                 : m
             )
@@ -438,8 +442,8 @@ export function BuiltInModelManager({
                 )}
                 {(isError || isCorrupted) && (
                   <p className="mb-1 text-xs text-destructive">
-                    {isError && typeof model.status === 'object' && 'Error' in model.status
-                      ? (model.status as any).Error
+                    {model.status.type === 'error'
+                      ? model.status.Error
                       : isCorrupted
                       ? 'File is corrupted. Retry download or delete.'
                       : 'An error occurred'}

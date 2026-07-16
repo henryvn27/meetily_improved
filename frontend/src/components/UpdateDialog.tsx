@@ -9,10 +9,11 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { Button } from './ui/button';
-import { updateService, UpdateInfo, UpdateProgress } from '@/services/updateService';
+import { UpdateInfo, UpdateProgress } from '@/services/updateService';
 import { check, Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/utils';
 
 interface UpdateDialogProps {
   open: boolean;
@@ -66,8 +67,8 @@ export function UpdateDialog({ open, onOpenChange, updateInfo }: UpdateDialogPro
           setError('Update not available');
           return;
         }
-      } catch (err: any) {
-        setError('Failed to get update: ' + (err.message || 'Unknown error'));
+      } catch (err) {
+        setError('Failed to get update: ' + getErrorMessage(err, 'Unknown error'));
         return;
       }
     }
@@ -133,11 +134,12 @@ export function UpdateDialog({ open, onOpenChange, updateInfo }: UpdateDialogPro
 
       // Relaunch the app
       await relaunch();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Update failed:', err);
-      setError(err.message || 'Failed to download or install update');
+      const errorMessage = getErrorMessage(err, 'Failed to download or install update');
+      setError(errorMessage);
       setIsDownloading(false);
-      toast.error('Update failed: ' + (err.message || 'Unknown error'));
+      toast.error('Update failed: ' + errorMessage);
     }
   };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { listen } from '@tauri-apps/api/event';
 import { toast } from 'sonner';
@@ -430,13 +430,13 @@ export function useRecordingStop(
   });
 
   useEffect(() => {
-    (window as any).handleRecordingStop = (callApi: boolean = true) => {
+    window.handleRecordingStop = (callApi: boolean = true) => {
       handleRecordingStopRef.current(callApi);
     };
 
     // Cleanup on unmount
     return () => {
-      delete (window as any).handleRecordingStop;
+      delete window.handleRecordingStop;
     };
   }, []);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Summary, SummaryResponse, Transcript } from '@/types';
+import { BlockNoteBlock, MeetingSummary, Summary, SummaryResponse, Transcript } from '@/types';
 import type { BlockNoteSummaryViewRef } from '@/components/AISummary/BlockNoteSummaryView';
 import dynamic from 'next/dynamic';
 import { EmptyStateSummary } from '@/components/EmptyStateSummary';
@@ -53,7 +53,7 @@ interface SummaryPanelProps {
   onSaveAll: () => Promise<void>;
   onCopySummary: () => Promise<void>;
   onOpenFolder: () => Promise<void>;
-  aiSummary: Summary | null;
+  aiSummary: MeetingSummary | null;
   summaryStatus: 'idle' | 'processing' | 'summarizing' | 'regenerating' | 'completed' | 'error';
   transcripts: Transcript[];
   modelConfig: ModelConfig;
@@ -64,7 +64,7 @@ interface SummaryPanelProps {
   customPrompt: string;
   onPromptChange: (value: string) => void;
   summaryResponse: SummaryResponse | null;
-  onSaveSummary: (summary: Summary | { markdown?: string; summary_json?: any[] }) => Promise<void>;
+  onSaveSummary: (summary: Summary | { markdown?: string; summary_json?: BlockNoteBlock[] }) => Promise<void>;
   onSummaryChange: (summary: Summary) => void;
   onDirtyChange: (isDirty: boolean) => void;
   summaryError: string | null;

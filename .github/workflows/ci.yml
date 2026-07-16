@@ -112,6 +112,12 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      - name: Run strict TypeScript lint
+        run: pnpm run lint:strict
+
+      - name: Type-check application source
+        run: pnpm run typecheck
+
       - name: Build
         run: pnpm run build
 

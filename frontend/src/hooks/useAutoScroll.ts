@@ -3,7 +3,7 @@ import { Virtualizer } from "@tanstack/react-virtual";
 
 interface UseAutoScrollProps {
     scrollRef: RefObject<HTMLDivElement | null>;
-    segments: any[];
+    segments: Array<{ id: string }>;
     isRecording: boolean;
     isPaused: boolean;
     activeSegmentId?: string;
@@ -182,7 +182,7 @@ export function useAutoScroll({
             isProgrammaticScrollRef.current = true;
 
             if (useVirtualization && virtualizer) {
-                const index = segments.findIndex((s: any) => s.id === activeSegmentId);
+                const index = segments.findIndex((segment) => segment.id === activeSegmentId);
                 if (index >= 0) {
                     virtualizer.scrollToIndex(index, { align: "center", behavior: "smooth" });
                 }

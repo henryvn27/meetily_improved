@@ -1,24 +1,24 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Transcript, Summary } from '@/types';
+import { BlockNoteBlock, MeetingDetails, MeetingSummary, Summary, SummaryDataResponse } from '@/types';
 import { BlockNoteSummaryViewRef } from '@/components/AISummary/BlockNoteSummaryView';
 import { CurrentMeeting, useSidebar } from '@/components/Sidebar/SidebarProvider';
 import { invoke as invokeTauri } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
 
 interface UseMeetingDataProps {
-  meeting: any;
-  summaryData: Summary | null;
+  meeting: MeetingDetails;
+  summaryData: MeetingSummary | null;
   onMeetingUpdated?: () => Promise<void>;
 }
 
-export function useMeetingData({ meeting, summaryData, onMeetingUpdated }: UseMeetingDataProps) {
+export function useMeetingData({ meeting, summaryData }: UseMeetingDataProps) {
   // State
   // Use prop directly since summary generation fetches transcripts independently
   const transcripts = meeting.transcripts;
   const [meetingTitle, setMeetingTitle] = useState(meeting.title || '+ New Call');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isTitleDirty, setIsTitleDirty] = useState(false);
-  const [aiSummary, setAiSummary] = useState<Summary | null>(summaryData);
+  const [aiSummary, setAiSummary] = useState<MeetingSummary | null>(summaryData);
   const [isSaving, setIsSaving] = useState(false);
   const [, setIsSummaryDirty] = useState(false);
   const [, setError] = useState<string>('');
@@ -89,7 +89,7 @@ export function useMeetingData({ meeting, summaryData, onMeetingUpdated }: UseMe
     }
   }, [meeting.id, meetingTitle, sidebarMeetings, setMeetings, setCurrentMeeting]);
 
-  const handleSaveSummary = useCallback(async (summary: Summary | { markdown?: string; summary_json?: any[] }) => {
+  const handleSaveSummary = useCallback(async (summary: Summary | { markdown?: string; summary_json?: BlockNoteBlock[] }) => {
     console.log('📄 handleSaveSummary called with:', {
       hasMarkdown: 'markdown' in summary,
       hasSummaryJson: 'summary_json' in summary,
@@ -97,7 +97,7 @@ export function useMeetingData({ meeting, summaryData, onMeetingUpdated }: UseMe
     });
 
     try {
-      let formattedSummary: any;
+      let formattedSummary: SummaryDataResponse;
 
       // Check if it's the new BlockNote format
       if ('markdown' in summary || 'summary_json' in summary) {

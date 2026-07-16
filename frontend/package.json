@@ -37,6 +37,8 @@
         "tauri:build:openblas": "tauri build -- --features openblas",
         "tauri:build:hipblas": "tauri build -- --features hipblas",
         "lint": "eslint src --max-warnings 0",
+        "lint:strict": "eslint src --config eslint.strict.config.mjs --max-warnings 0",
+        "typecheck": "tsc --noEmit",
         "test:rendered": "vitest run",
         "test:rendered:watch": "vitest",
         "test:e2e:browser": "node scripts/run-browser-e2e.mjs",

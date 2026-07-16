@@ -50,7 +50,6 @@ function categorizeError(error: string): string {
 // Custom toast component for download progress
 function DownloadToastContent({
   download,
-  onDismiss,
 }: {
   download: DownloadProgress;
   onDismiss?: () => void;
@@ -180,7 +179,7 @@ export function useDownloadProgressToast() {
     };
 
     toast.custom(
-      (t) => (
+      () => (
         <DownloadToastContent
           download={download}
           onDismiss={dismissToast}

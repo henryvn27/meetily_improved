@@ -9,6 +9,7 @@ import Analytics from '@/lib/analytics';
 import { showRecordingNotification } from '@/lib/recordingNotification';
 import { withTimeout } from '@/lib/with-timeout';
 import { toast } from 'sonner';
+import { ParakeetModelInfo } from '@/lib/parakeet';
 
 interface UseRecordingStartReturn {
   handleRecordingStart: () => Promise<void>;
@@ -70,13 +71,9 @@ export function useRecordingStart(
   // Check if any model is currently downloading
   const checkIfModelDownloading = useCallback(async (): Promise<boolean> => {
     try {
-      const models = await invoke<any[]>('parakeet_get_available_models');
+      const models = await invoke<ParakeetModelInfo[]>('parakeet_get_available_models');
       const isDownloading = models.some(m =>
-        m.status && (
-          typeof m.status === 'object'
-            ? 'Downloading' in m.status
-            : m.status === 'Downloading'
-        )
+        typeof m.status === 'object' && 'Downloading' in m.status
       );
       return isDownloading;
     } catch (error) {

@@ -16,10 +16,6 @@ interface TranscriptViewProps {
   enableStreaming?: boolean; // Enable streaming effect for live transcription UX
 }
 
-interface SpeechDetectedEvent {
-  message: string;
-}
-
 // Helper function to format seconds as recording-relative time [MM:SS]
 function formatRecordingTime(seconds: number | undefined): string {
   if (seconds === undefined) return '[--:--]';
@@ -105,8 +101,6 @@ function cleanStopWords(text: string): string {
 }
 
 export const TranscriptView: React.FC<TranscriptViewProps> = ({ transcripts, isRecording = false, isPaused = false, isProcessing = false, isStopping = false, enableStreaming = false }) => {
-  const [speechDetected, setSpeechDetected] = useState(false);
-
   // Debug: Log the props to understand what's happening
   console.log('TranscriptView render:', {
     isRecording,
@@ -145,31 +139,6 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({ transcripts, isR
     window.addEventListener('confidenceIndicatorChanged', handleConfidenceChange);
     return () => window.removeEventListener('confidenceIndicatorChanged', handleConfidenceChange);
   }, []);
-
-  // Listen for speech-detected event
-  useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-
-    const setupListener = async () => {
-      const { listen } = await import('@tauri-apps/api/event');
-      unsubscribe = await listen<SpeechDetectedEvent>('speech-detected', () => {
-        setSpeechDetected(true);
-      });
-    };
-
-    if (isRecording) {
-      setupListener();
-    } else {
-      // Reset when not recording
-      setSpeechDetected(false);
-    }
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [isRecording]);
 
   // Streaming effect: animate new transcripts character-by-character
   useEffect(() => {

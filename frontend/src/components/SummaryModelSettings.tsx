@@ -7,6 +7,7 @@ import { ModelConfig, ModelSettingsModal } from '@/components/ModelSettingsModal
 import { SummaryLanguageSettings } from '@/components/SummaryLanguageSettings';
 import { Switch } from './ui/switch';
 import { useConfig } from '@/contexts/ConfigContext';
+import type { CustomOpenAIConfig } from '@/types/models';
 
 interface SummaryModelSettingsProps {
   refetchTrigger?: number; // Change this to trigger refetch
@@ -26,7 +27,7 @@ export function SummaryModelSettings({ refetchTrigger }: SummaryModelSettingsPro
   // Reusable fetch function
   const fetchModelConfig = useCallback(async () => {
     try {
-      const data = await invoke('api_get_model_config') as any;
+      const data = await invoke<ModelConfig | null>('api_get_model_config');
       if (data && data.provider !== null) {
         // Fetch API key if not included and provider requires it
         if (data.provider !== 'ollama' && data.provider !== 'builtin-ai' && !data.apiKey) {
@@ -42,7 +43,7 @@ export function SummaryModelSettings({ refetchTrigger }: SummaryModelSettingsPro
         // Fetch Custom OpenAI config if that's the active provider
         if (data.provider === 'custom-openai') {
           try {
-            const customConfig = (await invoke('api_get_custom_openai_config')) as any;
+            const customConfig = await invoke<CustomOpenAIConfig | null>('api_get_custom_openai_config');
             if (customConfig) {
               data.customOpenAIDisplayName = customConfig.displayName || null;
               data.customOpenAIEndpoint = customConfig.endpoint || null;
