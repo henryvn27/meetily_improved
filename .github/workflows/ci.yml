@@ -188,11 +188,12 @@ jobs:
         run: pnpm run tauri:build:wdio
 
       - name: Run native accessibility and route QA
+        id: native-e2e
         working-directory: frontend
         run: pnpm run test:e2e:native
 
       - name: Upload native QA evidence
-        if: always()
+        if: ${{ always() && steps.native-e2e.outcome != 'skipped' }}
         uses: actions/upload-artifact@v7
         with:
           name: native-webdriver-evidence-${{ github.sha }}

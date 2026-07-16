@@ -3,6 +3,9 @@ import { resolve } from 'node:path';
 const root = process.cwd();
 const updateVisuals = process.env.MEETILY_UPDATE_VISUALS === '1';
 const devServerUrl = 'http://127.0.0.1:3120';
+// Visual baselines are only deterministic when the browser renderer is fixed.
+// Keep this aligned with the Chrome for Testing version used to capture them.
+const browserVersion = '150.0.7871.49';
 
 export const config = {
   runner: 'local',
@@ -10,6 +13,7 @@ export const config = {
   maxInstances: 1,
   capabilities: [{
     browserName: 'tauri',
+    browserVersion,
     'wdio:tauriServiceOptions': {
       mode: 'browser',
       devServerUrl,
