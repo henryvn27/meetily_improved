@@ -1,4 +1,3 @@
-import AxeBuilder from '@axe-core/webdriverio';
 import axe from 'axe-core';
 
 const wcagTags = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'];
@@ -14,9 +13,10 @@ async function analyzeInCurrentWindow(browser) {
 export async function expectWcag22Aa(browser) {
   const isNativeTauri = await browser.execute(() => window.location.protocol === 'tauri:');
   const startedAt = Date.now();
-  const results = isNativeTauri
-    ? await analyzeInCurrentWindow(browser)
-    : await new AxeBuilder({ client: browser }).withTags(wcagTags).analyze();
+  // Run axe in one browser execution for both browser and native modes. The
+  // WebdriverIO builder fetches each result node through a long sequence of
+  // protocol calls, which can strand the macOS CI worker when Chrome uses BiDi.
+  const results = await analyzeInCurrentWindow(browser);
 
   if (process.env.MEETILY_E2E_DIAGNOSTICS === '1') {
     console.info(`[axe-timing] ${isNativeTauri ? 'native' : 'browser'} ${Date.now() - startedAt}ms`);

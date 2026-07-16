@@ -4,10 +4,11 @@ import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
 
-const [strictConfig, homebrewDetector, indexedDbService] = await Promise.all([
+const [strictConfig, homebrewDetector, indexedDbService, accessibilityHelper] = await Promise.all([
   readFile(new URL('eslint.strict.config.mjs', root), 'utf8'),
   readFile(new URL('src/components/DatabaseImport/HomebrewDatabaseDetector.tsx', root), 'utf8'),
   readFile(new URL('src/services/indexedDBService.ts', root), 'utf8'),
+  readFile(new URL('tests/e2e/helpers/accessibility.mjs', root), 'utf8'),
 ]);
 
 test('strict lint composes core policy with the installed Next TypeScript profile', () => {
@@ -29,6 +30,11 @@ test('successful Homebrew migration reports completion before reloading', () => 
 
 test('IndexedDB recovery preserves the backend transcript sequence identifier', () => {
   assert.match(indexedDbService, /sequenceId:\s*transcript\.sequence_id/);
+});
+
+test('browser accessibility scans use one in-page axe execution', () => {
+  assert.match(accessibilityHelper, /const results = await analyzeInCurrentWindow\(browser\)/);
+  assert.doesNotMatch(accessibilityHelper, /AxeBuilder|@axe-core\/webdriverio/);
 });
 
 test('proven-dead generic form components stay removed', async () => {
