@@ -51,7 +51,7 @@ export interface Summary {
 export interface ApiResponse {
   message: string;
   num_chunks: number;
-  data: any[];
+  data: unknown[];
 }
 
 export interface SummaryResponse {
@@ -71,8 +71,8 @@ export type SummaryFormat = 'legacy' | 'markdown' | 'blocknote';
 export interface BlockNoteBlock {
   id: string;
   type: string;
-  props?: Record<string, any>;
-  content?: any[];
+  props?: Record<string, unknown>;
+  content?: unknown[];
   children?: BlockNoteBlock[];
 }
 
@@ -82,7 +82,29 @@ export interface SummaryDataResponse {
   // Legacy format fields
   MeetingName?: string;
   _section_order?: string[];
-  [key: string]: any; // For legacy section data
+  [key: string]: unknown; // Backend response is narrowed at each format boundary
+}
+
+export type MeetingSummary = Summary | SummaryDataResponse;
+
+export interface MeetingDetails {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at?: string;
+  transcripts: Transcript[];
+  folder_path?: string;
+}
+
+export interface SummaryPollResult {
+  status: 'idle' | 'processing' | 'completed' | 'error' | 'failed' | 'cancelled';
+  data?: unknown;
+  error?: string;
+  meetingName?: string;
+}
+
+export interface ProcessTranscriptResponse {
+  process_id: string;
 }
 
 // Pagination types for optimized transcript loading

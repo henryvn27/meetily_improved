@@ -17,7 +17,8 @@ export const useAudioPlayer = (audioPath: string | null) => {
     try {
       if (!audioRef.current) {
         console.log('Creating new AudioContext');
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) throw new Error('Web Audio is not available');
         audioRef.current = new AudioContextClass();
         console.log('AudioContext created:', {
           state: audioRef.current.state,

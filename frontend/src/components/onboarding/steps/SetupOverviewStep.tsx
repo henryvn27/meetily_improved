@@ -19,7 +19,7 @@ export function SetupOverviewStep() {
       try {
         const { platform } = await import('@tauri-apps/plugin-os');
         setIsMac(platform() === 'macos');
-      } catch (e) {
+      } catch {
         setIsMac(navigator.userAgent.includes('Mac'));
       }
     };
@@ -53,7 +53,7 @@ export function SetupOverviewStep() {
       <div className="max-w-[680px]">
         <div className="divide-y divide-border border-y border-border">
           <div>
-            {steps.map((step, idx) => {
+            {steps.map((step) => {
               return (
                 <div
                   key={step.title}

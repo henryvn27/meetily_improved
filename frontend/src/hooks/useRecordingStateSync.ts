@@ -47,7 +47,7 @@ export function useRecordingStateSync(
 
     // Test if Tauri is available
     console.log('Testing Tauri availability...');
-    if (typeof window !== 'undefined' && (window as any).__TAURI__) {
+    if (typeof window !== 'undefined' && window.__TAURI__) {
       console.log('Tauri is available, starting state check');
       checkRecordingState();
 

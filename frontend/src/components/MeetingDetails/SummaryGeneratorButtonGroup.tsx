@@ -20,9 +20,10 @@ import { ArrowPathIcon, CheckIcon, Cog6ToothIcon, DocumentTextIcon, PencilSquare
 import Analytics from '@/lib/analytics';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
-import { useState, useEffect, useRef, ReactNode } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { isOllamaNotInstalledError } from '@/lib/utils';
 import { BuiltInModelInfo } from '@/lib/builtin-ai';
+import type { OllamaModelInfo } from '@/types/models';
 
 interface SummaryGeneratorButtonGroupProps {
   languageSlot?: ReactNode;
@@ -198,7 +199,7 @@ export function SummaryGeneratorButtonGroup({
     setIsCheckingModels(true);
     try {
       const endpoint = modelConfig.ollamaEndpoint || null;
-      const models = await invoke('get_ollama_models', { endpoint }) as any[];
+      const models = await invoke<OllamaModelInfo[]>('get_ollama_models', { endpoint });
 
       if (!models || models.length === 0) {
         // No models available, show message and open settings

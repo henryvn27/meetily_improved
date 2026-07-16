@@ -104,7 +104,6 @@ export function ImportAudioDialog({
     progress,
     error,
     isProcessing,
-    isBusy,
     selectFile,
     validateFile,
     startImport,

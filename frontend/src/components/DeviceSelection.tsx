@@ -44,7 +44,7 @@ export function DeviceSelection({ selectedDevices, onDeviceChange, disabled = fa
   const [refreshing, setRefreshing] = useState(false);
   const [audioLevels, setAudioLevels] = useState<Map<string, AudioLevelData>>(new Map());
   const [isMonitoring, setIsMonitoring] = useState(false);
-  const [showLevels, setShowLevels] = useState(false);
+  const [showLevels] = useState(false);
 
   // Filter devices by type
   const inputDevices = devices.filter(device => device.device_type === 'Input');
@@ -170,26 +170,6 @@ export function DeviceSelection({ selectedDevices, onDeviceChange, disabled = fa
     }).catch(err => console.error('Failed to track system audio selection:', err));
   };
 
-  // Start audio level monitoring
-  const startAudioLevelMonitoring = async () => {
-    try {
-      // Only monitor input devices for now (microphones)
-      const deviceNames = inputDevices.map(device => device.name);
-      if (deviceNames.length === 0) {
-        setError('No microphone devices found to monitor');
-        return;
-      }
-
-      await invoke('start_audio_level_monitoring', { deviceNames });
-      setIsMonitoring(true);
-      setShowLevels(true);
-      console.log('Started audio level monitoring for input devices:', deviceNames);
-    } catch (err) {
-      console.error('Failed to start audio level monitoring:', err);
-      setError('Failed to start audio level monitoring');
-    }
-  };
-
   // Stop audio level monitoring
   const stopAudioLevelMonitoring = async () => {
     try {
@@ -199,15 +179,6 @@ export function DeviceSelection({ selectedDevices, onDeviceChange, disabled = fa
       console.log('Stopped audio level monitoring');
     } catch (err) {
       console.error('Failed to stop audio level monitoring:', err);
-    }
-  };
-
-  // Toggle audio level monitoring
-  const toggleAudioLevelMonitoring = async () => {
-    if (isMonitoring) {
-      await stopAudioLevelMonitoring();
-    } else {
-      await startAudioLevelMonitoring();
     }
   };
 

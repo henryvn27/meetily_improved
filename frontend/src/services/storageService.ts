@@ -21,7 +21,7 @@ export interface SaveMeetingResponse {
 export interface Meeting {
   id: string;
   title: string;
-  [key: string]: any; // Allow additional properties from backend
+  [key: string]: unknown; // Allow additional properties from backend
 }
 
 /**

@@ -23,6 +23,7 @@ import { useConfig } from '@/contexts/ConfigContext';
 import { LANGUAGES } from '@/constants/languages';
 import { useTranscriptionModels, ModelOption } from '@/hooks/useTranscriptionModels';
 import Analytics from '@/lib/analytics';
+import { getErrorMessage } from '@/lib/utils';
 
 interface RetranscribeDialogProps {
   open: boolean;
@@ -221,9 +222,9 @@ export function RetranscribeDialog({
         model: selectedModelDetails?.name || null,
         provider: selectedModelDetails?.provider || null,
       });
-    } catch (err: any) {
+    } catch (err) {
       setIsProcessing(false);
-      const errorMsg = typeof err === 'string' ? err : (err?.message || String(err));
+      const errorMsg = getErrorMessage(err, 'Failed to enhance transcript');
       setError(errorMsg);
 
       await Analytics.trackError('enhance_transcript_failed', errorMsg);

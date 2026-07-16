@@ -1,21 +1,21 @@
 import { useCallback, RefObject } from 'react';
-import { Transcript, Summary } from '@/types';
+import { MeetingDetails, MeetingSummary, Transcript } from '@/types';
 import { BlockNoteSummaryViewRef } from '@/components/AISummary/BlockNoteSummaryView';
 import { toast } from 'sonner';
 import Analytics from '@/lib/analytics';
 import { invoke as invokeTauri } from '@tauri-apps/api/core';
+import { isRecord } from '@/lib/summary-data';
 
 interface UseCopyOperationsProps {
-  meeting: any;
+  meeting: MeetingDetails;
   transcripts: Transcript[];
   meetingTitle: string;
-  aiSummary: Summary | null;
+  aiSummary: MeetingSummary | null;
   blockNoteSummaryRef: RefObject<BlockNoteSummaryViewRef>;
 }
 
 export function useCopyOperations({
   meeting,
-  transcripts,
   meetingTitle,
   aiSummary,
   blockNoteSummaryRef,
@@ -119,9 +119,9 @@ export function useCopyOperations({
       }
 
       // Fallback: Check if aiSummary has markdown property
-      if (!summaryMarkdown && aiSummary && 'markdown' in aiSummary) {
+      if (!summaryMarkdown && aiSummary && 'markdown' in aiSummary && typeof aiSummary.markdown === 'string') {
         console.log('📝 Using markdown from aiSummary');
-        summaryMarkdown = (aiSummary as any).markdown || '';
+        summaryMarkdown = aiSummary.markdown;
         console.log('📝 Markdown from aiSummary, length:', summaryMarkdown.length);
       }
 
@@ -134,10 +134,11 @@ export function useCopyOperations({
             return key !== 'markdown' && key !== 'summary_json' && key !== '_section_order' && key !== 'MeetingName';
           })
           .map(([, section]) => {
-            if (section && typeof section === 'object' && 'title' in section && 'blocks' in section) {
+            if (isRecord(section) && typeof section.title === 'string' && Array.isArray(section.blocks)) {
               const sectionTitle = `## ${section.title}\n\n`;
               const sectionContent = section.blocks
-                .map((block: any) => `- ${block.content}`)
+                .filter(isRecord)
+                .map((block) => `- ${typeof block.content === 'string' ? block.content : ''}`)
                 .join('\n');
               return sectionTitle + sectionContent;
             }

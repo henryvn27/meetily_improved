@@ -19,7 +19,6 @@ export function SummaryUpdaterButtonGroup({
   isDirty,
   onSave,
   onCopy,
-  onOpenFolder,
   hasSummary
 }: SummaryUpdaterButtonGroupProps) {
   return (

@@ -437,8 +437,7 @@ function ModelCard({
   onSelect,
   onDownload,
   onCancel,
-  onDelete,
-  isDownloading
+  onDelete
 }: ModelCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const displayInfo = getModelDisplayInfo(model.name);

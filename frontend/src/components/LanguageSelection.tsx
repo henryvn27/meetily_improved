@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ExclamationTriangleIcon, GlobeAltIcon, InformationCircleIcon, LanguageIcon } from '@heroicons/react/24/outline';
 import Analytics from '@/lib/analytics';
 import { toast } from 'sonner';
