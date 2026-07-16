@@ -91,7 +91,7 @@ Rust changes should also run the narrowest relevant `cargo test` or `cargo check
 - `src-tauri/binaries/`: generated local sidecars, not source-controlled release secrets
 - `tests/`: focused frontend and route behavior checks
 
-Recording, transcription, meetings, recovery, and storage are handled by the Rust/Tauri app. The old Python/FastAPI and Docker implementation under `../backend/` is archived migration context and is not a supported runtime dependency.
+Recording, transcription, meetings, recovery, and storage are handled by the Rust/Tauri app. The repository no longer carries the unsupported Python/FastAPI and Docker implementation. The in-app database importer still preserves user-data migration from older Meetily installations.
 
 Meeting data and local models stay on the device by default. Remote summary providers receive meeting content only when a user explicitly configures and invokes one. Ask Meetings accepts only a loopback Ollama endpoint.
 
