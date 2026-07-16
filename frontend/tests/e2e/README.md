@@ -21,7 +21,7 @@ Baseline updates are an explicit review action:
 pnpm run test:e2e:browser:update
 ```
 
-Review every changed PNG at 100% scale in both Light and Dark. Confirm the 1280×820 and 1100×720 variants preserve hierarchy, focus visibility, readable text, and non-overlapping controls. Commit approved baselines only; CI never auto-accepts a missing or changed baseline. Actual and diff images are uploaded from `tests/e2e/artifacts/` on failure.
+Review every changed PNG at 100% scale in both Light and Dark. Confirm the 1280×820 and 1100×720 variants preserve hierarchy, focus visibility, readable text, and non-overlapping controls. These are macOS release baselines, so CI runs the pixel comparison on `macos-26`; cross-platform font metrics are not compared to the same images. Commit approved baselines only; CI never auto-accepts a missing or changed baseline. Actual and diff images are uploaded from `tests/e2e/artifacts/` on failure.
 
 ## Security boundary
 

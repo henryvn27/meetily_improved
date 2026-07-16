@@ -118,18 +118,6 @@ jobs:
       - name: Enforce route bundle budget
         run: pnpm run check:bundle
 
-      - name: Run browser accessibility and visual QA
-        run: pnpm run test:e2e:browser
-
-      - name: Upload browser QA failure evidence
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: browser-qa-failure-${{ github.sha }}
-          path: frontend/tests/e2e/artifacts/
-          if-no-files-found: ignore
-          retention-days: 14
-
   native-qa-macos:
     name: Native macOS QA bundle
     needs: [rust-core, rust-dependencies, frontend]
@@ -174,6 +162,19 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
+
+      - name: Run browser accessibility and visual QA
+        working-directory: frontend
+        run: pnpm run test:e2e:browser
+
+      - name: Upload browser QA failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-qa-failure-${{ github.sha }}
+          path: frontend/tests/e2e/artifacts/browser-visual/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Build and stage llama-helper sidecar
         run: |
