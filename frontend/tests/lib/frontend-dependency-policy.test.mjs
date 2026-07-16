@@ -64,6 +64,7 @@ test('CI installs the frozen graph before enforcing the production audit', () =>
   assert.match(ciText, /CFBundleExecutable/);
   assert.match(ciText, /Mach-O 64-bit executable arm64/);
   assert.match(ciText, /Contents\/Resources\/Assets\.car/);
+  assert.match(ciText, /name: Native macOS QA bundle[\s\S]*?timeout-minutes: 60/);
   assert.doesNotMatch(ciText, /Resources.*index\.html/);
 });
 
