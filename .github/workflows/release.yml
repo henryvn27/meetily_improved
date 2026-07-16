@@ -33,6 +33,12 @@ jobs:
       APPLE_ID: ${{ secrets.APPLE_ID }}
       APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      SM_API_KEY: ${{ secrets.SM_API_KEY }}
+      SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
+      SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
+      SM_CODE_SIGNING_CERT_SHA1_HASH: ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}
+      SM_HOST: ${{ secrets.SM_HOST }}
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
@@ -64,6 +70,12 @@ jobs:
             APPLE_ID \
             APPLE_ID_PASSWORD \
             APPLE_TEAM_ID \
+            KEYCHAIN_PASSWORD \
+            SM_API_KEY \
+            SM_CLIENT_CERT_FILE_B64 \
+            SM_CLIENT_CERT_PASSWORD \
+            SM_CODE_SIGNING_CERT_SHA1_HASH \
+            SM_HOST \
             TAURI_SIGNING_PRIVATE_KEY \
             TAURI_SIGNING_PRIVATE_KEY_PASSWORD; do
             if [ -z "${!name}" ]; then
