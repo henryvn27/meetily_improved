@@ -10,17 +10,18 @@ module.exports = {
   	extend: {
 		fontFamily: {
 			sans: [
-				'-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', 'sans-serif'
+				'var(--font-sans)'
 			],
 			mono: [
-				'SFMono-Regular', 'SF Mono', 'ui-monospace', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'
+				'var(--font-mono)'
 			]
   		},
   		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
+			background: 'hsl(var(--background))',
+			foreground: 'hsl(var(--foreground))',
+			border: 'hsl(var(--border))',
+			'border-strong': 'hsl(var(--border-strong))',
+			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
@@ -43,10 +44,13 @@ module.exports = {
   				DEFAULT: 'hsl(var(--muted))',
   				foreground: 'hsl(var(--muted-foreground))'
   			},
-  			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
-  			},
+			accent: {
+				DEFAULT: 'hsl(var(--accent))',
+				foreground: 'hsl(var(--accent-foreground))'
+			},
+			success: 'hsl(var(--success))',
+			warning: 'hsl(var(--warning))',
+			info: 'hsl(var(--info))',
   			destructive: {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
@@ -59,11 +63,20 @@ module.exports = {
   				'5': 'hsl(var(--chart-5))'
   			}
   		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		},
+		borderRadius: {
+			lg: 'var(--radius-surface)',
+			md: 'var(--radius-control)',
+			sm: 'var(--radius-xs)',
+			dialog: 'var(--radius-dialog)'
+		},
+		transitionDuration: {
+			instant: 'var(--motion-instant)',
+			fast: 'var(--motion-fast)',
+			standard: 'var(--motion-standard)'
+		},
+		transitionTimingFunction: {
+			standard: 'var(--ease-standard)'
+		},
   		keyframes: {
   			'accordion-down': {
   				from: {

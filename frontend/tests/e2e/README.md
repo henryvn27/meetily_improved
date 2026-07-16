@@ -9,9 +9,11 @@ pnpm run test:rendered
 pnpm run test:e2e:browser
 pnpm run tauri:build:wdio
 pnpm run test:e2e:native
+pnpm run tauri:build:wdio:onboarding
+pnpm run test:e2e:native:onboarding
 ```
 
-The browser suite runs the real Next.js shell against a deterministic empty local-backend boundary. It does not create meetings, transcripts, model answers, citations, or permission state. The native suite launches the isolated `com.meetily.improved.qa.wdio` binary against its own empty app-data directory.
+The browser suite runs the real Next.js shell against a deterministic empty local-backend boundary. It does not create meetings, transcripts, model answers, citations, or permission state. The native route and onboarding suites launch the isolated `com.meetily.improved.qa.wdio` binary against its own empty app-data directory. The onboarding suite opens the real setup overview directly and never advances into downloads or permission prompts.
 
 ## Visual baselines
 

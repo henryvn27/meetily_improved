@@ -2,10 +2,13 @@ import { resolve } from 'node:path';
 
 const root = process.cwd();
 const binary = process.env.MEETILY_WDIO_BINARY || resolve(root, '../target/debug/meetily');
+const spec = process.env.MEETILY_WDIO_SPEC === 'onboarding'
+  ? 'tests/e2e/specs/native/onboarding.spec.mjs'
+  : 'tests/e2e/specs/native/workspace.spec.mjs';
 
 export const config = {
   runner: 'local',
-  specs: [resolve(root, 'tests/e2e/specs/native/**/*.spec.mjs')],
+  specs: [resolve(root, spec)],
   maxInstances: 1,
   capabilities: [{
     browserName: 'tauri',

@@ -12,6 +12,7 @@ export const nativeQaMode: NativeQaMode =
     : null;
 
 export const isNativeQaMode = nativeQaMode !== null;
+export const isBrowserQaMode = process.env.NEXT_PUBLIC_MEETILY_BROWSER_QA === 'true';
 export const bypassOnboardingForNativeQa = nativeQaMode === 'routes' || nativeQaMode === 'meeting-error';
 export const openMeetingErrorForNativeQa = nativeQaMode === 'meeting-error';
 
