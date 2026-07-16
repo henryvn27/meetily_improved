@@ -115,7 +115,6 @@
         "@wdio/visual-service": "10.1.0",
         "autoprefixer": "^10.0.1",
         "axe-core": "4.12.1",
-        "concurrently": "^8.2.2",
         "eslint": "9.39.2",
         "eslint-config-next": "15.5.20",
         "jsdom": "29.1.1",
@@ -123,7 +122,7 @@
         "tailwindcss": "^3.4.1",
         "typescript": "^5.7.2",
         "vitest": "4.1.10",
-        "wait-on": "^7.2.0",
+        "wait-on": "9.0.10",
         "webdriverio": "9.29.1"
     }
 }

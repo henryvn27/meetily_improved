@@ -5,9 +5,11 @@ import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
 
-const [packageText, workspaceText, ciText, releaseText, buildText, windowsBuildText, devTestBuildText, workflowOverviewText] = await Promise.all([
+const [packageText, workspaceText, lockfileText, cargoLockText, ciText, releaseText, buildText, windowsBuildText, devTestBuildText, workflowOverviewText] = await Promise.all([
   readFile(new URL('package.json', root), 'utf8'),
   readFile(new URL('pnpm-workspace.yaml', root), 'utf8'),
+  readFile(new URL('pnpm-lock.yaml', root), 'utf8'),
+  readFile(new URL('../Cargo.lock', root), 'utf8'),
   readFile(new URL('../.github/workflows/ci.yml', root), 'utf8'),
   readFile(new URL('../.github/workflows/release.yml', root), 'utf8'),
   readFile(new URL('../.github/workflows/build.yml', root), 'utf8'),
@@ -30,6 +32,15 @@ test('frontend toolchain and patched framework versions are reproducible', () =>
   assert.equal(packageJson.pnpm, undefined);
 });
 
+test('Rust lockfile keeps compatible advisory fix floors', () => {
+  assert.match(cargoLockText, /name = "openssl"\nversion = "0\.10\.80"/);
+  assert.match(cargoLockText, /name = "serde_with"\nversion = "3\.21\.0"/);
+  assert.match(cargoLockText, /name = "tar"\nversion = "0\.4\.46"/);
+  assert.doesNotMatch(cargoLockText, /name = "openssl"\nversion = "0\.10\.79"/);
+  assert.doesNotMatch(cargoLockText, /name = "serde_with"\nversion = "3\.20\.0"/);
+  assert.doesNotMatch(cargoLockText, /name = "tar"\nversion = "0\.4\.45"/);
+});
+
 test('unused Remirror and redundant Tiptap roots stay out of production', () => {
   const directDependencies = Object.keys(packageJson.dependencies);
 
@@ -41,11 +52,18 @@ test('unused Remirror and redundant Tiptap roots stay out of production', () => 
 
 test('pnpm applies patched transitive versions without advisory ignores', () => {
   assert.match(workspaceText, /"@blocknote\/core@0\.36\.0>uuid": "11\.1\.1"/);
+  assert.match(workspaceText, /"mocha>serialize-javascript": "7\.0\.5"/);
   assert.match(workspaceText, /markdown-it: "14\.3\.0"/);
   assert.match(workspaceText, /postcss: "8\.5\.14"/);
   assert.match(workspaceText, /prosemirror-model: "1\.25\.3"/);
   assert.match(workspaceText, /ignoredOptionalDependencies:\n  - sharp/);
   assert.doesNotMatch(workspaceText, /ignoreGhsas|ignoreCves/);
+  assert.equal(packageJson.devDependencies.concurrently, undefined);
+  assert.equal(packageJson.devDependencies['wait-on'], '9.0.10');
+  assert.match(lockfileText, /form-data@4\.0\.6:/);
+  assert.match(lockfileText, /serialize-javascript@7\.0\.5:/);
+  assert.doesNotMatch(lockfileText, /shell-quote@/);
+  assert.doesNotMatch(lockfileText, /serialize-javascript@6\.0\.2:/);
   assert.equal(packageJson.scripts['audit:prod'], 'pnpm audit --prod --audit-level low');
 });
 

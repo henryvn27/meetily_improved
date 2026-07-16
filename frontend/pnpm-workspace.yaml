@@ -10,6 +10,7 @@ ignoredOptionalDependencies:
 overrides:
   "@wdio/tauri-service@1.2.0>@wdio/native-utils": "2.5.0"
   "@blocknote/core@0.36.0>uuid": "11.1.1"
+  "mocha>serialize-javascript": "7.0.5"
   "@babel/core": "7.29.1"
   markdown-it: "14.3.0"
   postcss: "8.5.14"
