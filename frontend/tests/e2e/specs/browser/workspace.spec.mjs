@@ -137,11 +137,10 @@ describe('Meetily browser-mode workspace', () => {
 
   }
 
-  it('persists theme selection and compares every route at both required workspace sizes', async () => {
-    for (const [width, height] of releaseSizes) {
-      await browser.setWindowSize(width, height);
-
-      for (const appearance of appearances) {
+  for (const [width, height] of releaseSizes) {
+    for (const appearance of appearances) {
+      it(`persists ${appearance} and compares every route at ${width}x${height}`, async () => {
+        await browser.setWindowSize(width, height);
         await setAppearance(appearance);
 
         for (const route of routes) {
@@ -168,9 +167,9 @@ describe('Meetily browser-mode workspace', () => {
         expect(await browser.checkScreen(`missing-meeting-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
 
         await compareWorkspaceDialogs(appearance, width, height);
-      }
+      });
     }
-  });
+  }
 
   it('keeps keyboard focus visible, reachable, and unobscured with reduced motion', async () => {
     await browser.url('http://127.0.0.1:3120/');
