@@ -1,6 +1,7 @@
 import { $, browser, expect } from '@wdio/globals';
 import { expectWcag22Aa } from '../../helpers/accessibility.mjs';
 import { installEmptyBackendMocks } from '../../helpers/browser-empty-backend.mjs';
+import { releaseVisualMatrix } from '../../helpers/release-visual-matrix.mjs';
 import { expectPageHeading, openSidebarRoute, routes, setAppearance } from '../../helpers/routes.mjs';
 
 const appearances = ['Light', 'Dark'];
@@ -12,7 +13,6 @@ const settingsHeadings = {
   Summary: 'Summary settings',
   Beta: 'Beta settings',
 };
-const releaseSizes = [[1280, 820], [1100, 720]];
 const screenshotOptions = {
   ignoreAntialiasing: true,
   misMatchPercentage: 0.15,
@@ -68,6 +68,11 @@ async function compareWorkspaceDialogs(appearance, width, height) {
   expect(await browser.checkScreen(`about-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
   await closeDialog();
   await resetWorkspace();
+}
+
+async function prepareVisualCase({ appearance, width, height }) {
+  await browser.setWindowSize(width, height);
+  await setAppearance(appearance);
 }
 
 describe('Meetily browser-mode workspace', () => {
@@ -137,38 +142,45 @@ describe('Meetily browser-mode workspace', () => {
 
   }
 
-  for (const [width, height] of releaseSizes) {
-    for (const appearance of appearances) {
-      it(`persists ${appearance} and compares every route at ${width}x${height}`, async () => {
-        await browser.setWindowSize(width, height);
-        await setAppearance(appearance);
+  for (const visualCase of releaseVisualMatrix) {
+    const { appearance, width, height } = visualCase;
 
-        for (const route of routes) {
-          await openSidebarRoute(route.nav, route.heading, route.path);
-          expect(await browser.checkScreen(`${slug(route.nav)}-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
-        }
-
-        await $('button[aria-label="Settings"]').click();
-        await expectPageHeading('Settings');
-        for (const section of settingsSections) {
-          const tab = await $(`[role="tab"][aria-label="${section}"]`);
-          await tab.click();
-          await browser.waitUntil(
-            () => browser.execute((expectedHeading) => {
-              const activePanel = document.querySelector('[role="tabpanel"][data-state="active"]');
-              return activePanel?.querySelector('h2')?.textContent?.trim() === expectedHeading;
-            }, settingsHeadings[section]),
-          );
-          expect(await browser.checkScreen(`settings-${slug(section)}-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
-        }
-
-        await browser.url('http://127.0.0.1:3120/meeting-details');
-        await expectPageHeading('Meeting could not be opened', 2);
-        expect(await browser.checkScreen(`missing-meeting-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
-
-        await compareWorkspaceDialogs(appearance, width, height);
+    for (const route of routes) {
+      it(`persists ${appearance} and compares ${route.nav} at ${width}x${height}`, async () => {
+        await prepareVisualCase(visualCase);
+        await openSidebarRoute(route.nav, route.heading, route.path);
+        expect(await browser.checkScreen(`${slug(route.nav)}-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
       });
     }
+
+    for (const section of settingsSections) {
+      it(`persists ${appearance} and compares Settings ${section} at ${width}x${height}`, async () => {
+        await prepareVisualCase(visualCase);
+        await $('button[aria-label="Settings"]').click();
+        await expectPageHeading('Settings');
+        const tab = await $(`[role="tab"][aria-label="${section}"]`);
+        await tab.click();
+        await browser.waitUntil(
+          () => browser.execute((expectedHeading) => {
+            const activePanel = document.querySelector('[role="tabpanel"][data-state="active"]');
+            return activePanel?.querySelector('h2')?.textContent?.trim() === expectedHeading;
+          }, settingsHeadings[section]),
+        );
+        expect(await browser.checkScreen(`settings-${slug(section)}-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
+      });
+    }
+
+    it(`persists ${appearance} and compares missing-meeting recovery at ${width}x${height}`, async () => {
+      await prepareVisualCase(visualCase);
+      await browser.url('http://127.0.0.1:3120/meeting-details');
+      await expectPageHeading('Meeting could not be opened', 2);
+      expect(await browser.checkScreen(`missing-meeting-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
+    });
+
+    it(`persists ${appearance} and compares workspace dialogs at ${width}x${height}`, async () => {
+      await prepareVisualCase(visualCase);
+      await compareWorkspaceDialogs(appearance, width, height);
+    });
   }
 
   it('keeps keyboard focus visible, reachable, and unobscured with reduced motion', async () => {

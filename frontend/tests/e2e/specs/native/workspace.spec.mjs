@@ -2,7 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 import { expectWcag22Aa } from '../../helpers/accessibility.mjs';
-import { nativeVisualMatrix } from '../../helpers/native-visual-matrix.mjs';
+import { releaseVisualMatrix } from '../../helpers/release-visual-matrix.mjs';
 import { expectPageHeading, openSidebarRoute, routes, setAppearance, waitForThemeMotionToSettle } from '../../helpers/routes.mjs';
 
 const artifactDir = resolve(process.cwd(), 'tests/e2e/artifacts/native');
@@ -143,7 +143,7 @@ describe('Meetily native macOS workspace', () => {
     await expectPageHeading('Meeting could not be opened', 2);
   });
 
-  for (const visualCase of nativeVisualMatrix) {
+  for (const visualCase of releaseVisualMatrix) {
     const { appearance, width, height } = visualCase;
     it(`captures every real route and settings section in ${appearance} at ${width}x${height}`, async () => {
       await captureVisualMatrixCase(visualCase);
