@@ -1,22 +1,20 @@
 // Bluetooth device fallback strategy for stable Core Audio recording (macOS-specific)
 //
-// This module implements automatic fallback to built-in devices when
-// Bluetooth devices are detected as system defaults on macOS. This solves:
+// This module implements automatic microphone fallback to the built-in input
+// when a Bluetooth microphone is the system default on macOS. This solves:
 // - Bluetooth variable sample rate issues (Core Audio may resample dynamically)
 // - Inconsistent sample rates when mixing mic + system audio streams
-// - ScreenCaptureKit capturing Bluetooth-processed streams with variable timing
 //
 // Strategy (macOS-only):
 // 1. Get system default devices (mic + speaker)
-// 2. Detect if EACH is Bluetooth using InputDeviceKind::detect()
-// 3. For EACH Bluetooth device detected → Override to built-in MacBook device
-// 4. Return final devices with detailed rationale logging
+// 2. Detect each device kind using InputDeviceKind::detect()
+// 3. If the microphone is Bluetooth, prefer the built-in microphone
+// 4. Keep the active output device so ScreenCaptureKit captures its digital stream
+// 5. Return final devices with detailed rationale logging
 //
-// Note: Bluetooth mic and speaker are checked INDEPENDENTLY - one, both, or
-// neither could be Bluetooth and need override.
-//
-// User still hears via Bluetooth (playback uses default), but recording
-// captures via stable wired path (built-in mic + ScreenCaptureKit from built-in).
+// A Bluetooth output is intentionally retained. ScreenCaptureKit captures the
+// active output's digital stream before Bluetooth encoding, while the stable
+// built-in microphone avoids variable input sample rates.
 
 use anyhow::Result;
 use log::{info, warn};
@@ -30,18 +28,18 @@ use crate::audio::device_detection::InputDeviceKind;
 ///
 /// This function intelligently selects audio devices for recording on macOS:
 /// - Checks microphone: if Bluetooth → override to built-in mic
-/// - Checks speaker: if Bluetooth → override to built-in speaker
-/// - Each device is evaluated INDEPENDENTLY
+/// - Keeps the active output device, including Bluetooth outputs
 ///
-/// # Rationale for Bluetooth Override
+/// # Rationale
 ///
-/// Bluetooth devices on macOS can have variable sample rates as Core Audio
-/// and the Bluetooth stack may resample dynamically. When ScreenCaptureKit
-/// captures from a Bluetooth output device, it captures the processed stream
-/// which may have inconsistent sample rates, causing sync issues when mixing
-/// with the microphone stream.
+/// Bluetooth microphones on macOS can have variable sample rates as Core Audio
+/// and the Bluetooth stack can resample dynamically. Falling back to the built-in
+/// microphone provides a fixed input rate for reliable mixing.
 ///
-/// Built-in devices have fixed, consistent sample rates → reliable mixing.
+/// The output device follows a different rule: ScreenCaptureKit captures the
+/// active output's digital stream before Bluetooth encoding. Replacing a
+/// Bluetooth output with the built-in speaker would move capture away from the
+/// stream the user is actually hearing.
 ///
 /// # Returns
 ///
@@ -51,14 +49,18 @@ use crate::audio::device_detection::InputDeviceKind;
 ///
 /// # Example
 ///
-/// ```rust
-/// // When AirPods are default mic, built-in speaker is default output:
-/// let (mic, system) = get_safe_recording_devices_macos()?;
+/// ```no_run
+/// use app_lib::audio::devices::fallback::get_safe_recording_devices_macos;
 ///
-/// // Logs:
-/// // "🎧 Bluetooth microphone detected: AirPods Pro"
-/// // "→ Overriding to stable built-in: MacBook Pro Microphone"
-/// // "✅ Using wired speaker: MacBook Pro Speakers"
+/// fn main() -> anyhow::Result<()> {
+///     let (microphone, system_audio) = get_safe_recording_devices_macos()?;
+///     println!(
+///         "microphone available: {}, system audio available: {}",
+///         microphone.is_some(),
+///         system_audio.is_some(),
+///     );
+///     Ok(())
+/// }
 /// ```
 #[cfg(target_os = "macos")]
 pub fn get_safe_recording_devices_macos() -> Result<(Option<AudioDevice>, Option<AudioDevice>)> {

@@ -58,6 +58,9 @@ jobs:
       - name: Run Rust workspace tests
         run: cargo +stable test --locked --workspace --all-targets --features metal
 
+      - name: Run Rust workspace doctests
+        run: cargo +stable test --locked --workspace --doc --features metal
+
   rust-dependencies:
     name: Rust dependency policy
     runs-on: ubuntu-latest
