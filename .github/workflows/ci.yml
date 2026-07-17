@@ -237,6 +237,8 @@ jobs:
           test -f "$APP_PATH/Contents/Resources/MeetilyImproved.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
             "$APP_PATH/Contents/Info.plist")" = "com.meetily.improved.qa.routes"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' \
+            "$APP_PATH/Contents/Info.plist")" = "14.2"
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
           FFMPEG_PATH=$(find "$APP_PATH" -type f -name 'ffmpeg*' -print -quit)
           test -n "$FFMPEG_PATH"
