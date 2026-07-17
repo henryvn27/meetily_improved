@@ -90,3 +90,8 @@ try {
 } finally {
   await stopProcess(server);
 }
+
+// The macOS hosted runner can fault during Node's native child-process
+// teardown after WebdriverIO has already returned successfully. All children
+// are settled above, so exit with the captured runner status explicitly.
+process.exit(process.exitCode ?? 0);

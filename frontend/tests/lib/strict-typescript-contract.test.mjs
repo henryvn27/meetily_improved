@@ -4,12 +4,13 @@ import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
 
-const [strictConfig, homebrewDetector, indexedDbService, accessibilityHelper, browserQaConfig, browserQaSpec] = await Promise.all([
+const [strictConfig, homebrewDetector, indexedDbService, accessibilityHelper, browserQaConfig, browserQaRunner, browserQaSpec] = await Promise.all([
   readFile(new URL('eslint.strict.config.mjs', root), 'utf8'),
   readFile(new URL('src/components/DatabaseImport/HomebrewDatabaseDetector.tsx', root), 'utf8'),
   readFile(new URL('src/services/indexedDBService.ts', root), 'utf8'),
   readFile(new URL('tests/e2e/helpers/accessibility.mjs', root), 'utf8'),
   readFile(new URL('tests/e2e/wdio.browser.conf.mjs', root), 'utf8'),
+  readFile(new URL('scripts/run-browser-e2e.mjs', root), 'utf8'),
   readFile(new URL('tests/e2e/specs/browser/workspace.spec.mjs', root), 'utf8'),
 ]);
 
@@ -42,6 +43,14 @@ test('browser accessibility scans use one in-page axe execution', () => {
   assert.doesNotMatch(browserQaConfig, /wdio:enforceWebDriverClassic/);
   assert.match(browserQaSpec, /before\(async \(\) => \{[\s\S]*installEmptyBackendMocks\(browser\)/);
   assert.doesNotMatch(browserQaSpec, /beforeEach|afterEach/);
+});
+
+test('browser QA exits with the captured result after child cleanup', () => {
+  const cleanupIndex = browserQaRunner.lastIndexOf('await stopProcess(server);');
+  const exitIndex = browserQaRunner.indexOf('process.exit(process.exitCode ?? 0);');
+
+  assert.ok(cleanupIndex >= 0);
+  assert.ok(exitIndex > cleanupIndex);
 });
 
 test('proven-dead generic form components stay removed', async () => {
