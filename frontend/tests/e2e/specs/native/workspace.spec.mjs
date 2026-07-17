@@ -2,11 +2,10 @@ import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 import { expectWcag22Aa } from '../../helpers/accessibility.mjs';
+import { releaseVisualMatrix } from '../../helpers/release-visual-matrix.mjs';
 import { expectPageHeading, openSidebarRoute, routes, setAppearance, waitForThemeMotionToSettle } from '../../helpers/routes.mjs';
 
 const artifactDir = resolve(process.cwd(), 'tests/e2e/artifacts/native');
-const appearances = ['Light', 'Dark'];
-const releaseSizes = [[1280, 820], [1100, 720]];
 const settingsSections = ['General', 'Recordings', 'Transcription', 'Summary', 'Beta'];
 const settingsHeadings = {
   General: 'General settings',
@@ -69,6 +68,40 @@ async function captureWorkspaceDialogs(appearance, width, height) {
   await resetWorkspace();
 }
 
+async function captureVisualMatrixCase({ appearance, width, height }) {
+  await browser.setWindowSize(width, height);
+  await setAppearance(appearance);
+
+  for (const route of routes) {
+    await openSidebarRoute(route.nav, route.heading, route.path);
+    await clearTransientFocus();
+    await browser.saveScreenshot(resolve(artifactDir, `${slug(route.nav)}-${slug(appearance)}-${width}x${height}.png`));
+  }
+
+  await $('button[aria-label="Settings"]').click();
+  await expectPageHeading('Settings');
+  for (const section of settingsSections) {
+    const tab = await $(`[role="tab"][aria-label="${section}"]`);
+    await tab.click();
+    await browser.waitUntil(
+      () => browser.execute((expectedHeading) => {
+        const activePanel = document.querySelector('[role="tabpanel"][data-state="active"]');
+        return activePanel?.querySelector('h2')?.textContent?.trim() === expectedHeading;
+      }, settingsHeadings[section]),
+      { timeout: 15_000, timeoutMsg: `Settings did not activate the ${section} panel` },
+    );
+    await clearTransientFocus();
+    await browser.saveScreenshot(resolve(artifactDir, `settings-${slug(section)}-${slug(appearance)}-${width}x${height}.png`));
+  }
+
+  await browser.execute(() => window.location.assign('/meeting-details'));
+  await expectPageHeading('Meeting could not be opened', 2);
+  await clearTransientFocus();
+  await browser.saveScreenshot(resolve(artifactDir, `missing-meeting-${slug(appearance)}-${width}x${height}.png`));
+
+  await captureWorkspaceDialogs(appearance, width, height);
+}
+
 describe('Meetily native macOS workspace', () => {
   before(async () => {
     await mkdir(artifactDir, { recursive: true });
@@ -110,42 +143,10 @@ describe('Meetily native macOS workspace', () => {
     await expectPageHeading('Meeting could not be opened', 2);
   });
 
-  it('captures every real route and settings section in Light and Dark at both release sizes', async () => {
-    for (const [width, height] of releaseSizes) {
-      await browser.setWindowSize(width, height);
-
-      for (const appearance of appearances) {
-        await setAppearance(appearance);
-
-        for (const route of routes) {
-          await openSidebarRoute(route.nav, route.heading, route.path);
-          await clearTransientFocus();
-          await browser.saveScreenshot(resolve(artifactDir, `${slug(route.nav)}-${slug(appearance)}-${width}x${height}.png`));
-        }
-
-        await $('button[aria-label="Settings"]').click();
-        await expectPageHeading('Settings');
-        for (const section of settingsSections) {
-          const tab = await $(`[role="tab"][aria-label="${section}"]`);
-          await tab.click();
-          await browser.waitUntil(
-            () => browser.execute((expectedHeading) => {
-              const activePanel = document.querySelector('[role="tabpanel"][data-state="active"]');
-              return activePanel?.querySelector('h2')?.textContent?.trim() === expectedHeading;
-            }, settingsHeadings[section]),
-            { timeout: 15_000, timeoutMsg: `Settings did not activate the ${section} panel` },
-          );
-          await clearTransientFocus();
-          await browser.saveScreenshot(resolve(artifactDir, `settings-${slug(section)}-${slug(appearance)}-${width}x${height}.png`));
-        }
-
-        await browser.execute(() => window.location.assign('/meeting-details'));
-        await expectPageHeading('Meeting could not be opened', 2);
-        await clearTransientFocus();
-        await browser.saveScreenshot(resolve(artifactDir, `missing-meeting-${slug(appearance)}-${width}x${height}.png`));
-
-        await captureWorkspaceDialogs(appearance, width, height);
-      }
-    }
-  });
+  for (const visualCase of releaseVisualMatrix) {
+    const { appearance, width, height } = visualCase;
+    it(`captures every real route and settings section in ${appearance} at ${width}x${height}`, async () => {
+      await captureVisualMatrixCase(visualCase);
+    });
+  }
 });
