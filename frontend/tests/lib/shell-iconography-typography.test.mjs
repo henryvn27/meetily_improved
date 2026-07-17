@@ -16,7 +16,8 @@ test('persistent workspace shell uses the Meetily glyph and native type systems'
   ]);
 
   assert.doesNotMatch(css, /Instrument Sans/);
-  assert.match(css, /font-family: -apple-system, BlinkMacSystemFont/);
+  assert.match(css, /--font-sans: -apple-system, BlinkMacSystemFont/);
+  assert.match(css, /font-family: var\(--font-sans\)/);
   assert.match(tailwind, /hsl\(var\(--primary\) \/ <alpha-value>\)/);
   assert.match(tailwind, /hsl\(var\(--accent\) \/ <alpha-value>\)/);
   assert.doesNotMatch(tailwind, /221, 83%, 53%/);

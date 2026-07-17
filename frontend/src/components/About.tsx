@@ -20,7 +20,11 @@ export function About() {
 
     useEffect(() => {
         // Get current version on mount
-        getVersion().then(setCurrentVersion).catch(console.error);
+        getVersion().then((version) => {
+            if (typeof version === 'string' && version.trim()) {
+                setCurrentVersion(version);
+            }
+        }).catch(console.error);
     }, []);
 
     const handleUpstreamClick = async () => {
@@ -98,26 +102,26 @@ export function About() {
             <div className="space-y-3">
                 <h2 className="text-sm font-semibold text-foreground">What this fork improves</h2>
                 <div className="grid grid-cols-2 gap-2">
-                    <div className="border border-border bg-muted/40 p-3">
+                    <div className="rounded-control border border-border bg-muted/40 p-3">
                         <h3 className="mb-1 text-sm font-semibold text-foreground">Clearer workbench</h3>
                         <p className="text-xs leading-relaxed text-muted-foreground">A focused desktop shell makes capture, local readiness, recovery, and saved notes easier to scan.</p>
                     </div>
-                    <div className="border border-border bg-muted/40 p-3">
+                    <div className="rounded-control border border-border bg-muted/40 p-3">
                         <h3 className="mb-1 text-sm font-semibold text-foreground">Local-first by default</h3>
                         <p className="text-xs leading-relaxed text-muted-foreground">Meeting data remains local. Remote processing happens only when you explicitly configure a remote provider.</p>
                     </div>
-                    <div className="border border-border bg-muted/40 p-3">
+                    <div className="rounded-control border border-border bg-muted/40 p-3">
                         <h3 className="mb-1 text-sm font-semibold text-foreground">Same foundation</h3>
                         <p className="text-xs leading-relaxed text-muted-foreground">Capture, transcription, summaries, imports, recovery, and saved meetings stay available while the UI changes.</p>
                     </div>
-                    <div className="border border-border bg-muted/40 p-3">
+                    <div className="rounded-control border border-border bg-muted/40 p-3">
                         <h3 className="mb-1 text-sm font-semibold text-foreground">Open source</h3>
                         <p className="text-xs leading-relaxed text-muted-foreground">Meetily Improved is public work built with clear attribution to the upstream MIT project.</p>
                     </div>
                 </div>
             </div>
 
-            <div className="border border-accent/30 bg-accent-soft p-3">
+            <div className="rounded-control border border-accent/30 bg-accent-soft p-3">
                 <p className="text-sm leading-5 text-foreground">
                     <span className="font-semibold">Upstream attribution.</span> Meetily Improved is an independent fork of Meetily by Zackriya Solutions. The original application and MIT license remain credited in this project.
                 </p>
@@ -126,7 +130,7 @@ export function About() {
             <div className="space-y-2 border-t border-border pt-4 text-center">
                 <button
                     onClick={handleUpstreamClick}
-                    className="inline-flex items-center gap-2 bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                    className="inline-flex items-center gap-2 rounded-control bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                     View upstream Meetily <ArrowTopRightOnSquareIcon className="size-3.5" />
                 </button>

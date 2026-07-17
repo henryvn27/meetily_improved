@@ -26,7 +26,7 @@ import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext'
 import AnalyticsDataModal from '@/components/AnalyticsDataModal'
-import { bypassOnboardingForNativeQa, nativeQaRoute, nativeQaTheme, openAnalyticsDetailsForNativeQa, openImportDialogForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
+import { bypassOnboardingForNativeQa, isBrowserQaMode, isNativeQaMode, nativeQaRoute, nativeQaTheme, openAnalyticsDetailsForNativeQa, openImportDialogForNativeQa, openMeetingErrorForNativeQa } from '@/lib/native-qa-mode'
 import '@/lib/browser-qa-bootstrap'
 
 // This branch is replaced at build time. Normal builds eliminate the dynamic
@@ -279,7 +279,7 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en" className={nativeQaTheme === 'dark' ? 'dark' : undefined} suppressHydrationWarning>
+    <html lang="en" className={nativeQaTheme === 'dark' ? 'dark' : undefined} data-native-qa={isNativeQaMode && !isBrowserQaMode ? 'true' : undefined} suppressHydrationWarning>
       <head>
         <title>{process.env.NEXT_PUBLIC_MEETILY_WDIO === 'true' ? 'Meetily Improved QA WebDriver' : 'Meetily Improved'}</title>
         <meta name="description" content="Private, local-first meeting capture and recall." />

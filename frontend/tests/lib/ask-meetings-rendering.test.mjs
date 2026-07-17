@@ -15,6 +15,10 @@ test('Ask Meetings renders safe Markdown and dated meeting-level sources', async
   assert.doesNotMatch(chat, /rehypeRaw/);
   assert.match(chat, /source\.meetingDate/);
   assert.match(chat, /new Date\(source\.meetingDate\)\.toLocaleDateString\(\)/);
+  assert.match(chat, /getLocalModelStatus/);
+  assert.match(chat, /Local recall needs a model/);
+  assert.match(chat, /Review local model settings/);
+  assert.match(chat, /kind="model"/);
 
   assert.match(api, /fn build_global_recall_sources/);
   assert.match(api, /find\(\|source\| source\.meeting_id == item\.id\)/);

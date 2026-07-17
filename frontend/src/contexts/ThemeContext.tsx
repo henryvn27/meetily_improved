@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
-import { nativeQaTheme } from '@/lib/native-qa-mode';
+import { isNativeQaMode, nativeQaTheme } from '@/lib/native-qa-mode';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -27,6 +27,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (nativeQaTheme) return;
     const stored = window.localStorage.getItem(storageKey);
     const nextPreference: ThemePreference = stored === 'light' || stored === 'dark' ? stored : 'system';
+    if (nextPreference !== 'system') {
+      // The first system-theme pass may already have committed before stored
+      // preferences load. Re-enter the transition-free startup state so an
+      // unfocused WKWebView cannot freeze halfway between the two palettes.
+      // Commit the stored palette here as well: React development Strict Mode
+      // may replay this effect after state already matches nextPreference, in
+      // which case no later layout effect is scheduled to restore data-theme.
+      const root = document.documentElement;
+      delete root.dataset.theme;
+      void root.offsetWidth;
+      root.classList.toggle('dark', nextPreference === 'dark');
+      root.style.colorScheme = nextPreference;
+      root.dataset.theme = nextPreference;
+    }
     setPreference(nextPreference);
   }, []);
 
@@ -57,6 +71,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const updatePreference = (nextPreference: ThemePreference) => {
     window.localStorage.setItem(storageKey, nextPreference);
+    if (isNativeQaMode) {
+      const root = document.documentElement;
+      delete root.dataset.theme;
+      void root.offsetWidth;
+      const theme = resolveTheme(nextPreference);
+      root.classList.toggle('dark', theme === 'dark');
+      root.style.colorScheme = theme;
+      root.dataset.theme = theme;
+    }
     setPreference(nextPreference);
   };
 

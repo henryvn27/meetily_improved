@@ -198,6 +198,15 @@ jobs:
         working-directory: frontend
         run: pnpm run test:e2e:native
 
+      - name: Build isolated native onboarding WebDriver app
+        working-directory: frontend
+        run: pnpm run tauri:build:wdio:onboarding
+
+      - name: Run native onboarding accessibility and visual QA
+        id: native-onboarding-e2e
+        working-directory: frontend
+        run: pnpm run test:e2e:native:onboarding
+
       - name: Upload native QA evidence
         if: ${{ always() && steps.native-e2e.outcome != 'skipped' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

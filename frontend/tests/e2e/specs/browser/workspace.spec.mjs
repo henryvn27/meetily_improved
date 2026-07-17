@@ -12,13 +12,62 @@ const settingsHeadings = {
   Summary: 'Summary settings',
   Beta: 'Beta settings',
 };
+const releaseSizes = [[1280, 820], [1100, 720]];
+const screenshotOptions = {
+  ignoreAntialiasing: true,
+  misMatchPercentage: 0.15,
+};
 
-async function expectAccessible(context) {
+function slug(value) {
+  return value.toLowerCase().replaceAll(' ', '-');
+}
+
+async function expectAccessible(context, selector) {
   try {
-    await expectWcag22Aa(browser);
+    await expectWcag22Aa(browser, selector);
   } catch (error) {
     throw new Error(`${context}: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+async function closeDialog() {
+  const clicked = await browser.execute(() => {
+    const dialogs = Array.from(document.querySelectorAll('[role="dialog"]'))
+      .filter((dialog) => dialog.getClientRects().length > 0);
+    const dialog = dialogs[dialogs.length - 1];
+    const close = dialog?.querySelector('button[aria-label="Close"]');
+    if (!(close instanceof HTMLElement)) return false;
+    close.click();
+    return true;
+  });
+  expect(clicked).toBe(true);
+  await browser.waitUntil(
+    () => browser.execute(() => !document.querySelector('[role="dialog"][data-state="open"]')),
+  );
+}
+
+async function resetWorkspace() {
+  await browser.url('http://127.0.0.1:3120/');
+  await expectPageHeading('Work from what was said.');
+}
+
+async function compareWorkspaceDialogs(appearance, width, height) {
+  await browser.url('http://127.0.0.1:3120/');
+  await expectPageHeading('Work from what was said.');
+
+  await $('button[aria-label="Import audio"]').click();
+  await expectPageHeading('Import a recording', 2);
+  await expectAccessible(`${appearance} / Import audio dialog`, '[role="dialog"]');
+  expect(await browser.checkScreen(`import-audio-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
+  await closeDialog();
+  await resetWorkspace();
+
+  await $('button[aria-label="About"]').click();
+  await expectPageHeading('About Meetily Improved', 2);
+  await expectAccessible(`${appearance} / About dialog`, '[role="dialog"]');
+  expect(await browser.checkScreen(`about-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
+  await closeDialog();
+  await resetWorkspace();
 }
 
 describe('Meetily browser-mode workspace', () => {
@@ -88,27 +137,39 @@ describe('Meetily browser-mode workspace', () => {
 
   }
 
-  it('persists theme selection and compares both required workspace sizes', async () => {
-    for (const [width, height] of [[1280, 820], [1100, 720]]) {
-      await browser.setWindowSize(width, height);
+  for (const [width, height] of releaseSizes) {
+    for (const appearance of appearances) {
+      it(`persists ${appearance} and compares every route at ${width}x${height}`, async () => {
+        await browser.setWindowSize(width, height);
+        await setAppearance(appearance);
 
-      await setAppearance('Light');
-      await $('button[aria-label="Home"]').click();
-      await expectPageHeading('Work from what was said.');
-      expect(await browser.checkScreen(`home-light-${width}x${height}`, {
-        ignoreAntialiasing: true,
-        misMatchPercentage: 0.15,
-      })).toBeLessThanOrEqual(0.15);
+        for (const route of routes) {
+          await openSidebarRoute(route.nav, route.heading, route.path);
+          expect(await browser.checkScreen(`${slug(route.nav)}-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
+        }
 
-      await setAppearance('Dark');
-      await $('button[aria-label="Home"]').click();
-      await expectPageHeading('Work from what was said.');
-      expect(await browser.checkScreen(`home-dark-${width}x${height}`, {
-        ignoreAntialiasing: true,
-        misMatchPercentage: 0.15,
-      })).toBeLessThanOrEqual(0.15);
+        await $('button[aria-label="Settings"]').click();
+        await expectPageHeading('Settings');
+        for (const section of settingsSections) {
+          const tab = await $(`[role="tab"][aria-label="${section}"]`);
+          await tab.click();
+          await browser.waitUntil(
+            () => browser.execute((expectedHeading) => {
+              const activePanel = document.querySelector('[role="tabpanel"][data-state="active"]');
+              return activePanel?.querySelector('h2')?.textContent?.trim() === expectedHeading;
+            }, settingsHeadings[section]),
+          );
+          expect(await browser.checkScreen(`settings-${slug(section)}-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
+        }
+
+        await browser.url('http://127.0.0.1:3120/meeting-details');
+        await expectPageHeading('Meeting could not be opened', 2);
+        expect(await browser.checkScreen(`missing-meeting-${slug(appearance)}-${width}x${height}`, screenshotOptions)).toBeLessThanOrEqual(0.15);
+
+        await compareWorkspaceDialogs(appearance, width, height);
+      });
     }
-  });
+  }
 
   it('keeps keyboard focus visible, reachable, and unobscured with reduced motion', async () => {
     await browser.url('http://127.0.0.1:3120/');

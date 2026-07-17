@@ -31,8 +31,8 @@ export function AppState({ kind, title, description, action, compact = false, cl
       role={kind === 'error' ? 'alert' : 'status'}
       aria-live={kind === 'loading' ? 'polite' : undefined}
       className={cn(
-        'flex border border-border bg-card text-card-foreground',
-        compact ? 'items-start gap-3 rounded-md p-4' : 'min-h-44 flex-col items-center justify-center rounded-[10px] px-6 py-9 text-center',
+        'app-surface flex',
+        compact ? 'items-start gap-3 p-4' : 'min-h-44 flex-col items-center justify-center px-6 py-9 text-center',
         className,
       )}
     >

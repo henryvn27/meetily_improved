@@ -5,8 +5,11 @@ import test from 'node:test';
 const root = new URL('../../', import.meta.url);
 
 test('global shell uses the documented signal-orange visual system', async () => {
-  const [css, sidebar, mainContent, pageHeader, homePage, themeContext, themeControl, meetingPage, meetingTranscript, meetingSummary, preRecording, postRecording, product, designMarkdown, designJson] = await Promise.all([
+  const [css, tailwind, layout, nativeQaMode, sidebar, mainContent, pageHeader, homePage, themeContext, themeControl, meetingPage, meetingTranscript, meetingSummary, preRecording, postRecording, about, product, designMarkdown, designJson] = await Promise.all([
     readFile(new URL('src/app/globals.css', root), 'utf8'),
+    readFile(new URL('tailwind.config.js', root), 'utf8'),
+    readFile(new URL('src/app/layout.tsx', root), 'utf8'),
+    readFile(new URL('src/lib/native-qa-mode.ts', root), 'utf8'),
     readFile(new URL('src/components/Sidebar/index.tsx', root), 'utf8'),
     readFile(new URL('src/components/MainContent/index.tsx', root), 'utf8'),
     readFile(new URL('src/components/app-shell/PageHeader.tsx', root), 'utf8'),
@@ -18,12 +21,25 @@ test('global shell uses the documented signal-orange visual system', async () =>
     readFile(new URL('src/components/MeetingDetails/SummaryPanel.tsx', root), 'utf8'),
     readFile(new URL('src/components/recording/PreRecordingWorkspace.tsx', root), 'utf8'),
     readFile(new URL('src/components/recording/PostRecordingWorkspace.tsx', root), 'utf8'),
+    readFile(new URL('src/components/About.tsx', root), 'utf8'),
     readFile(new URL('../PRODUCT.md', root), 'utf8'),
     readFile(new URL('../DESIGN.md', root), 'utf8'),
     readFile(new URL('../DESIGN.json', root), 'utf8'),
   ]);
 
   assert.match(css, /--accent: 19 87% 55%/);
+  assert.match(css, /--font-sans:/);
+  assert.match(css, /--font-mono:/);
+  assert.match(css, /--space-1: 0\.25rem/);
+  assert.match(css, /--space-8: 3rem/);
+  assert.match(css, /--radius-control: 0\.375rem/);
+  assert.match(css, /--radius-surface: 0\.625rem/);
+  assert.match(css, /--border-strong:/);
+  assert.match(css, /--status-success-surface:/);
+  assert.match(css, /--motion-fast: 180ms/);
+  assert.match(css, /--shadow-focus:/);
+  assert.match(tailwind, /'border-strong': 'hsl\(var\(--border-strong\)\)'/);
+  assert.match(tailwind, /fast: 'var\(--motion-fast\)'/);
   assert.match(css, /\.dark \{/);
   assert.match(css, /min-width: 1100px/);
   assert.match(css, /--sidebar: 225 12% 91%/);
@@ -37,6 +53,9 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /animation-duration: 0\.01ms !important/);
   assert.match(css, /transition-duration: 0\.01ms !important/);
+  assert.match(css, /html\[data-native-qa='true'\]/);
+  assert.match(nativeQaMode, /NEXT_PUBLIC_MEETILY_BROWSER_QA/);
+  assert.match(layout, /isNativeQaMode && !isBrowserQaMode/);
   assert.match(mainContent, /h-8 shrink-0/);
   assert.match(mainContent, /h-dvh min-w-0 overflow-hidden/);
   assert.match(mainContent, /w-\[calc\(100%-4\.5rem\)\]/);
@@ -49,6 +68,8 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(themeContext, /meetily-theme-preference/);
   assert.match(themeContext, /prefers-color-scheme: dark/);
   assert.match(themeContext, /dataset\.theme/);
+  assert.match(themeContext, /delete root\.dataset\.theme/);
+  assert.match(themeContext, /if \(isNativeQaMode\)/);
   assert.match(themeControl, /System theme/);
   assert.match(themeControl, /Light theme/);
   assert.match(themeControl, /Dark theme/);
@@ -67,6 +88,8 @@ test('global shell uses the documented signal-orange visual system', async () =>
   assert.match(preRecording, /xl:grid-cols-\[minmax\(0,1fr\)_22rem\]/);
   assert.doesNotMatch(preRecording, /md:grid-cols-\[minmax\(0,1fr\)_22rem\]/);
   assert.doesNotMatch(postRecording, /rounded-(?:lg|xl)/);
+  assert.match(about, /typeof version === 'string' && version\.trim\(\)/);
+  assert.match(about, /rounded-control border border-border/);
 
   const combinedDocs = `${product}\n${designMarkdown}\n${designJson}`;
   assert.match(combinedDocs, /Signal Orange/);

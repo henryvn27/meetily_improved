@@ -44,7 +44,9 @@
         "test:e2e:browser": "node scripts/run-browser-e2e.mjs",
         "test:e2e:browser:update": "node scripts/run-browser-e2e.mjs --update",
         "tauri:build:wdio": "NEXT_PUBLIC_MEETILY_NATIVE_QA_MODE=routes NEXT_PUBLIC_MEETILY_WDIO=true tauri build --debug --no-bundle --config src-tauri/tauri.qa.wdio.conf.json --features wdio,metal",
+        "tauri:build:wdio:onboarding": "NEXT_PUBLIC_MEETILY_NATIVE_QA_MODE=onboarding NEXT_PUBLIC_MEETILY_NATIVE_QA_ONBOARDING_STEP=2 NEXT_PUBLIC_MEETILY_WDIO=true tauri build --debug --no-bundle --config src-tauri/tauri.qa.wdio.conf.json --features wdio,metal",
         "test:e2e:native": "wdio run tests/e2e/wdio.native.conf.mjs",
+        "test:e2e:native:onboarding": "MEETILY_WDIO_SPEC=onboarding wdio run tests/e2e/wdio.native.conf.mjs",
         "test:e2e:native:update": "MEETILY_UPDATE_VISUALS=1 wdio run tests/e2e/wdio.native.conf.mjs",
         "audit:prod": "pnpm audit --prod --audit-level low",
         "check:bundle": "node scripts/check-route-bundle-budget.mjs"

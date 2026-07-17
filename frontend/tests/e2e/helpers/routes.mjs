@@ -29,6 +29,37 @@ export async function openSidebarRoute(nav, heading, path) {
   await expectPageHeading(heading);
 }
 
+export async function waitForThemeMotionToSettle() {
+  const readThemeColors = () => browser.execute(() => {
+      const label = document.querySelector('button[aria-label="New meeting"] span');
+      if (!(label instanceof HTMLElement)) return null;
+      const probe = document.createElement('span');
+      probe.style.color = 'hsl(var(--sidebar-muted))';
+      document.body.append(probe);
+      const expected = getComputedStyle(probe).color;
+      probe.remove();
+      return {
+        actual: getComputedStyle(label).color,
+        expected,
+        rootClass: document.documentElement.className,
+        theme: document.documentElement.dataset.theme ?? null,
+        preference: window.localStorage.getItem('meetily-theme-preference'),
+      };
+  });
+  try {
+    await browser.waitUntil(
+      async () => {
+        const colors = await readThemeColors();
+        return colors !== null && colors.actual === colors.expected;
+      },
+      { timeout: 5_000 },
+    );
+  } catch (error) {
+    const colors = await readThemeColors();
+    throw new Error(`Theme transitions did not settle before visual assertions: ${JSON.stringify(colors)}`, { cause: error });
+  }
+}
+
 export async function setAppearance(preference) {
   const settings = await $('button[aria-label="Settings"]');
   await settings.waitForClickable({ timeout: 60_000 });
@@ -45,10 +76,20 @@ export async function setAppearance(preference) {
 
   const radio = await $(`[role="radio"][aria-label="${preference}"]`);
   await radio.click();
-  await browser.waitUntil(async () => {
-    const theme = await browser.execute(() => document.documentElement.dataset.theme);
-    return preference === 'System' ? theme === 'light' || theme === 'dark' : theme === preference.toLowerCase();
-  });
+  try {
+    await browser.waitUntil(async () => {
+      const theme = await browser.execute(() => document.documentElement.dataset.theme);
+      return preference === 'System' ? theme === 'light' || theme === 'dark' : theme === preference.toLowerCase();
+    });
+  } catch (error) {
+    const diagnostic = await browser.execute(() => ({
+      theme: document.documentElement.dataset.theme ?? null,
+      rootClass: document.documentElement.className,
+      storedPreference: window.localStorage.getItem('meetily-theme-preference'),
+      selectedPreference: document.querySelector('[role="radio"][aria-checked="true"]')?.getAttribute('aria-label') ?? null,
+    }));
+    throw new Error(`Theme preference did not apply: ${JSON.stringify(diagnostic)}`, { cause: error });
+  }
   await browser.waitUntil(
     async () => browser.execute(() => {
       const button = document.querySelector('button[aria-label="Open recorder"]');
@@ -69,4 +110,5 @@ export async function setAppearance(preference) {
     }),
     { timeout: 5_000, timeoutMsg: `Recorder contrast did not settle after selecting ${preference}.` },
   );
+  await waitForThemeMotionToSettle();
 }

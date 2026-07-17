@@ -255,7 +255,7 @@ export default function Sidebar() {
           {betaFeatures.importAndRetranscribe && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <button type="button" onClick={() => openImportDialog()} disabled={isPostProcessing} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5')}>
+                <button type="button" aria-label="Import audio" onClick={() => openImportDialog()} disabled={isPostProcessing} className={cn('flex min-h-9 items-center rounded-md text-[13px] font-medium text-[hsl(var(--sidebar-muted))] transition-colors hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-foreground))] disabled:cursor-not-allowed disabled:opacity-45', isCollapsed ? 'w-9 justify-center' : 'w-full gap-2.5 px-2.5')}>
                   <MeetilyGlyph name="import" className="size-[1.1rem]" />
                   {!isCollapsed && <span>Import audio</span>}
                 </button>
