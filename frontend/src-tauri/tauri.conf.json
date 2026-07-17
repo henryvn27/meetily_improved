@@ -78,6 +78,7 @@
             "binaries/ffmpeg"
         ],
         "macOS": {
+            "minimumSystemVersion": "14.2",
             "entitlements": "entitlements.plist",
             "infoPlist": "Info.plist",
             "signingIdentity": "-",

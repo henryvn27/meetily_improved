@@ -59,6 +59,7 @@ test('QA launcher isolates the native dev instance without changing the release 
     assert.equal(config.bundle.createUpdaterArtifacts, false);
   }
   assert.equal(release.bundle.createUpdaterArtifacts, true);
+  assert.equal(release.bundle.macOS.minimumSystemVersion, '14.2');
   for (const config of [qa, routesQa, onboardingQa, release]) {
     assert.equal(config.app.windows[0].width, 1280);
     assert.equal(config.app.windows[0].height, 820);

@@ -93,6 +93,7 @@ There is no cloud sync, account system, calendar integration, or persistent embe
 
 ### Prerequisites
 
+- macOS 14.2 or later for the shipped Mac capture path
 - [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/)
 - [Rust](https://rustup.rs/)
 - Platform dependencies from the upstream [build guide](docs/BUILDING.md)

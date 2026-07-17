@@ -40,6 +40,7 @@ pub mod config;
 pub mod console_utils;
 pub mod database;
 pub mod groq;
+pub mod identity_migration;
 pub mod notifications;
 pub mod ollama;
 pub mod onboarding;

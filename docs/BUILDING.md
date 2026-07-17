@@ -266,7 +266,10 @@ src-tauri/target/release/bundle/appimage/Meetily_<version>_amd64.AppImage
 
 ## 🍎 Building on macOS
 
-On macOS, the build process is simplified as GPU acceleration (Metal) is enabled by default.
+Meetily Improved supports macOS 14.2 or later. The active default system-audio
+path uses Core Audio process taps, whose create/destroy APIs are available from
+macOS 14.2; the bundle metadata enforces the same floor. GPU acceleration
+(Metal) is enabled by default.
 
 ### 1. Install Dependencies
 
